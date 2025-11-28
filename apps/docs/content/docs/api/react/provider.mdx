@@ -1,0 +1,190 @@
+---
+title: "BetterCallProvider"
+description: "Componente Provider para compartir el cliente HTTP en toda la aplicación React."
+---
+
+# BetterCallProvider
+
+El `BetterCallProvider` es un componente de React que proporciona el cliente Better Call a través del Context API, permitiendo que cualquier componente hijo acceda al cliente mediante el hook `useBetterCall`.
+
+## Importación
+
+```typescript
+import { BetterCallProvider } from '@better-call/react';
+```
+
+## Props
+
+```typescript
+interface BetterCallProviderProps {
+  config: BetterCallConfig;
+  children: React.ReactNode;
+}
+```
+
+### config
+
+Configuración del cliente HTTP. Ver [Configuración](/docs/api/core/config) para todas las opciones.
+
+**Tipo:** `BetterCallConfig`
+
+### children
+
+Componentes hijos que tendrán acceso al cliente.
+
+**Tipo:** `React.ReactNode`
+
+## Uso Básico
+
+```typescript
+import { BetterCallProvider } from '@better-call/react';
+
+function App() {
+  return (
+    <BetterCallProvider
+      config={{
+        baseURL: 'https://api.example.com',
+        timeout: 5000,
+      }}
+    >
+      <YourApp />
+    </BetterCallProvider>
+  );
+}
+```
+
+## Ejemplo con Opciones Avanzadas
+
+```typescript
+import { BetterCallProvider } from '@better-call/react';
+
+const apiConfig = {
+  baseURL: process.env.REACT_APP_API_URL,
+  timeout: 10000,
+  headers: {
+    'X-App-Version': '1.0.0',
+  },
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+  },
+};
+
+function App() {
+  return (
+    <BetterCallProvider config={apiConfig}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/users" element={<Users />} />
+        </Routes>
+      </Router>
+    </BetterCallProvider>
+  );
+}
+```
+
+## Con TanStack Query
+
+```typescript
+import { BetterCallProvider } from '@better-call/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <BetterCallProvider
+      config={{
+        baseURL: 'https://api.example.com',
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <YourApp />
+      </QueryClientProvider>
+    </BetterCallProvider>
+  );
+}
+```
+
+## Next.js App Router
+
+```typescript
+// app/providers.tsx
+'use client';
+
+import { BetterCallProvider } from '@better-call/react';
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <BetterCallProvider
+      config={{
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
+      }}
+    >
+      {children}
+    </BetterCallProvider>
+  );
+}
+```
+
+```typescript
+// app/layout.tsx
+import { Providers } from './providers';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
+}
+```
+
+## Next.js Pages Router
+
+```typescript
+// pages/_app.tsx
+import { BetterCallProvider } from '@better-call/react';
+import type { AppProps } from 'next/app';
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <BetterCallProvider
+      config={{
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
+      }}
+    >
+      <Component {...pageProps} />
+    </BetterCallProvider>
+  );
+}
+```
+
+## Notas Importantes
+
+<Callout type="warning">
+El Provider debe envolver toda tu aplicación en el nivel más alto posible para que todos los componentes tengan acceso al cliente.
+</Callout>
+
+<Callout type="info">
+El cliente se crea una sola vez usando `useMemo` y se reutiliza en toda la aplicación, evitando recreaciones innecesarias.
+</Callout>
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="useBetterCall" 
+    href="/docs/api/react/use-better-call"
+    description="Hook para acceder al cliente desde componentes"
+  />
+  <Card 
+    title="Configuración" 
+    href="/docs/api/core/config"
+    description="Todas las opciones de configuración"
+  />
+</Cards>

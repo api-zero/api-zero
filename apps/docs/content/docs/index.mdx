@@ -1,0 +1,156 @@
+---
+title: Introducción
+description: Conoce api-zero, el cliente HTTP ligero y moderno para TypeScript.
+---
+
+# Introducción a api-zero
+
+**api-zero** es un cliente HTTP moderno, ligero y fuertemente tipado diseñado específicamente para el ecosistema de TypeScript y React.
+
+Nació de la necesidad de tener una alternativa a Axios que fuera más ligera, y una alternativa a Fetch que fuera menos verbosa y más potente.
+
+## ¿Por qué api-zero?
+
+<Cards>
+  <Card title="Ultra Ligero" icon="🪶">
+    Menos de 2KB gzipped. Sin dependencias innecesarias. Mantén tu bundle size bajo control.
+  </Card>
+  <Card title="TypeScript First" icon="🛡️">
+    Tipado estático de primera clase. Genéricos para requests y responses. Autocompletado inteligente.
+  </Card>
+  <Card title="React Ready" icon="⚛️">
+    Hooks personalizados (`useApi`) y Provider incluidos en el paquete `@api-zero/react`.
+  </Card>
+  <Card title="Moderno" icon="🚀">
+    API basada en Promesas, soporte para `AbortSignal`, interceptores asíncronos y más.
+  </Card>
+</Cards>
+
+## Comparativa Rápida
+
+| Característica | api-zero | Axios | Ky | Fetch |
+| :--- | :---: | :---: | :---: | :---: |
+| **Tamaño (Gzipped)** | **~2kB** | ~30kB | ~6kB | 0kB (Nativo) |
+| **Sintaxis** | Simple | Simple | Chainable | Verbosa |
+| **TypeScript** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ |
+| **Interceptors** | ✅ | ✅ | Hooks | ❌ |
+| **Retries** | ✅ (Built-in) | ❌ (Plugin) | ✅ | ❌ |
+| **React Hooks** | ✅ | ❌ (External) | ❌ | ❌ |
+
+<Callout type="success">
+
+api-zero se divide en dos paquetes npm:
+
+### `@api-zero/core`
+
+El paquete core contiene toda la lógica del cliente HTTP:
+
+- **ApiClient**: La clase principal que maneja todas las peticiones HTTP
+- **createClient**: Factory function para crear instancias del cliente
+- **ApiError**: Clase de error personalizada con helpers útiles
+- **InterceptorManager**: Sistema de interceptores
+- **Sistema de reintentos**: Lógica de retry con backoff configurable
+- **Serialización de parámetros**: Manejo flexible de query parameters
+
+### `@api-zero/react`
+
+El paquete React proporciona la integración con el ecosistema React:
+
+- **ApiProvider**: Componente Provider para React Context
+- **useApi**: Hook para acceder al cliente desde cualquier componente
+- **React Context**: Gestión interna del estado del cliente
+
+</Callout>
+
+## Casos de uso principales
+
+### 1. Aplicaciones React con TanStack Query
+
+```typescript
+// Configura api-zero como tu cliente HTTP
+const client = createClient({
+  baseURL: 'https://api.example.com',
+  timeout: 5000,
+});
+
+// Úsalo con TanStack Query
+const { data } = useQuery({
+  queryKey: ['users'],
+  queryFn: () => client.get<User[]>('/users'),
+});
+```
+
+### 2. APIs con autenticación compleja
+
+```typescript
+// Configura interceptores para manejar tokens automáticamente
+client.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+  return config;
+});
+```
+
+### 3. Upload de archivos con progreso
+
+```typescript
+// Sube archivos con feedback visual
+await client.post('/upload', formData, {
+  onUploadProgress: (progress) => {
+    const percent = (progress.loaded / progress.total) * 100;
+    updateProgressBar(percent);
+  },
+});
+```
+
+## Próximos pasos
+
+<Steps>
+
+### Instalar el paquete
+
+Comienza instalando api-zero en tu proyecto.
+
+```bash
+npm install @api-zero/core @api-zero/react
+```
+
+### Explorar los conceptos
+
+Lee sobre los conceptos clave para entender cómo funciona api-zero.
+
+### Crear tu primer cliente
+
+Sigue la guía rápida para crear tu primera petición HTTP.
+
+</Steps>
+
+## Recursos adicionales
+
+<Cards>
+  <Card 
+    title="API Reference - Core" 
+    href="/docs/api/core/client"
+    description="Documentación completa de @api-zero/core"
+  />
+  <Card 
+    title="API Reference - React" 
+    href="/docs/api/react/provider"
+    description="Documentación completa de @api-zero/react"
+  />
+  <Card 
+    title="Guías" 
+    href="/docs/guides/authentication"
+    description="Guías avanzadas y patrones comunes"
+  />
+  <Card 
+    title="Ejemplos" 
+    href="/docs/examples"
+    description="Ejemplos completos y casos de uso reales"
+  />
+</Cards>

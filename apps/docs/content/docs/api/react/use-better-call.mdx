@@ -1,0 +1,138 @@
+---
+title: "useBetterCall"
+description: "Hook de React para acceder al cliente HTTP desde cualquier componente."
+---
+
+# useBetterCall
+
+El hook `useBetterCall` permite acceder al cliente HTTP desde cualquier componente dentro de un `BetterCallProvider`.
+
+## Importación
+
+```typescript
+import { useBetterCall } from '@better-call/react';
+```
+
+## Firma
+
+```typescript
+function useBetterCall(): BetterCallClient
+```
+
+**Retorna:** `BetterCallClient`  
+**Lanza:** Error si se usa fuera de un `BetterCallProvider`
+
+## Uso Básico
+
+```typescript
+import { useBetterCall } from '@better-call/react';
+
+function UserList() {
+  const client = useBetterCall();
+
+  async function fetchUsers() {
+    const users = await client.get<User[]>('/users');
+    return users;
+  }
+
+  // ...
+}
+```
+
+## Con useState
+
+```typescript
+import { useState, useEffect } from 'react';
+import { useBetterCall } from '@better-call/react';
+
+interface User {
+  id: number;
+  name: string;
+}
+
+function Users() {
+  const client = useBetterCall();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    client
+      .get<User[]>('/users')
+      .then(setUsers)
+      .finally(() => setLoading(false));
+  }, [client]);
+
+  if (loading) return <div>Cargando...</div>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Con TanStack Query
+
+```typescript
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useBetterCall } from '@better-call/react';
+
+function Users() {
+  const client = useBetterCall();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => client.get<User[]>('/users'),
+  });
+
+  const createUser = useMutation({
+    mutationFn: (userData: CreateUserDto) =>
+      client.post<User>('/users', userData),
+  });
+
+  return (/* ... */);
+}
+```
+
+## Con Manejo de Errores
+
+```typescript
+import { useBetterCall } from '@better-call/react';
+import { BetterCallError } from '@better-call/core';
+
+function CreateUser() {
+  const client = useBetterCall();
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(data: UserData) {
+    try {
+      setError(null);
+      await client.post('/users', data);
+    } catch (err) {
+      if (err instanceof BetterCallError) {
+        setError(err.message);
+      }
+    }
+  }
+
+  return (/* ... */);
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="BetterCallProvider" 
+    href="/docs/api/react/provider"
+    description="Provider para compartir el cliente"
+  />
+  <Card 
+    title="BetterCallClient" 
+    href="/docs/api/core/client"
+    description="API completa del cliente"
+  />
+</Cards>

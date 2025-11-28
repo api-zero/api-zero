@@ -1,0 +1,75 @@
+---
+title: "Serialización de Parámetros"
+description: "Cómo api-zero serializa los query parameters incluyendo arrays."
+---
+
+# Serialización de Parámetros
+
+api-zero serializa automáticamente los query parameters con soporte para diferentes formatos de arrays.
+
+## Formatos de Arrays
+
+### Brackets (default)
+
+```typescript
+await client.get('/users', {
+  params: { ids: [1, 2, 3] },
+  paramsSerializer: { arrayFormat: 'brackets' },
+});
+// URL: /users?ids[]=1&ids[]=2&ids[]=3
+```
+
+### Repeat
+
+```typescript
+await client.get('/users', {
+  params: { ids: [1, 2, 3] },
+  paramsSerializer: { arrayFormat: 'repeat' },
+});
+// URL: /users?ids=1&ids=2&ids=3
+```
+
+### Comma
+
+```typescript
+await client.get('/users', {
+  params: { ids: [1, 2, 3] },
+  paramsSerializer: { arrayFormat: 'comma' },
+});
+// URL: /users?ids=1,2,3
+```
+
+## Configuración Global
+
+```typescript
+const client = createClient({
+  paramsSerializer: {
+    arrayFormat: 'comma',
+  },
+});
+```
+
+## Valores null y undefined
+
+Los valores `null` y `undefined` se ignoran automáticamente:
+
+```typescript
+await client.get('/users', {
+  params: {
+    name: 'John',
+    age: undefined, // Se ignora
+    city: null, // Se ignora
+  },
+});
+// URL: /users?name=John
+```
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="Configuración" 
+    href="/docs/api/core/config"
+    description="Opciones de configuración completas"
+  />
+</Cards>

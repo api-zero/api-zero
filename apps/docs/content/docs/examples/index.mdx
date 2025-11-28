@@ -1,0 +1,187 @@
+---
+title: "Ejemplos Completos"
+description: "Ejemplos reales y completos de uso de api-zero en diferentes escenarios."
+---
+
+# Ejemplos Completos
+
+Ejemplos prácticos de uso de api-zero en aplicaciones reales.
+
+## CRUD Básico
+
+```typescript
+import { createClient, ApiError } from '@api-zero/core';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const api = createClient({
+  baseURL: 'https://api.example.com',
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+  },
+});
+
+// Create
+async function createUser(data: Omit<User, 'id'>) {
+  return api.post<User>('/users', data);
+}
+
+// Read
+async function getUser(id: number) {
+  return api.get<User>(`/users/${id}`);
+}
+
+// Update
+async function updateUser(id: number, data: Partial<User>) {
+  return api.patch<User>(`/users/${id}`, data);
+}
+
+// Delete
+async function deleteUser(id: number) {
+  return api.delete(`/users/${id}`);
+}
+```
+
+## Con TanStack Query
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useApi } from '@api-zero/react';
+
+function UserManagement() {
+  const client = useApi();
+  const queryClient = useQueryClient();
+
+  const { data: users, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => client.get<User[]>('/users'),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (userData: CreateUserDto) =>
+      client.post<User>('/users', userData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => client.delete(`/users/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+
+  return (/* UI */);
+}
+```
+
+## Autenticación Completa
+
+```typescript
+import { createClient } from '@api-zero/core';
+
+const api = createClient({
+  baseURL: 'https://api.example.com',
+});
+
+// Request interceptor para añadir token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
+  }
+  return config;
+});
+
+// Response interceptor para refresh token
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.isUnauthorized() && !error.config._retry) {
+      error.config._retry = true;
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const { data } = await api.post('/auth/refresh', { refreshToken });
+        localStorage.setItem('token', data.accessToken);
+        return api.request(
+          error.config.url,
+          error.config.method,
+          error.config.body,
+          error.config
+        );
+      } catch {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Login
+async function login(email: string, password: string) {
+  const { data } = await api.post('/auth/login', { email, password });
+  localStorage.setItem('token', data.accessToken);
+  localStorage.setItem('refreshToken', data.refreshToken);
+  return data;
+}
+
+// Logout
+async function logout() {
+  await api.post('/auth/logout');
+  localStorage.clear();
+}
+```
+
+## Upload con Progress
+
+```typescript
+import { useState } from 'react';
+import { useApi } from '@api-zero/react';
+
+function FileUploader() {
+  const client = useApi();
+  const [progress, setProgress] = useState(0);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleUpload(file: File) {
+    setUploading(true);
+    setProgress(0);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await client.post('/upload', formData, {
+        onUploadProgress: (e) => {
+          setProgress((e.loaded / e.total) * 100);
+        },
+      });
+      alert('Upload completo!');
+    } catch (error) {
+      alert('Error en upload');
+    } finally {
+      setUploading(false);
+      setProgress(0);
+    }
+  }
+
+  return (
+    <div>
+      <input 
+        type="file" 
+        onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+        disabled={uploading}
+      />
+      {uploading && <progress value={progress} max={100} />}
+    </div>
+  );
+}
+```

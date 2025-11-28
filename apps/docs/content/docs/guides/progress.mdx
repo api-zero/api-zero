@@ -1,0 +1,74 @@
+---
+title: "Progress Tracking"
+description: "Monit orea el progreso de uploads y downloads en tiempo real."
+---
+
+# Progress Tracking
+
+api-zero soporta tracking del progreso tanto para uploads como downloads.
+
+## Upload Progress
+
+```typescript
+const formData = new FormData();
+formData.append('file', fileBlob);
+formData.append('title', 'My Document');
+
+await client.post('/upload', formData, {
+  onUploadProgress: (progress) => {
+    const percent = (progress.loaded / progress.total) * 100;
+    console.log(`Upload: ${percent.toFixed(2)}%`);
+    updateProgressBar(percent);
+  },
+});
+```
+
+## Download Progress
+
+```typescript
+const blob = await client.get<Blob>('/download/large-file.zip', {
+  responseType: 'blob',
+  onDownloadProgress: (progress) => {
+    const percent = (progress.loaded / progress.total) * 100;
+    console.log(`Download: ${percent.toFixed(2)}%`);
+  },
+});
+```
+
+## Con React
+
+```typescript
+import { useState } from 'react';
+import { useApi } from '@api-zero/react';
+
+function FileUpload() {
+  const client = useApi();
+  const [progress, setProgress] = useState(0);
+
+  async function handleUpload(file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    await client.post('/upload', formData, {
+      onUploadProgress: (progressEvent) => {
+        const percent = (progressEvent.loaded / progressEvent.total) * 100;
+        setProgress(percent);
+      },
+    });
+
+    setProgress(0);
+  }
+
+  return (
+    <div>
+      <input type="file" onChange={(e) => handleUpload(e.target.files[0])} />
+      {progress > 0 && (
+        <div className="progress-bar">
+          <div style={{ width: `${progress}%` }} />
+          <span>{progress.toFixed(0)}%</span>
+        </div>
+      )}
+    </div>
+  );
+}
+```

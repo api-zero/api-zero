@@ -1,0 +1,481 @@
+---
+title: "ApiClient"
+description: "Referencia completa de la clase ApiClient, el corazón de api-zero."
+---
+
+# ApiClient
+
+La clase `ApiClient` es el núcleo de api-zero. Proporciona una API completa para realizar peticiones HTTP con soporte para configuración, interceptores, reintentos y mucho más.
+
+## Creación del Cliente
+
+### createClient
+
+Factory function recomendada para crear instancias del cliente:
+
+```typescript
+import { createClient } from '@api-zero/core';
+
+const client = createClient({
+  baseURL: 'https://api.example.com',
+  timeout: 5000,
+});
+```
+
+**Firma:**
+
+```typescript
+function createClient(config?: ApiClientConfig): ApiClient
+```
+
+### new ApiClient
+
+También puedes instanciar la clase directamente:
+
+```typescript
+import { ApiClient } from '@api-zero/core';
+
+const client = new ApiClient({
+  baseURL: 'https://api.example.com',
+});
+```
+
+## Métodos HTTP
+
+Todos los métodos HTTP soportan **tipado genérico** para type-safe responses.
+
+### get()
+
+Realiza una petición GET.
+
+```typescript
+get<T = any>(endpoint: string, options?: RequestOptions): Promise<T>
+```
+
+**Ejemplo básico:**
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const users = await client.get<User[]>('/users');
+// users es de tipo User[]
+```
+
+**Ejemplo con query params:**
+
+```typescript
+const admins = await client.get<User[]>('/users', {
+  params: {
+    role: 'admin',
+    status: 'active',
+  },
+});
+// GET /users?role=admin&status=active
+```
+
+**Ejemplo con headers:**
+
+```typescript
+const data = await client.get<User>('/profile', {
+  headers: {
+    'Authorization': 'Bearer token123',
+  },
+  timeout: 10000,
+});
+```
+
+### post()
+
+Realiza una petición POST.
+
+```typescript
+post<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<T>
+```
+
+**Ejemplo básico:**
+
+```typescript
+interface CreateUserDto {
+  name: string;
+  email: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  createdAt: string;
+}
+
+const newUser = await client.post<User>('/users', {
+  name: 'John Doe',
+  email: 'john@example.com',
+} as CreateUserDto);
+```
+
+**Ejemplo con FormData:**
+
+```typescript
+const formData = new FormData();
+formData.append('file', fileBlob);
+formData.append('title', 'My Image');
+
+const response = await client.post('/upload', formData, {
+  onUploadProgress: (progress) => {
+    const percent = (progress.loaded / progress.total) * 100;
+    console.log(`Upload: ${percent.toFixed(2)}%`);
+  },
+});
+```
+
+<Callout type="info">
+api-zero detecta automáticamente FormData y establece el Content-Type correcto.
+</Callout>
+
+### put()
+
+Realiza una petición PUT (actualización completa de recurso).
+
+```typescript
+put<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<T>
+```
+
+**Ejemplo:**
+
+```typescript
+const updatedUser = await client.put<User>('/users/1', {
+  id: 1,
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+  role: 'admin',
+});
+```
+
+### patch()
+
+Realiza una petición PATCH (actualización parcial de recurso).
+
+```typescript
+patch<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<T>
+```
+
+**Ejemplo:**
+
+```typescript
+// Solo actualiza el email
+const updatedUser = await client.patch<User>('/users/1', {
+  email: 'newemail@example.com',
+});
+```
+
+### delete()
+
+Realiza una petición DELETE.
+
+```typescript
+delete<T = any>(endpoint: string, options?: RequestOptions): Promise<T>
+```
+
+**Ejemplo:**
+
+```typescript
+await client.delete('/users/1');
+
+// Con confirmación del servidor
+const result = await client.delete<{ success: boolean }>('/users/1');
+console.log(result.success); // true
+```
+
+## Gestión de Configuración
+
+### setConfig()
+
+Actualiza la configuración del cliente dinámicamente.
+
+```typescript
+client.setConfig({
+  timeout: 10000,
+  headers: {
+    'X-App-Version': '2.0.0',
+  },
+});
+```
+
+<Callout type="warning">
+`setConfig` **sobreescribe parcialmente** la configuración existente. Los valores no especificados se mantienen.
+</Callout>
+
+### getConfig()
+
+Obtiene la configuración actual del cliente.
+
+```typescript
+const config = client.getConfig();
+console.log(config.baseURL);
+console.log(config.timeout);
+```
+
+## Gestión de Headers
+
+### setHeader()
+
+Establece un header específico.
+
+```typescript
+client.setHeader(key: string, value: string): void
+```
+
+**Ejemplo:**
+
+```typescript
+client.setHeader('X-API-Key', 'abc123');
+client.setHeader('X-Device-Id', 'device-123');
+```
+
+### removeHeader()
+
+Elimina un header específico.
+
+```typescript
+client.removeHeader(key: string): void
+```
+
+**Ejemplo:**
+
+```typescript
+client.removeHeader('Authorization');
+```
+
+### updateHeaders()
+
+Actualiza múltiples headers a la vez.
+
+```typescript
+client.updateHeaders(headers: Record<string, string>): void
+```
+
+**Ejemplo:**
+
+```typescript
+client.updateHeaders({
+  'X-App-Version': '1.0.0',
+  'X-Platform': 'web',
+  'X-Language': 'es',
+});
+```
+
+## Helpers de Autenticación
+
+api-zero incluye helpers para configurar autenticación rápidamente.
+
+### setAuthToken()
+
+Establece un token Bearer automáticamente.
+
+```typescript
+client.setAuthToken(token: string): void
+```
+
+**Ejemplo:**
+
+```typescript
+const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+client.setAuthToken(token);
+
+// Equivalente a:
+client.setHeader('Authorization', `Bearer ${token}`);
+```
+
+### setBasicAuth()
+
+Establece autenticación Basic Auth.
+
+```typescript
+client.setBasicAuth(username: string, password: string): void
+```
+
+**Ejemplo:**
+
+```typescript
+client.setBasicAuth('admin', 'secret123');
+
+// Equivalente a:
+const token = btoa('admin:secret123');
+client.setHeader('Authorization', `Basic ${token}`);
+```
+
+### clearAuth()
+
+Elimina el header de Authorization.
+
+```typescript
+client.clearAuth(): void
+```
+
+**Ejemplo:**
+
+```typescript
+// Al hacer logout
+client.clearAuth();
+```
+
+## Interceptores
+
+El cliente expone un objeto `interceptors` para request y response interceptors.
+
+```typescript
+client.interceptors = {
+  request: InterceptorManager<RequestOptions>,
+  response: InterceptorManager<Response>,
+}
+```
+
+Ver [Interceptores](/docs/api/core/interceptors) para más detalles.
+
+**Ejemplo rápido:**
+
+```typescript
+// Request interceptor
+client.interceptors.request.use((config) => {
+  console.log('Petición:', config);
+  return config;
+});
+
+// Response interceptor
+client.interceptors.response.use(
+  (response) => {
+    console.log('Respuesta exitosa:', response);
+    return response;
+  },
+  (error) => {
+    console.error('Error en respuesta:', error);
+    return Promise.reject(error);
+  }
+);
+```
+
+## Método Request Genérico
+
+Todos los métodos HTTP (`get`, `post`, etc.) internamente llaman a `request()`:
+
+```typescript
+request<T = any>(
+  endpoint: string,
+  method: HttpMethod,
+  body?: any,
+  options?: RequestOptions
+): Promise<T>
+```
+
+**Úsalo cuando necesites control total:**
+
+```typescript
+const data = await client.request<User>(
+  '/users/1',
+  'GET',
+  undefined,
+  {
+    timeout: 15000,
+    headers: { 'X-Custom': 'value' },
+  }
+);
+```
+
+## Ejemplo Completo
+
+```typescript
+import { createClient, ApiError } from '@api-zero/core';
+
+// Crear cliente
+const api = createClient({
+  baseURL: 'https://api.example.com',
+  timeout: 5000,
+  headers: {
+    'X-App-Version': '1.0.0',
+  },
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+  },
+});
+
+// Configurar autenticación
+api.setAuthToken('your-jwt-token');
+
+// Interceptor para logging
+api.interceptors.request.use((config) => {
+  console.log(`[${new Date().toISOString()}] ${config.method} ${config.url}`);
+  return config;
+});
+
+// Realizar peticiones
+async function exampleUsage() {
+  try {
+    // GET con query params
+    const users = await api.get<User[]>('/users', {
+      params: { role: 'admin' },
+    });
+
+    // POST para crear
+    const newUser = await api.post<User>('/users', {
+      name: 'John',
+      email: 'john@example.com',
+    });
+
+    // PATCH para actualizar
+    const updated = await api.patch<User>(`/users/${newUser.id}`, {
+      email: 'newemail@example.com',
+    });
+
+    // DELETE
+    await api.delete(`/users/${newUser.id}`);
+
+    return users;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.isUnauthorized()) {
+        // Refresh token o redirect a login
+      }
+      if (error.is5xx()) {
+        // Error del servidor, reintentar después
+      }
+    }
+    throw error;
+  }
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="Configuración" 
+    href="/docs/api/core/config"
+    description="Todas las opciones de configuración disponibles"
+  />
+  <Card 
+    title="Interceptores" 
+    href="/docs/api/core/interceptors"
+    description="Sistema de interceptores request/response"
+  />
+
+    title="Manejo de Errores"
+    href="/docs/api/core/error"
+    description="ApiError y manejo de errores"
+  />
+  <Card
+    title="ApiClient"
+    href="/docs/api/core/client"
+    description="API completa del cliente HTTP"
+  />
+  <Card
+    title="Reintentos"
+    href="/docs/api/core/retry"
+    description="Sistema de retry con backoff"
+  />
+</Cards>
