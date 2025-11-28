@@ -1,0 +1,440 @@
+---
+title: "Guía Rápida"
+description: "Crea tu primera petición HTTP con Better Call en menos de 5 minutos."
+---
+
+# Guía Rápida
+
+Esta guía te llevará paso a paso desde la instalación hasta tu primera petición HTTP con Better Call.
+
+<Steps>
+
+### Instala los paquetes
+
+Primero, instala Better Call en tu proyecto:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+
+<Tab value="npm">
+
+```bash
+npm install @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+<Tab value="pnpm">
+
+```bash
+pnpm add @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+<Tab value="yarn">
+
+```bash
+yarn add @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+<Tab value="bun">
+
+```bash
+bun add @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+</Tabs>
+
+<Callout type="info">
+Si no usas React, solo instala `@api-zero/core`.
+</Callout>
+
+### Crea un cliente standalone
+
+La forma más simple de usar api-zero es crear una instancia del cliente:
+
+```typescript
+// api-client.ts
+import { createClient } from '@api-zero/core';
+
+export const apiClient = createClient({
+  baseURL: 'https://jsonplaceholder.typicode.com',
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+```
+
+<Callout type="success">
+Exporta el cliente desde un módulo compartido para reutilizarlo en toda tu aplicación.
+</Callout>
+
+### Haz tu primera petición
+
+Usa el cliente para hacer una petición GET:
+
+```typescript
+// users.ts
+import { apiClient } from './api-client';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+}
+
+async function getUsers() {
+  try {
+    // Petición GET con tipado automático
+    const users = await apiClient.get<User[]>('/users');
+    console.log('Usuarios:', users);
+    return users;
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error);
+    throw error;
+  }
+}
+
+// Ejecuta la función
+getUsers();
+```
+
+Si todo funciona correctamente, deberías ver la lista de usuarios en la consola. 🎉
+
+### Configura el Provider de React (opcional)
+
+Si usas React, la forma recomendada es usar el `ApiProvider`:
+
+```typescript
+// App.tsx
+import { ApiProvider } from '@api-zero/react';
+import { UserList } from './components/UserList';
+
+function App() {
+  return (
+    <ApiProvider
+      config={{
+        baseURL: 'https://jsonplaceholder.typicode.com',
+        timeout: 5000,
+      }}
+    >
+      <UserList />
+    </ApiProvider>
+  );
+}
+
+export default App;
+```
+
+<Callout type="warning">
+Asegúrate de envolver toda tu aplicación con `BetterCallProvider` en el nivel más alto posible (generalmente en `App.tsx` o `main.tsx`).
+</Callout>
+
+### Usa el hook en tus componentes
+
+Ahora puedes usar `useApi` en cualquier componente hijo:
+
+```typescript
+// components/UserList.tsx
+import { useState, useEffect } from 'react';
+import { useApi } from '@api-zero/react';
+import { ApiError } from '@api-zero/core';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export function UserList() {
+  const client = useApi();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        setLoading(true);
+        const data = await client.get<User[]>('/users');
+        setUsers(data);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(`Error ${err.status}: ${err.message}`);
+        } else {
+          setError('Error desconocido');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUsers();
+  }, [client]);
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <ul>
+      {users.map((user) => (
+        <li key={user.id}>
+          {user.name} ({user.email})
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+<Callout type="success">
+¡Felicidades! Has creado tu primer componente React con Better Call. 🎉
+</Callout>
+
+</Steps>
+
+## Integración con TanStack Query
+
+api-zero funciona perfectamente con TanStack Query (React Query):
+
+```typescript
+import { useQuery } from '@tanstack/react-query';
+import { useApi } from '@api-zero/react';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+function UserList() {
+  const client = useApi();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => client.get<User[]>('/users'),
+  });
+
+  if (isLoading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <ul>
+      {data?.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+<Callout type="info">
+TanStack Query se encarga del **estado de datos** (loading, caching, refetching), mientras que Better Call se encarga de la **comunicación HTTP**. ¡Son el complemento perfecto!
+</Callout>
+
+## Peticiones POST, PUT, PATCH, DELETE
+
+Better Call soporta todos los métodos HTTP:
+
+### POST - Crear recurso
+
+```typescript
+interface CreateUserData {
+  name: string;
+  email: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const newUser = await client.post<User>('/users', {
+  name: 'John Doe',
+  email: 'john@example.com',
+} as CreateUserData);
+
+console.log('Usuario creado:', newUser);
+```
+
+### PUT - Actualizar recurso completo
+
+```typescript
+const updatedUser = await client.put<User>('/users/1', {
+  id: 1,
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+});
+```
+
+### PATCH - Actualizar recurso parcial
+
+```typescript
+const patchedUser = await client.patch<User>('/users/1', {
+  email: 'newemail@example.com',
+});
+```
+
+### DELETE - Eliminar recurso
+
+```typescript
+await client.delete('/users/1');
+console.log('Usuario eliminado');
+```
+
+## Query Parameters
+
+Pasa parámetros de query fácilmente:
+
+```typescript
+// GET /users?role=admin&status=active
+const admins = await client.get<User[]>('/users', {
+  params: {
+    role: 'admin',
+    status: 'active',
+  },
+});
+```
+
+### Arrays en Query Params
+
+```typescript
+// GET /users?ids[]=1&ids[]=2&ids[]=3
+const users = await client.get<User[]>('/users', {
+  params: {
+    ids: [1, 2, 3],
+  },
+  paramsSerializer: {
+    arrayFormat: 'brackets', // 'brackets' | 'repeat' | 'comma'
+  },
+});
+```
+
+## Headers Personalizados
+
+Añade headers específicos por petición:
+
+```typescript
+const data = await client.get('/protected-route', {
+  headers: {
+    'Authorization': 'Bearer token123',
+    'X-Custom-Header': 'value',
+  },
+});
+```
+
+O configura headers globales:
+
+```typescript
+// Establecer header global
+client.setHeader('Authorization', 'Bearer token123');
+
+// Actualizar múltiples headers
+client.updateHeaders({
+  'X-App-Version': '1.0.0',
+  'X-Device-Id': 'abc123',
+});
+
+// Eliminar header
+client.removeHeader('Authorization');
+```
+
+## Manejo de Errores
+
+Better Call proporciona una clase de error rica en información:
+
+```typescript
+import { BetterCallError } from '@better-call/core';
+
+try {
+  await client.get('/users/999999');
+} catch (error) {
+  if (error instanceof BetterCallError) {
+    // Usar helper methods
+    if (error.isNotFound()) {
+      console.log('Usuario no encontrado');
+    }
+    
+    if (error.isUnauthorized()) {
+      console.log('No autorizado, redirigir a login');
+    }
+    
+    if (error.is5xx()) {
+      console.log('Error del servidor');
+    }
+    
+    // Acceder a propiedades
+    console.log('Status:', error.status);
+    console.log('Data:', error.data);
+  }
+}
+```
+
+## Timeouts y Cancelación
+
+### Timeout por petición
+
+```typescript
+// Timeout de 3 segundos solo para esta petición
+const users = await client.get('/users', {
+  timeout: 3000,
+});
+```
+
+### Cancelación manual con AbortController
+
+```typescript
+const controller = new AbortController();
+
+// Iniciar petición
+const promise = client.get('/users', {
+  signal: controller.signal,
+});
+
+// Cancelar después de 2 segundos
+setTimeout(() => {
+  controller.abort();
+}, 2000);
+
+try {
+  const users = await promise;
+} catch (error) {
+  if (error instanceof BetterCallError && error.isAborted) {
+    console.log('Petición cancelada');
+  }
+}
+```
+
+## Siguiente Nivel
+
+¡Ya conoces lo básico de Better Call! Ahora puedes explorar características avanzadas:
+
+<Cards>
+  <Card 
+    title="Interceptores" 
+    href="/docs/api/core/interceptors"
+    description="Transforma requests y responses automáticamente"
+  />
+  <Card 
+    title="Sistema de Reintentos" 
+    href="/docs/api/core/retry"
+    description="Reintenta peticiones fallidas con backoff configurable"
+  />
+  <Card 
+    title="Autenticación" 
+    href="/docs/guides/authentication"
+    description="Patrones de autenticación con tokens y refresh"
+  />
+  <Card 
+    title="Progress Tracking" 
+    href="/docs/guides/progress"
+    description="Monitorea el progreso de uploads y downloads"
+  />
+</Cards>

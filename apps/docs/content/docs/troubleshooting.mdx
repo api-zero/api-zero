@@ -1,0 +1,134 @@
+---
+title: "Troubleshooting"
+description: "Soluciones a problemas comunes con Better Call."
+---
+
+# Troubleshooting
+
+## useApi must be used within a ApiProvider
+
+**Error:**
+```
+Error: useApi must be used within a ApiProvider
+```
+
+**Causa:** Estás usando el hook `useApi` fuera de un `ApiProvider`.
+
+**Solución:** Envuelve tu aplicación con el Provider:
+
+```typescript
+<ApiProvider config={{ baseURL: '...' }}>
+  <App />
+</ApiProvider>
+```
+
+## CORS Errors
+
+**Error:**
+```
+Access to fetch at 'https://api.example.com' from origin 'http://localhost:3000' has been blocked by CORS policy
+```
+
+**Causa:** El servidor no permite peticiones desde tu origen.
+
+**Soluciones:**
+1. Configura CORS en el servidor
+2. Usa un proxy en desarrollo
+3. Configura `credentials`:
+
+```typescript
+const client = createApiClient({
+  baseURL: 'https://api.example.com',
+  credentials: 'include',
+});
+```
+
+## Timeout Errors
+
+**Error:** Peticiones que tardan demasiado y fallan.
+
+**Solución:** Ajusta el timeout:
+
+```typescript
+// Global
+const client = createClient({
+  timeout: 30000, // 30 segundos
+});
+
+// Por petición
+await client.get('/slow-endpoint', {
+  timeout: 60000, // 60 segundos
+});
+```
+
+## TypeScript Errors
+
+**Error:** Tipos no reconocidos o errores de compilación.
+
+**Solución:** Asegúrate de usar TypeScript 5.0+:
+
+```bash
+npm install -D typescript@latest
+```
+
+## Network Errors en Producción
+
+**Error:** `isNetworkError: true`
+
+**Debugging:**
+1. Verifica la URL base
+2. Revisa la conectividad
+3. Comprueba que el servidor esté activo
+4. Usa interceptores para logging:
+
+```typescript
+client.interceptors.request.use((config) => {
+  console.log('Request:', config);
+  return config;
+});
+
+client.interceptors.response.use(
+  (response) => {
+    console.log('Response:', response);
+    return response;
+  },
+  (error) => {
+    console.error('Error:', error.toJSON());
+    return Promise.reject(error);
+  }
+);
+```
+
+## Peticiones que no reintentan
+
+**Causa:** Retry está deshabilitado o la condición no se cumple.
+
+**Solución:**
+
+```typescript
+const client = createClient({
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+    // Asegúrate de que la condición sea correcta
+    retryCondition: (error) => {
+      return error.isNetworkError || error.is5xx();
+    },
+  },
+});
+```
+
+## Progress Events no se disparan
+
+**Causa:** Necesitas usar XMLHttpRequest para progress tracking con POST/PUT.
+
+**Solución:** api-zero cambia automáticamente a XHR cuando especificas `onUploadProgress`. Asegúrate de estar enviando datos:
+
+```typescript
+await client.post('/upload', formData, {
+  onUploadProgress: (progress) => {
+    console.log(progress.loaded, progress.total);
+  },
+});
+```

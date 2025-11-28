@@ -1,0 +1,155 @@
+---
+title: "Autenticación"
+description: "Patrones y mejores prácticas para manejar autenticación con api-zero."
+---
+
+# Autenticación
+
+api-zero ofrece múltiples formas de manejar autenticación en tus aplicaciones.
+
+## Bearer Token
+
+### Método Simple
+
+```typescript
+const client = createClient({
+  baseURL: 'https://api.example.com',
+});
+
+// Establecer token después del login
+client.setAuthToken('your-jwt-token');
+```
+
+### Con Request Interceptor
+
+```typescript
+client.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+  return config;
+});
+```
+
+## Basic Auth
+
+```typescript
+client.setBasicAuth('username', 'password');
+```
+
+## Refresh Token Automático
+
+```typescript
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve();
+    }
+  });
+  failedQueue = [];
+};
+
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.isUnauthorized() && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return client.request(
+              originalRequest.url,
+              originalRequest.method,
+              originalRequest.body,
+              originalRequest
+            );
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const { data } = await client.post('/auth/refresh', { refreshToken });
+        
+        localStorage.setItem('authToken', data.accessToken);
+        processQueue();
+
+        return client.request(
+          originalRequest.url,
+          originalRequest.method,
+          originalRequest.body,
+          originalRequest
+        );
+      } catch (refreshError) {
+        processQueue(refreshError);
+        localStorage.clear();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+```
+
+## Ejemplo Completo con React
+
+```typescript
+import { createClient } from '@api-zero/core';
+import { ApiProvider } from '@api-zero/react';
+
+const apiClient = createClient({
+  baseURL: 'https://api.example.com',
+});
+
+// Setup interceptor
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    config.headers = {
+      ...config.headers,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+  return config;
+});
+
+function App() {
+  return (
+    <ApiProvider config={apiClient.getConfig()}>
+      <YourApp />
+    </ApiProvider>
+  );
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="Interceptores" 
+    href="/docs/api/core/interceptors"
+    description="Documentación completa de interceptores"
+  />
+</Cards>

@@ -1,0 +1,172 @@
+---
+title: "Sistema de Reintentos"
+description: "Configura reintentos automáticos con estrategias de backoff para peticiones HTTP."
+---
+
+# Sistema de Reintentos
+
+api-zero incluye un sistema de reintentos configurable que automáticamente reintenta peticiones fallidas con diferentes estrategias de backoff.
+
+## Configuración Básica
+
+```typescript
+const client = createClient({
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+  },
+});
+```
+
+## Opciones de Configuración
+
+### attempts
+
+Número máximo de reintentos.
+
+```typescript
+retry: {
+  attempts: 3, // Intentará 3 veces adicionales (4 peticiones en total)
+  delay: 1000,
+}
+```
+
+### delay
+
+Delay base en milisegundos entre reintentos.
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 2000, // 2 segundos de delay base
+}
+```
+
+### backoff
+
+Estrategia de incremento del delay.
+
+**Opciones:** `'linear'` | `'exponential'` | `(attempt: number) => number`
+
+#### Exponencial (recomendado)
+
+```typescript
+retry: {
+  attempts: 4,
+  delay: 1000,
+  backoff: 'exponential',
+}
+// Delays: 1s, 2s, 4s, 8s
+```
+
+#### Lineal
+
+```typescript
+retry: {
+  attempts: 4,
+  delay: 1000,
+  backoff: 'linear',
+}
+// Delays: 1s, 2s, 3s, 4s
+```
+
+#### Personalizado
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 1000,
+  backoff: (attempt) => {
+    // Backoff con jitter aleatorio
+    return 1000 * Math.pow(2, attempt) + Math.random() * 500;
+  },
+}
+```
+
+### retryCondition
+
+Función que determina si se debe reintentar.
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 1000,
+  retryCondition: (error) => {
+    // Solo reintentar errores de red y 5xx
+    return error.isNetworkError || error.is5xx();
+  },
+}
+```
+
+<Callout type="warning">
+Por defecto, **todos los errores** activan reintentos. Usa `retryCondition` para ser más selectivo.
+</Callout>
+
+## Deshabilitar Reintentos
+
+### Globalmente
+
+```typescript
+const client = createClient({
+  retry: false, // Sin reintentos
+});
+```
+
+### Por Petición
+
+```typescript
+await client.get('/users', {
+  retry: false, // Deshabilitar solo para esta petición
+});
+```
+
+## Ejemplos Prácticos
+
+### Solo Reintentar Errores de Red
+
+```typescript
+const client = createClient({
+  retry: {
+    attempts: 5,
+    delay: 2000,
+    backoff: 'exponential',
+    retryCondition: (error) => error.isNetworkError,
+  },
+});
+```
+
+### Reintentar Solo Errores del Servidor
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 1000,
+  backoff: 'linear',
+  retryCondition: (error) => error.is5xx(),
+}
+```
+
+### Backoff con Jitter
+
+```typescript
+retry: {
+  attempts: 4,
+  delay: 1000,
+  backoff: (attempt) => {
+    const exponential = 1000 * Math.pow(2, attempt - 1);
+    const jitter = Math.random() * 200; // ±200ms
+    return exponential + jitter;
+  },
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="Configuración" 
+    href="/docs/api/core/config"
+    description="Todas las opciones de configuración"
+  />
+</Cards>

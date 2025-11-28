@@ -1,0 +1,533 @@
+---
+title: "ApiError"
+description: "Clase de error personalizada con información detallada y métodos helper."
+---
+
+# ApiError
+
+`ApiError` es una clase de error personalizada que extiende `Error` nativa y proporciona información rica sobre errores HTTP.
+
+## Importación
+
+```typescript
+import { ApiError } from '@api-zero/core';
+```
+
+## Clase
+
+```typescript
+class ApiError extends Error {
+  readonly name = 'ApiError';
+  
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly statusText: string,
+    public readonly data?: unknown,
+    public readonly config?: RequestOptions,
+    public readonly isTimeout = false,
+    public readonly isNetworkError = false,
+    public readonly isAborted = false,
+  );
+  
+  // Helper methods
+  is4xx(): boolean;
+  is5xx(): boolean;
+  isUnauthorized(): boolean;
+  isForbidden(): boolean;
+  isNotFound(): boolean;
+  toJSON(): object;
+}
+```
+
+## Propiedades
+
+### message
+
+Mensaje de error descriptivo.
+
+**Tipo:** `string`
+
+```typescript
+try {
+  await client.get('/users');
+} catch (error) {
+  if (error instanceof ApiError) {
+    console.log(error.message); // "Not Found"
+  }
+}
+```
+
+### status
+
+Código de estado HTTP.
+
+**Tipo:** `number`
+
+```typescript
+```typescript
+if (error instanceof ApiError) {
+  console.log(error.status); // 404, 500, etc.
+}
+```
+
+### statusText
+
+Texto del estado HTTP.
+
+**Tipo:** `string`
+
+```typescript
+```typescript
+if (error instanceof ApiError) {
+  console.log(error.statusText); // "Not Found", "Internal Server Error"
+}
+```
+
+### data
+
+Body de la respuesta de error (si está disponible).
+
+**Tipo:** `unknown | undefined`
+
+```typescript
+```typescript
+if (error instanceof ApiError) {
+  console.log(error.data);
+  // { error: "User not found", code: "USER_NOT_FOUND" }
+}
+```
+
+### config
+
+Configuración de la petición que falló.
+
+**Tipo:** `RequestOptions | undefined`
+
+```typescript
+```typescript
+if (error instanceof ApiError) {
+  console.log(error.config?.url);
+  console.log(error.config?.method);
+  console.log(error.config?.timeout);
+}
+```
+
+### isTimeout
+
+`true` si el error fue causado por un timeout.
+
+**Tipo:** `boolean`
+
+```typescript
+```typescript
+if (error instanceof ApiError && error.isTimeout) {
+  console.log('La petición tardó demasiado');
+}
+```
+
+### isNetworkError
+
+`true` si el error fue causado por un problema de red.
+
+**Tipo:** `boolean`
+
+```typescript
+```typescript
+if (error instanceof ApiError && error.isNetworkError) {
+  console.log('No hay conexión a internet');
+}
+```
+
+### isAborted
+
+`true` si la petición fue cancelada manualmente.
+
+**Tipo:** `boolean`
+
+```typescript
+```typescript
+if (error instanceof ApiError && error.isAborted) {
+  console.log('Petición cancelada por el usuario');
+}
+```
+
+## Métodos Helper
+
+### is4xx()
+
+Retorna `true` si el error es un error del cliente (400-499).
+
+```typescript
+is4xx(): boolean
+```
+
+**Ejemplo:**
+
+```typescript
+try {
+  await client.post('/users', invalidData);
+} catch (error) {
+  if (error instanceof ApiError && error.is4xx()) {
+    console.log('Error en los datos enviados');
+    console.log('Detalles:', error.data);
+  }
+}
+```
+
+### is5xx()
+
+Retorna `true` si el error es un error del servidor (500-599).
+
+```typescript
+is5xx(): boolean
+```
+
+**Ejemplo:**
+
+```typescript
+try {
+  await client.get('/users');
+} catch (error) {
+  if (error instanceof ApiError && error.is5xx()) {
+    console.log('El servidor está teniendo problemas');
+    // Mostrar mensaje genérico al usuario
+    // No reintentar inmediatamente
+  }
+}
+```
+
+### isUnauthorized()
+
+Retorna `true` si el error es 401 Unauthorized.
+
+```typescript
+isUnauthorized(): boolean
+```
+
+**Ejemplo:**
+
+```typescript
+try {
+  await client.get('/profile');
+} catch (error) {
+  if (error instanceof ApiError && error.isUnauthorized()) {
+    // Token inválido o expirado
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  }
+}
+```
+
+### isForbidden()
+
+Retorna `true` si el error es 403 Forbidden.
+
+```typescript
+isForbidden(): boolean
+```
+
+**Ejemplo:**
+
+```typescript
+try {
+  await client.delete('/admin/users/1');
+} catch (error) {
+  if (error instanceof ApiError && error.isForbidden()) {
+    console.log('No tienes permisos para realizar esta acción');
+  }
+}
+```
+
+### isNotFound()
+
+Retorna `true` si el error es 404 Not Found.
+
+```typescript
+isNotFound(): boolean
+```
+
+**Ejemplo:**
+
+```typescript
+try {
+  await client.get('/users/999999');
+} catch (error) {
+  if (error instanceof ApiError && error.isNotFound()) {
+    console.log('Usuario no encontrado');
+    // Mostrar página 404
+  }
+}
+```
+
+### toJSON()
+
+Serializa el error a un objeto JSON.
+
+```typescript
+toJSON(): object
+```
+
+**Ejemplo:**
+
+```typescript
+try {
+  await client.get('/users');
+} catch (error) {
+  if (error instanceof ApiError) {
+    const errorObj = error.toJSON();
+    console.log(errorObj);
+    /*
+    {
+      name: "ApiError",
+      message: "Not Found",
+      status: 404,
+      statusText: "Not Found",
+      data: { ... },
+      isTimeout: false,
+      isNetworkError: false,
+      isAborted: false,
+    }
+    */
+  }
+}
+```
+
+## Patrones de Manejo de Errores
+
+### Manejo Básico
+
+```typescript
+import { ApiError } from '@api-zero/core';
+
+try {
+  const users = await client.get<User[]>('/users');
+  return users;
+} catch (error) {
+  if (error instanceof ApiError) {
+    console.error(`Error ${error.status}: ${error.message}`);
+    console.error('Data:', error.data);
+  } else {
+    console.error('Error inesperado:', error);
+  }
+  throw error;
+}
+```
+
+### Manejo por Tipo de Error
+
+```typescript
+try {
+  await client.post('/users', userData);
+} catch (error) {
+  if (!(error instanceof ApiError)) {
+    throw error; // Re-throw si no es ApiError
+  }
+
+  if (error.isUnauthorized()) {
+    // Redirect a login
+    return redirectToLogin();
+  }
+
+  if (error.is4xx()) {
+    // Error de validación
+    showValidationErrors(error.data);
+    return;
+  }
+
+  if (error.is5xx()) {
+    // Error del servidor
+    showErrorMessage('El servidor no está disponible');
+    return;
+  }
+
+  if (error.isTimeout) {
+    showErrorMessage('La petición tardó demasiado');
+    return;
+  }
+
+  if (error.isNetworkError) {
+    showErrorMessage('No hay conexión a internet');
+    return;
+  }
+
+  // Error desconocido
+  showErrorMessage('Ocurrió un error inesperado');
+}
+```
+
+### Interceptor Global de Errores
+
+```typescript
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error instanceof ApiError) {
+      // Log errores a servicio de monitoreo
+      if (error.is5xx()) {
+        logToSentry(error.toJSON());
+      }
+
+      // Refresh token en 401
+      if (error.isUnauthorized()) {
+        return handleTokenRefresh().then(() => {
+          // Reintentar petición original
+          return client.request(
+            error.config.url,
+            error.config.method,
+            error.config.body,
+            error.config
+          );
+        });
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+```
+
+### Error Handling en React
+
+```typescript
+import { useState } from 'react';
+import { useApi } from '@api-zero/react';
+import { ApiError } from '@api-zero/core';
+
+function UserForm() {
+  const client = useApi();
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(data: UserData) {
+    try {
+      setError(null);
+      await client.post('/users', data);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.is4xx()) {
+          setError(`Datos inválidos: ${JSON.stringify(err.data)}`);
+        } else if (err.is5xx()) {
+          setError('Error del servidor. Intenta más tarde.');
+        } else if (err.isTimeout) {
+          setError('La petición tardó demasiado.');
+        } else if (err.isNetworkError) {
+          setError('Sin conexión a internet.');
+        } else {
+          setError(`Error ${err.status}: ${err.message}`);
+        }
+      } else {
+        setError('Error inesperado');
+      }
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {error && <div className="error">{error}</div>}
+      {/* form fields */}
+    </form>
+  );
+}
+```
+
+### Type Guards Personalizados
+
+```typescript
+function isValidationError(error: unknown): error is ApiError {
+  return (
+    error instanceof ApiError &&
+    error.status === 422 &&
+    error.data &&
+    typeof error.data === 'object' &&
+    'errors' in error.data
+  );
+}
+
+try {
+  await client.post('/users', data);
+} catch (error) {
+  if (isValidationError(error)) {
+    // TypeScript sabe que error.data tiene 'errors'
+    console.log(error.data.errors);
+  }
+}
+```
+
+## Ejemplo Completo
+
+```typescript
+import { createClient, ApiError } from '@api-zero/core';
+
+const api = createClient({
+  baseURL: 'https://api.example.com',
+});
+
+async function createUser(userData: CreateUserDto) {
+  try {
+    const user = await api.post<User>('/users', userData);
+    console.log('Usuario creado:', user);
+    return { success: true, data: user };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      // Errores específicos
+      if (error.isUnauthorized()) {
+        return { success: false, error: 'No autorizado' };
+      }
+
+      if (error.status === 409) {
+        return { success: false, error: 'Email ya existe' };
+      }
+
+      if (error.is4xx()) {
+        return {
+          success: false,
+          error: 'Datos inválidos',
+          details: error.data,
+        };
+      }
+
+      if (error.is5xx()) {
+        return { success: false, error: 'Error del servidor' };
+      }
+
+      if (error.isTimeout) {
+        return { success: false, error: 'Timeout' };
+      }
+
+      if (error.isNetworkError) {
+        return { success: false, error: 'Sin conexión' };
+      }
+
+      // Error genérico
+      return {
+        success: false,
+        error: `Error ${error.status}: ${error.message}`,
+      };
+    }
+
+    // Error no esperado
+    console.error('Error inesperado:', error);
+    return { success: false, error: 'Error inesperado' };
+  }
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="ApiClient" 
+    href="/docs/api/core/client"
+    description="API completa del cliente HTTP"
+  />
+  <Card 
+    title="Manejo de Errores" 
+    href="/docs/guides/error-handling"
+    description="Guía completa de manejo de errores"
+  />
+  <Card 
+    title="Interceptores" 
+    href="/docs/api/core/interceptors"
+    description="Interceptores para manejar errores globalmente"
+  />
+</Cards>

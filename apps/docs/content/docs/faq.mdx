@@ -1,0 +1,78 @@
+---
+title: "FAQ"
+description: "Preguntas frecuentes sobre Better Call."
+---
+
+# Preguntas Frecuentes
+
+## ¿Cuándo usar api-zero vs fetch nativo?
+
+Usa **api-zero** cuando necesites:
+- Configuración global reutilizable
+- Sistema de reintentos automático
+- Interceptores para auth o transformaciones
+- Progress tracking
+- Mejor manejo de errores
+- TypeScript de primera clase
+
+Usa **fetch nativo** para peticiones simples y puntuales donde no necesitas estas características.
+
+## ¿Cómo se compara con Axios?
+
+**api-zero**:
+- ✅ Más ligero (sin dependencias)
+- ✅ Basado en fetch moderno
+- ✅ Diseñado para React
+- ✅ TypeScript superior
+
+**Axios**:
+- ✅ Más maduro y establecido
+- ✅ Soporte para navegadores antiguos
+- ✅ Más características out-of-the-box
+
+## ¿Puedo usar con SWR o TanStack Query?
+
+¡Absolutamente! api-zero está diseñado específicamente para complementar bibliotecas de data fetching:
+
+```typescript
+// Con TanStack Query
+const { data } = useQuery({
+  queryKey: ['users'],
+  queryFn: () => client.get('/users'),
+});
+
+// Con SWR
+const { data } = useSWR('/users', (url) => client.get(url));
+```
+
+## ¿Soporta Server-Side Rendering (SSR)?
+
+Sí, api-zero funciona perfectamente en SSR con Next.js, Remix, etc. Solo asegúrate de crear instancias del cliente en el servidor cuando sea necesario.
+
+## ¿Funciona en Node.js?
+
+Sí, api-zero usa`fetch` que está disponible en Node.js 18+. Para versiones anteriores, puedes usar un polyfill como `node-fetch`.
+
+## ¿Cómo cancelo una petición?
+
+Usa `AbortController`:
+
+```typescript
+const controller = new AbortController();
+
+const promise = client.get('/users', {
+  signal: controller.signal,
+});
+
+// Cancelar
+controller.abort();
+```
+
+## ¿Puedo tener múltiples instancias del cliente?
+
+Sí, puedes crear tantas instancias como necesites:
+
+```typescript
+const apiClient = createClient({ baseURL: 'https://api.example.com' });
+const authClient = createClient({ baseURL: 'https://auth.example.com' });
+```

@@ -1,0 +1,239 @@
+---
+title: "Instalación"
+description: "Cómo instalar y configurar Better Call en tu proyecto."
+---
+
+# Instalación
+
+Better Call se compone de dos paquetes npm que puedes instalar según tus necesidades:
+
+Empezar con **api-zero** es muy sencillo. Puedes instalar el paquete core para cualquier proyecto JavaScript/TypeScript, o añadir el paquete de React si estás trabajando en ese ecosistema.
+
+## Prerrequisitos
+
+- Node.js 18 o superior (api-zero usa `fetch` nativo).
+- Un gestor de paquetes (npm, pnpm, yarn, bun).
+
+## Instalación Básica
+
+Para instalar el núcleo de la librería (cliente HTTP, tipos, utilidades):
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```bash
+    npm install @api-zero/core
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @api-zero/core
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @api-zero/core
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add @api-zero/core
+    ```
+  </Tab>
+</Tabs>
+
+## Instalación para React
+
+Si estás usando React, te recomendamos instalar también el paquete de bindings para tener acceso al `Provider` y los hooks:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```bash
+    npm install @api-zero/core @api-zero/react
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @api-zero/core @api-zero/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @api-zero/core @api-zero/react
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add @api-zero/core @api-zero/react
+    ```
+  </Tab>
+</Tabs>
+
+## Configuración Inicial
+
+### Uso Standalone (Sin React)
+
+Puedes crear una instancia del cliente y exportarla para usarla en toda tu aplicación.
+
+```typescript title="lib/api.ts"
+import { createClient } from '@api-zero/core';
+
+export const api = createClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.example.com',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+```
+
+### Uso con React Provider
+
+Para aplicaciones React, envuelve tu aplicación con `ApiProvider` para compartir la configuración globalmente.
+
+```tsx title="app/layout.tsx"
+import { ApiProvider } from '@api-zero/react';
+
+const apiConfig = {
+  baseURL: 'https://api.example.com',
+  timeout: 5000,
+};
+
+export default function RootLayout({ children }) {
+  return (
+    </BetterCallProvider>
+  );
+}
+```
+
+Luego usa el hook en tus componentes:
+
+```typescript
+// UserList.tsx
+import { useBetterCall } from '@better-call/react';
+
+function UserList() {
+  const client = useBetterCall();
+
+  const fetchUsers = async () => {
+    const users = await client.get('/users');
+    return users;
+  };
+
+  // ... resto del componente
+}
+```
+
+## Verificación de la Instalación
+
+Para verificar que Better Call se instaló correctamente, crea un archivo de prueba:
+
+```typescript
+// test.ts
+import { createApiClient } from '@better-call/core';
+
+const client = createApiClient({
+  baseURL: 'https://jsonplaceholder.typicode.com',
+});
+
+async function test() {
+  try {
+    const data = await client.get('/users/1');
+    console.log('✅ Better Call funciona correctamente:', data);
+  } catch (error) {
+    console.error('❌ Error:', error);
+  }
+}
+
+test();
+```
+
+Ejecuta el archivo:
+
+```bash
+npx tsx test.ts  # Si usas tsx
+# o
+node --loader ts-node/esm test.ts  # Si usas ts-node
+```
+
+Si ves los datos del usuario en la consola, ¡Better Call está funcionando correctamente!
+
+## Configuración de TypeScript
+
+Better Call está escrito en TypeScript y proporciona tipos out-of-the-box. Sin embargo, asegúrate de tener una configuración adecuada en tu `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx" // Si usas React
+  }
+}
+```
+
+<Callout type="info">
+Better Call aprovecha las características modernas de TypeScript como **generics**, **utility types** y **type inference** para proporcionar una experiencia de desarrollo excepcional.
+</Callout>
+
+## Troubleshooting
+
+### Error: Cannot find module '@better-call/core'
+
+**Solución:** Asegúrate de haber instalado el paquete correctamente:
+
+```bash
+npm install @better-call/core
+```
+
+Si el problema persiste, elimina `node_modules` y reinstala:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### Error: useBetterCall must be used within a BetterCallProvider
+
+**Solución:** Asegúrate de envolver tu aplicación con `BetterCallProvider`:
+
+```typescript
+<BetterCallProvider config={{ baseURL: '...' }}>
+  <App />
+</BetterCallProvider>
+```
+
+### Errores de tipos de TypeScript
+
+**Solución:** Verifica que estás usando TypeScript 5.0 o superior:
+
+```bash
+npx tsc --version
+```
+
+Si usas una versión anterior, actualiza:
+
+```bash
+npm install -D typescript@latest
+```
+
+## Próximos Pasos
+
+<Steps>
+
+### Aprende los conceptos clave
+
+Lee sobre los [conceptos fundamentales](/docs/concepts) de Better Call.
+
+### Crea tu primera petición
+
+Sigue la [guía rápida](/docs/getting-started) para hacer tu primera petición HTTP.
+
+### Explora la API
+
+Revisa la [documentación completa de la API](/docs/api/core/client).
+
+</Steps>
