@@ -1,78 +1,78 @@
-import { Check } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+"use client";
+
+import { motion } from "motion/react";
 
 export function Comparison() {
   return (
-    <section className="py-24">
-      <div className="container px-4 md:px-6 mx-auto">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight mb-6">
-              Why choose api-zero?
+    <section
+      id="comparison"
+      className="py-24 border-t relative overflow-hidden"
+    >
+      <div className="container px-4 md:px-6 mx-auto relative z-10">
+        {/* Stats Section - using stats-02 block structure */}
+        <div className="max-w-(--breakpoint-xl) mx-auto w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-4xl md:text-5xl font-semibold tracking-tighter">
+              Why choose <span className="text-gradient">api-zero</span>?
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              While Axios is a great library, it carries a lot of legacy weight.
-              Fetch is built-in but requires too much boilerplate for real-world apps.
-              Better Call sits in the sweet spot.
+            <p className="mt-4 text-lg max-w-2xl text-muted-foreground">
+              The perfect balance between simplicity and power. All the features
+              you need without the bloat.
             </p>
+          </motion.div>
 
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm font-medium">
-                  <span>api-zero</span>
-                  <span className="text-green-500">~2KB</span>
-                </div>
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 w-[5%]" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm font-medium">
-                  <span>Ky</span>
-                  <span className="text-blue-500">~6KB</span>
-                </div>
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 w-[15%]" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm font-medium">
-                  <span>Axios</span>
-                  <span className="text-red-500">~30KB</span>
-                </div>
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-red-500 w-[80%]" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 blur-3xl rounded-full" />
-            <Card className="relative overflow-hidden shadow-2xl">
-              <div className="grid grid-cols-3 border-b bg-muted/50 text-sm font-medium text-center py-3">
-                <div>Feature</div>
-                <div className="text-muted-foreground">Axios</div>
-                <div className="text-primary">api-zero</div>
-              </div>
-
-              {[
-                { name: 'Bundle Size', axios: 'Heavy (~30KB)', better: 'Tiny (~2KB)' },
-                { name: 'TypeScript', axios: 'Good', better: 'Excellent' },
-                { name: 'Fetch API', axios: 'XHR (Legacy)', better: 'Native Fetch' },
-                { name: 'React Hooks', axios: 'External Lib', better: 'Built-in' },
-                { name: 'Retries', axios: 'Plugin needed', better: 'Built-in' },
-                { name: 'Interceptors', axios: <Check className="w-4 h-4 mx-auto" />, better: <Check className="w-4 h-4 mx-auto text-green-500" /> },
-              ].map((row, i) => (
-                <div key={i} className="grid grid-cols-3 border-b last:border-0 py-4 text-sm text-center items-center hover:bg-muted/20 transition-colors">
-                  <div className="font-medium text-left px-6">{row.name}</div>
-                  <div className="text-muted-foreground">{row.axios}</div>
-                  <div className="font-semibold text-foreground">{row.better}</div>
-                </div>
-              ))}
-            </Card>
+          <div className="mt-16 sm:mt-24 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-10 gap-y-16 justify-center">
+            {[
+              {
+                value: "~2KB",
+                label: "Bundle Size",
+                description:
+                  "Gzipped. 15x smaller than Axios (~30KB), keeping your app lightning fast.",
+                highlight: true,
+              },
+              {
+                value: "100%",
+                label: "TypeScript",
+                description:
+                  "Full type safety with generic request/response types built-in.",
+                highlight: false,
+              },
+              {
+                value: "Zero",
+                label: "Dependencies",
+                description:
+                  "No external dependencies. Just modern JavaScript and native Fetch API.",
+                highlight: true,
+              },
+              {
+                value: "6+",
+                label: "Core Features",
+                description:
+                  "Retries, interceptors, progress tracking, and more out of the box.",
+                highlight: false,
+              },
+            ].map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <span
+                  className={`text-5xl md:text-6xl tracking-tight font-semibold ${stat.highlight ? "text-primary" : "text-muted-foreground"}`}
+                >
+                  {stat.value}
+                </span>
+                <p className="mt-6 font-medium text-xl">{stat.label}</p>
+                <p className="mt-2 text-muted-foreground">{stat.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>

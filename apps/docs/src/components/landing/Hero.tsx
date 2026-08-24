@@ -1,81 +1,95 @@
-import Link from 'next/link';
-import { ArrowRight, Github } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+"use client";
+
+import { ArrowRight, Github } from "lucide-react";
+import { motion } from "motion/react";
+import Link from "next/link";
+import AnimatedGridPattern from "@/components/ui/animated-grid-pattern";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24">
-      <div className="container px-4 md:px-6 mx-auto relative z-10">
-        <div className="flex flex-col items-center text-center space-y-8">
-          <Badge variant="secondary" className="px-3 py-1 text-sm backdrop-blur-sm bg-primary/5 text-primary border-primary/20">
-            <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
-            v1.0.0 is now available
+    <div className="relative min-h-screen flex items-center justify-center px-6 pt-20 overflow-hidden">
+      <AnimatedGridPattern
+        numSquares={30}
+        maxOpacity={0.1}
+        duration={3}
+        className={cn(
+          "mask-[radial-gradient(500px_circle_at_center,white,transparent)]",
+          "inset-x-0 h-full skew-y-12",
+        )}
+      />
+      <div className="relative z-10 text-center max-w-3xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Badge
+            variant="secondary"
+            className="rounded-full py-1 border-border text-primary"
+            asChild
+          >
+            <Link href="/docs">
+              v1.0.0 is now available <ArrowRight className="ml-1 size-4" />
+            </Link>
           </Badge>
+        </motion.div>
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight bg-clip-text bg-gradient-to-b from-foreground to-foreground/60 max-w-4xl">
-            The HTTP client you've been waiting for
-          </h1>
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl md:leading-[1.2] font-semibold tracking-tighter"
+        >
+          The HTTP client you've been{" "}
+          <span className="text-gradient">waiting for</span>
+        </motion.h1>
 
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Fetch is too basic. Axios is too heavy. <br className="hidden md:block" />
-            <span className="text-foreground font-medium">api-zero</span> is the lightweight, type-safe alternative designed for modern React applications.
-          </p>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-6 md:text-lg text-foreground/80"
+        >
+          Fetch is too basic. Axios is too heavy.{" "}
+          <span className="text-gradient font-medium">api-zero</span> is the
+          lightweight, type-safe alternative designed for modern React
+          applications.
+        </motion.p>
 
-          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
-            <Button asChild size="lg" className="h-12 px-8 text-base">
-              <Link href="/docs">
-                Get Started
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" size="lg" className="h-12 px-8 text-base bg-background">
-              <Link
-                href="https://github.com/gorka/better-call"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
-              </Link>
-            </Button>
-          </div>
-
-          <div className="w-full max-w-3xl mt-12 rounded-lg border bg-card shadow-2xl overflow-hidden text-left">
-            <div className="flex items-center gap-2 px-4 py-3 border-b bg-muted/50">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-                <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-                <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-              </div>
-              <div className="flex-1 text-center text-xs font-mono text-muted-foreground">
-                api-client.ts
-              </div>
-            </div>
-            <div className="p-6 overflow-x-auto bg-[#0d1117]">
-              <pre className="text-sm font-mono leading-relaxed">
-                <code className="language-typescript">
-                  <span className="text-purple-400">import</span> <span className="text-blue-400">{`{ createClient }`}</span> <span className="text-purple-400">from</span> <span className="text-green-400">'@api-zero/core'</span>;{'\n\n'}
-                  <span className="text-gray-500">// Initialize with full type safety</span>{'\n'}
-                  <span className="text-purple-400">const</span> <span className="text-yellow-200">api</span> = <span className="text-blue-400">createClient</span>({`{`}{'\n'}
-                  {'  '}baseURL: <span className="text-green-400">'https://api.example.com'</span>,{'\n'}
-                  {'  '}retry: <span className="text-blue-400">{`{ attempts: 3, backoff: 'exponential' }`}</span>,{'\n'}
-                  {`}`});{'\n\n'}
-                  <span className="text-gray-500">// Use it anywhere</span>{'\n'}
-                  <span className="text-purple-400">const</span> <span className="text-yellow-200">users</span> = <span className="text-purple-400">await</span> <span className="text-yellow-200">api</span>.<span className="text-blue-400">get</span>{`<User[]>('`}<span className="text-green-400">/users</span>{`');`}
-                </code>
-              </pre>
-            </div>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-12 flex items-center justify-center gap-4"
+        >
+          <Button
+            size="lg"
+            className="rounded-full text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
+            asChild
+          >
+            <Link href="/docs">
+              Get Started <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-full text-base shadow-none hover:text-primary hover:bg-primary/5"
+            asChild
+          >
+            <Link
+              href="https://github.com/api-zero/api-zero"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Github className="mr-2 h-5 w-5" /> GitHub
+            </Link>
+          </Button>
+        </motion.div>
       </div>
-
-      {/* Background decoration */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] opacity-20 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 blur-[100px] rounded-full mix-blend-screen" />
-      </div>
-    </section>
+    </div>
   );
 }

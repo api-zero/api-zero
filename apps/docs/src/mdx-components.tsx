@@ -1,9 +1,10 @@
-import defaultMdxComponents from 'fumadocs-ui/mdx';
-import type { MDXComponents } from 'mdx/types';
-import { Step, Steps } from 'fumadocs-ui/components/steps';
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
-import { File, Files, Folder } from 'fumadocs-ui/components/files';
+import { Accordion, Accordions } from "fumadocs-ui/components/accordion";
+import { CodeBlock, Pre } from "fumadocs-ui/components/codeblock";
+import { File, Files, Folder } from "fumadocs-ui/components/files";
+import { Step, Steps } from "fumadocs-ui/components/steps";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+import defaultMdxComponents from "fumadocs-ui/mdx";
+import type { MDXComponents } from "mdx/types";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
@@ -19,5 +20,10 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Files,
     FileTree: Files, // Alias for Files component
     ...components,
+    pre: ({ ref: _ref, ...props }) => (
+      <CodeBlock {...props}>
+        <Pre>{props.children}</Pre>
+      </CodeBlock>
+    ),
   };
 }
