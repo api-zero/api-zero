@@ -26,7 +26,7 @@
 
 ## Features
 
-- 🚀 **Zero Overhead**: Built on top of standard Fetch and modern Web APIs, fully compatible with Browser, Node 18+, and Edge runtimes.
+- 🚀 **Zero Overhead**: Built on top of standard Fetch and modern Web APIs, fully compatible with Browser, Node 22+, and Edge runtimes.
 - 🔒 **End-to-End Type Safety**: First-class TypeScript generics for response, request body, and query parameters.
 - 🔄 **Smart Retry Engine**: Idempotent method protection, exponential/linear backoff, random jitter (anti-thundering herd), and native `Retry-After` header parsing.
 - 🛑 **Async Interceptors**: Full lifecycle pipeline with asynchronous request and response interceptors supporting error recovery (e.g. JWT token refresh).

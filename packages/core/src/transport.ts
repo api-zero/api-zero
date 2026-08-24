@@ -176,7 +176,7 @@ export async function parseResponseBody(
 
 /**
  * Standard Fetch-based HTTP transport.
- * Supported across Browser, Node 18+, and Edge runtimes.
+ * Supported across Browser, Node 22+, and Edge runtimes.
  */
 export class FetchTransport implements Transport {
   async send(context: RequestContext): Promise<TransportResponse> {
