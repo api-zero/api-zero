@@ -1,4 +1,4 @@
-import { createContext } from 'react';
-import { ApiClient } from '@api-zero/core';
+import type { ApiClient } from "@api-zero/core";
+import { createContext } from "react";
 
 export const ApiContext = createContext<ApiClient | null>(null);

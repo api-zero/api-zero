@@ -1,30 +1,70 @@
 {
   "name": "@api-zero/react",
   "version": "0.0.1",
+  "description": "React bindings for api-zero — ApiProvider, useApi, useRequest, and useMutation hooks.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/api-zero/api-zero.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://api-zero.vercel.app",
+  "bugs": {
+    "url": "https://github.com/api-zero/api-zero/issues"
+  },
+  "keywords": [
+    "api-zero",
+    "react",
+    "http",
+    "client",
+    "provider",
+    "hook",
+    "useRequest",
+    "useMutation"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
   },
   "peerDependencies": {
-    "react": ">=18",
-    "@api-zero/core": "workspace:*"
+    "@api-zero/core": "workspace:*",
+    "react": ">=18"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "eslint src/"
+    "test": "vitest run",
+    "lint": "biome check .",
+    "format": "biome format --write ."
   },
   "devDependencies": {
-    "tsup": "^8.0.0",
-    "typescript": "^5.0.0",
-    "react": "^18.0.0",
+    "@api-zero/core": "workspace:*",
+    "@api-zero/zod": "workspace:*",
+    "@testing-library/react": "^16.0.0",
     "@types/react": "^18.0.0",
-    "@api-zero/core": "workspace:*"
+    "@types/react-dom": "^18.0.0",
+    "happy-dom": "^15.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^1.0.0",
+    "zod": "^3.24.2"
   }
 }

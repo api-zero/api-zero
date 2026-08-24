@@ -1,11 +1,11 @@
-import { useContext } from 'react';
-import { ApiClient } from '@api-zero/core';
-import { ApiContext } from './context';
+import type { ApiClient } from "@api-zero/core";
+import { useContext } from "react";
+import { ApiContext } from "./context";
 
 export function useApi(): ApiClient {
   const context = useContext(ApiContext);
   if (!context) {
-    throw new Error('useApi must be used within a ApiProvider');
+    throw new Error("useApi must be used within an ApiProvider");
   }
   return context;
 }
