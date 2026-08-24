@@ -1,17 +1,26 @@
 {
-  "name": "better-call-monorepo",
+  "name": "api-zero",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/api-zero/api-zero.git"
+  },
+  "license": "MIT",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "biome format --write .",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "turbo run build && changeset publish"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.8",
+    "@changesets/cli": "^2.29.8",
     "turbo": "latest",
-    "prettier": "latest",
-    "typescript": "latest"
+    "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@9.0.0"
 }
