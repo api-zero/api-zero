@@ -1,7 +1,7 @@
 # ADR-001: Scope, Naming and Runtime Policy
 
 **Date:** 2026-08-17
-**Status:** Accepted
+**Status:** Accepted — section 4 (Node.js rows) and the `engines` decision in section 7 are superseded by [ADR-002](002-supported-node-versions.md).
 **Context:** api-zero needs formal decisions before behavioral changes begin.
 
 ## Decisions
@@ -26,6 +26,8 @@ The monorepo is named `api-zero` (not `better-call-monorepo`).
 MIT — already present in `/LICENSE`.
 
 ### 4. Supported Runtimes
+
+> **Superseded for Node.js by [ADR-002](002-supported-node-versions.md):** the floor is Node.js 22, not 18. The browser, Edge and Deno/Bun rows below still stand.
 
 | Runtime | Support | Notes |
 |---------|---------|-------|
@@ -63,7 +65,7 @@ Zod is the **first-class contract integration**, delivered as `@api-zero/zod`:
 - **Access:** Change from `"restricted"` to `"public"` in changeset config for open-source publication.
 - **Files:** Each package publishes only `dist/` (plus `package.json`, `README.md`, `LICENSE`).
 - **Side effects:** `"sideEffects": false` for tree-shaking.
-- **Engines:** `"node": ">=18"` to document Node.js minimum.
+- **Engines:** `"node": ">=22"` to document Node.js minimum — see [ADR-002](002-supported-node-versions.md).
 
 ### 8. Breaking Changes Policy
 
