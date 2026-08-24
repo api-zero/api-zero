@@ -1,13 +1,34 @@
-import { ApiError } from './error';
-import { InterceptorManager } from './interceptors';
-import { serializeParams } from './params';
-import { withRetry } from './retry';
-import { ApiClientConfig, RequestOptions, HttpMethod } from './types';
+import type { RequestContext, RequestTiming, ResponseContext } from "./context";
+import { ApiError } from "./error";
+import { InterceptorManager } from "./interceptors";
+import { serializeParams } from "./params";
+import { withRetry } from "./retry";
+import {
+  FetchTransport,
+  findHeaderKey,
+  type Transport,
+  toBase64,
+  XhrTransport,
+} from "./transport";
+import type { ApiClientConfig, HttpMethod, RequestOptions } from "./types";
+
+/**
+ * Type guard to check if an object is a ResponseContext.
+ */
+function isResponseContext(value: unknown): value is ResponseContext {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    "rawResponse" in value &&
+    "data" in value &&
+    "status" in value
+  );
+}
 
 export class ApiClient {
   public interceptors = {
-    request: new InterceptorManager<RequestOptions>(),
-    response: new InterceptorManager<Response>(),
+    request: new InterceptorManager<RequestContext, unknown>(),
+    response: new InterceptorManager<ResponseContext<any>, ApiError>(),
   };
 
   constructor(private config: ApiClientConfig = {}) {
@@ -21,21 +42,21 @@ export class ApiClient {
     this.config = { ...this.config, ...config };
   }
 
-  getConfig() {
+  getConfig(): ApiClientConfig {
     return this.config;
   }
 
   setAuthToken(token: string) {
-    this.setHeader('Authorization', `Bearer ${token}`);
+    this.setHeader("Authorization", `Bearer ${token}`);
   }
 
   setBasicAuth(username: string, password: string) {
-    const token = btoa(`${username}:${password}`);
-    this.setHeader('Authorization', `Basic ${token}`);
+    const token = toBase64(`${username}:${password}`);
+    this.setHeader("Authorization", `Basic ${token}`);
   }
 
   clearAuth() {
-    this.removeHeader('Authorization');
+    this.removeHeader("Authorization");
   }
 
   setHeader(key: string, value: string) {
@@ -44,7 +65,8 @@ export class ApiClient {
 
   removeHeader(key: string) {
     if (this.config.headers) {
-      delete this.config.headers[key];
+      const existingKey = findHeaderKey(this.config.headers, key) ?? key;
+      delete this.config.headers[existingKey];
     }
   }
 
@@ -52,373 +74,381 @@ export class ApiClient {
     this.config.headers = { ...this.config.headers, ...headers };
   }
 
-  async request<TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(
+  async request<
+    TResponse = unknown,
+    TBody = unknown,
+    TParams = Record<string, unknown>,
+  >(
     endpoint: string,
     method: HttpMethod,
     body?: TBody,
-    options: RequestOptions<TResponse, TBody, TParams> = {}
+    options: RequestOptions<TResponse, TBody, TParams> = {},
   ): Promise<TResponse> {
-    let config: RequestOptions<TResponse, TBody, TParams> = {
-      ...this.config,
-      ...options,
-      headers: {
-        ...this.config.headers,
-        ...options.headers,
-      },
-    };
-
-    // Transform request
-    if (this.config.transformRequest) {
-        const transforms = Array.isArray(this.config.transformRequest) 
-            ? this.config.transformRequest 
-            : [this.config.transformRequest];
-            
-        transforms.forEach(fn => {
-            body = fn(body) as TBody;
-        });
+    // 1. Resolve URL
+    const baseURL = options.baseURL ?? this.config.baseURL ?? "";
+    let url = endpoint;
+    if (baseURL) {
+      const cleanBaseURL = baseURL.replace(/\/+$/, "");
+      const cleanEndpoint = endpoint.replace(/^\/+/, "");
+      url = cleanEndpoint ? `${cleanBaseURL}/${cleanEndpoint}` : cleanBaseURL;
     }
 
-    // Run request interceptors
+    // 2. Serialize query parameters (options override config)
+    const effectiveParamsSerializer =
+      options.paramsSerializer ?? this.config.paramsSerializer;
+    if (options.params) {
+      const queryString = serializeParams(
+        options.params as Record<string, unknown>,
+        effectiveParamsSerializer,
+      );
+      if (queryString) {
+        url += (url.includes("?") ? "&" : "?") + queryString;
+      }
+    }
+
+    // 3. Merge headers
+    const mergedHeaders: Record<string, string> = {
+      ...this.config.headers,
+      ...options.headers,
+    };
+
+    // 4. Compose transformRequest: Global first, then Per-Request
+    let transformedBody: any = body;
+    if (this.config.transformRequest) {
+      const globalTransforms = Array.isArray(this.config.transformRequest)
+        ? this.config.transformRequest
+        : [this.config.transformRequest];
+      for (const fn of globalTransforms) {
+        transformedBody = await fn(transformedBody, mergedHeaders);
+      }
+    }
+    if (options.transformRequest) {
+      const reqTransforms = Array.isArray(options.transformRequest)
+        ? options.transformRequest
+        : [options.transformRequest];
+      for (const fn of reqTransforms) {
+        transformedBody = await fn(transformedBody, mergedHeaders);
+      }
+    }
+
+    // 5. Build initial RequestContext
+    let requestContext: RequestContext<TBody, TParams> = {
+      method,
+      endpoint,
+      baseURL,
+      url,
+      body: transformedBody as TBody,
+      params: options.params,
+      headers: mergedHeaders,
+      timeout: options.timeout ?? this.config.timeout ?? 30000,
+      signal: options.signal,
+      credentials: options.credentials ?? this.config.credentials,
+      responseType: options.responseType ?? "json",
+      attempt: 1,
+      metadata: { ...options.metadata },
+      options,
+    };
+
+    // 6. Run Request Interceptors
     try {
-      let promise = Promise.resolve(config as RequestOptions);
-      this.interceptors.request.forEach(({ fulfilled, rejected }) => {
-        promise = promise.then(fulfilled, rejected);
-      });
-      config = (await promise) as RequestOptions<TResponse, TBody, TParams>;
+      for (const handler of this.interceptors.request.activeHandlers) {
+        if (handler.fulfilled) {
+          const result = await handler.fulfilled(requestContext);
+          if (result !== undefined && result !== null) {
+            requestContext = result;
+          }
+        }
+      }
     } catch (error: unknown) {
       return Promise.reject(error);
     }
 
-    const baseURL = config.baseURL || '';
-    let url = endpoint;
-    if (baseURL) {
-        const cleanBaseURL = baseURL.replace(/\/+$/, '');
-        const cleanEndpoint = endpoint.replace(/^\/+/, '');
-        url = cleanEndpoint ? `${cleanBaseURL}/${cleanEndpoint}` : cleanBaseURL;
-    }
-    
-    if (config.params) {
-      const queryString = serializeParams(config.params, this.config.paramsSerializer);
-      if (queryString) {
-        url += (url.includes('?') ? '&' : '?') + queryString;
-      }
-    }
+    // 7. Execute transport with retry & response interceptors
+    const effectiveRetry =
+      options.retry !== undefined ? options.retry : this.config.retry;
 
-    return withRetry(() => this.performRequest<TResponse, TBody, TParams>(url, method, body, config), config.retry);
+    return withRetry(
+      async (attempt = 1) => {
+        requestContext.attempt = attempt;
+        return this.executePipeline<TResponse, TBody, TParams>(
+          requestContext,
+          options,
+        );
+      },
+      effectiveRetry,
+      requestContext,
+    );
   }
 
-  private async performRequest<TResponse, TBody, TParams>(
-    url: string,
-    method: HttpMethod,
-    body: TBody | undefined,
-    config: RequestOptions<TResponse, TBody, TParams>
+  /**
+   * Resolve the transport instance to use for this request.
+   */
+  private resolveTransport(context: RequestContext): Transport {
+    if (this.config.transport) {
+      return this.config.transport;
+    }
+    if (
+      context.options.onUploadProgress ||
+      context.options.onDownloadProgress
+    ) {
+      return new XhrTransport();
+    }
+    return new FetchTransport();
+  }
+
+  private async executePipeline<TResponse, TBody, TParams>(
+    requestContext: RequestContext<TBody, TParams>,
+    options: RequestOptions<TResponse, TBody, TParams>,
   ): Promise<TResponse> {
-    if (config.onUploadProgress) {
-        return this.xhrRequest<TResponse, TBody, TParams>(url, method, body, config);
-    }
-
-    const headers: Record<string, string> = { ...config.headers };
-
-    const fetchOptions: RequestInit = {
-      method,
-      headers,
-      credentials: config.credentials,
-      signal: config.signal,
-    };
-
-    if (body) {
-      if (body instanceof FormData || body instanceof URLSearchParams || body instanceof Blob || body instanceof ArrayBuffer) {
-        fetchOptions.body = body;
-        if (body instanceof FormData) {
-           delete headers['Content-Type'];
-        }
-      } else {
-        fetchOptions.body = JSON.stringify(body);
-        if (!headers['Content-Type']) {
-            headers['Content-Type'] = 'application/json';
-        }
-      }
-    }
-
-    const timeout = config.timeout || 30000;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
-    if (config.signal) {
-        config.signal.addEventListener('abort', () => {
-            clearTimeout(timeoutId);
-            controller.abort();
-        });
-    }
-
-    fetchOptions.signal = controller.signal;
+    const startedAt = Date.now();
+    let rawResponse: Response | undefined;
 
     try {
-      let response = await fetch(url, fetchOptions);
-      clearTimeout(timeoutId);
+      // 1. Perform Transport Request
+      const transport = this.resolveTransport(requestContext);
+      const transportResult = await transport.send(requestContext);
 
-      // Run response interceptors
-      let promise = Promise.resolve(response);
-      this.interceptors.response.forEach(({ fulfilled, rejected }) => {
-        promise = promise.then(fulfilled, rejected);
-      });
-      response = await promise;
+      rawResponse = transportResult.rawResponse;
+      let data = transportResult.data;
+      const responseHeaders = transportResult.headers;
+      const status = transportResult.status;
+      const statusText = transportResult.statusText;
 
-      if (!response.ok) {
-        let data: unknown;
-        try {
-            data = await response.json();
-        } catch {
-            data = await response.text();
-        }
-        throw new ApiError(
-            response.statusText || 'Error on request',
-            response.status,
-            response.statusText,
-            data,
-            config as any
-        );
-      }
-
-      const responseType = config.responseType || 'json';
-      let data: unknown;
-      if (responseType === 'json') {
-        data = await response.json();
-      } else if (responseType === 'text') {
-        data = await response.text();
-      } else if (responseType === 'blob') {
-        data = await response.blob();
-      } else if (responseType === 'arrayBuffer') {
-        data = await response.arrayBuffer();
-      }
-
-      // Transform response
+      // 2. Compose transformResponse: Global first, then Per-Request
       if (this.config.transformResponse) {
-        const transforms = Array.isArray(this.config.transformResponse)
-            ? this.config.transformResponse
-            : [this.config.transformResponse];
-            
-        transforms.forEach(fn => {
-            data = fn(data);
-        });
+        const globalTransforms = Array.isArray(this.config.transformResponse)
+          ? this.config.transformResponse
+          : [this.config.transformResponse];
+        for (const fn of globalTransforms) {
+          data = await fn(data);
+        }
+      }
+      if (options.transformResponse) {
+        const reqTransforms = Array.isArray(options.transformResponse)
+          ? options.transformResponse
+          : [options.transformResponse];
+        for (const fn of reqTransforms) {
+          data = await fn(data);
+        }
       }
 
-      // Validate response
-      if (config.validateResponse) {
-          try {
-              const isValid = await config.validateResponse(data as TResponse);
-              if (!isValid) {
-                  throw new Error('Response validation failed');
-              }
-          } catch (error: unknown) {
-              if (config.onValidationError && error instanceof ApiError) {
-                  config.onValidationError(error);
-              } else if (config.onValidationError) {
-                   // Wrap unknown error in ApiError for consistency
-                   const wrappedError = new ApiError(
-                       error instanceof Error ? error.message : 'Validation Error',
-                       0,
-                       'Validation Error',
-                       data,
-                       config as any
-                   );
-                   config.onValidationError(wrappedError);
-              }
-              throw error;
+      // 3. Validate Response
+      if (options.validateResponse) {
+        try {
+          const isValid = await options.validateResponse(data as TResponse);
+          if (!isValid) {
+            throw new Error("Response validation failed");
           }
+        } catch (validationErr: unknown) {
+          const valError =
+            validationErr instanceof ApiError
+              ? validationErr
+              : ApiError.from(
+                  validationErr instanceof Error
+                    ? validationErr.message
+                    : "Response validation failed",
+                  {
+                    status,
+                    statusText,
+                    data,
+                    request: requestContext,
+                    response: rawResponse,
+                    cause:
+                      validationErr instanceof Error
+                        ? validationErr
+                        : undefined,
+                    isValidationError: true,
+                    attempt: requestContext.attempt,
+                  },
+                );
+
+          if (options.onValidationError) {
+            options.onValidationError(valError);
+          }
+          throw valError;
+        }
       }
 
-      return data as TResponse;
+      const endedAt = Date.now();
+      const timing: RequestTiming = {
+        startedAt,
+        endedAt,
+        duration: endedAt - startedAt,
+      };
+
+      // 4. Build ResponseContext
+      let responseContext: ResponseContext<TResponse> = {
+        request: requestContext,
+        rawResponse: rawResponse ?? new Response(),
+        data: data as TResponse,
+        status,
+        statusText,
+        headers: responseHeaders,
+        timing,
+      };
+
+      // 5. Run Response Success Interceptors
+      for (const handler of this.interceptors.response.activeHandlers) {
+        if (handler.fulfilled) {
+          const result = await handler.fulfilled(responseContext);
+          if (result !== undefined && result !== null) {
+            if (isResponseContext(result)) {
+              responseContext = result as ResponseContext<TResponse>;
+            } else {
+              responseContext.data = result as TResponse;
+            }
+          }
+        }
+      }
+
+      return responseContext.data;
     } catch (error: unknown) {
-      clearTimeout(timeoutId);
-      if (error instanceof ApiError) {
-        throw error;
+      const endedAt = Date.now();
+      const apiError = this.normalizeError(
+        error,
+        requestContext,
+        rawResponse,
+        startedAt,
+        endedAt,
+      );
+
+      // Run Response Error Interceptors (rejection chain)
+      for (const handler of this.interceptors.response.activeHandlers) {
+        if (handler.rejected) {
+          try {
+            const recovered = await handler.rejected(apiError);
+            if (recovered !== undefined) {
+              return recovered;
+            }
+          } catch (nextError: unknown) {
+            throw this.normalizeError(
+              nextError,
+              requestContext,
+              rawResponse,
+              startedAt,
+              endedAt,
+            );
+          }
+        }
       }
-      
-      const isAbortError = error instanceof Error && error.name === 'AbortError';
-      if (isAbortError) {
-         if (config.signal?.aborted) {
-             throw new ApiError('Request aborted', 0, 'Aborted', undefined, config as any, false, false, true);
-         } else {
-             throw new ApiError('Request timeout', 408, 'Timeout', undefined, config as any, true, false, false);
-         }
-      }
-      
-      const message = error instanceof Error ? error.message : 'Network Error';
-      throw new ApiError(message, 0, 'Network Error', undefined, config as any, false, true, false);
+
+      throw apiError;
     }
   }
 
-  private xhrRequest<TResponse, TBody, TParams>(
-    url: string,
-    method: HttpMethod,
-    body: TBody | undefined,
-    config: RequestOptions<TResponse, TBody, TParams>
-  ): Promise<TResponse> {
-      return new Promise((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open(method, url);
-          
-          if (config.headers) {
-              Object.entries(config.headers).forEach(([key, value]) => {
-                  if (key.toLowerCase() === 'content-type' && body instanceof FormData) return;
-                  xhr.setRequestHeader(key, value);
-              });
-          }
+  private normalizeError(
+    error: unknown,
+    context: RequestContext,
+    response?: Response,
+    _startedAt?: number,
+    _endedAt?: number,
+  ): ApiError {
+    if (error instanceof ApiError) {
+      return error;
+    }
 
-          if (config.credentials === 'include') {
-              xhr.withCredentials = true;
-          }
+    const isAbortError = error instanceof Error && error.name === "AbortError";
 
-          if (config.timeout) {
-              xhr.timeout = config.timeout;
-          }
-
-          if (config.onUploadProgress) {
-              xhr.upload.onprogress = config.onUploadProgress;
-          }
-
-          if (config.onDownloadProgress) {
-              xhr.onprogress = config.onDownloadProgress;
-          }
-
-          xhr.onload = async () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                  let data: unknown;
-                  const responseType = config.responseType || 'json';
-                  if (responseType === 'json') {
-                      try {
-                          data = JSON.parse(xhr.responseText);
-                      } catch {
-                          data = xhr.responseText;
-                      }
-                  } else {
-                      data = xhr.response;
-                  }
-                                     // Transform response
-                    if (this.config.transformResponse) {
-                        const transforms = Array.isArray(this.config.transformResponse)
-                            ? this.config.transformResponse
-                            : [this.config.transformResponse];
-
-                        transforms.forEach(fn => {
-                            data = fn(data);
-                        });
-                    }
-
-                    // Validate response (XHR)
-                    if (config.validateResponse) {
-                        try {
-                            // Note: validateResponse might be async, but XHR onload is sync context mostly.
-                            // We'll treat it as promise-based for consistency.
-                            Promise.resolve(config.validateResponse(data as TResponse))
-                                .then(isValid => {
-                                    if (!isValid) throw new Error('Response validation failed');
-                                    resolve(data as TResponse);
-                                })
-                                .catch(error => {
-                                    if (config.onValidationError) {
-                                         const wrappedError = new ApiError(
-                                             error instanceof Error ? error.message : 'Validation Error',
-                                             0,
-                                             'Validation Error',
-                                             data,
-                                             config as any
-                                         );
-                                         config.onValidationError(wrappedError);
-                                    }
-                                    reject(error);
-                                });
-                            return;
-                        } catch (error) {
-                             reject(error);
-                             return;
-                        }
-                    }
-
-                  resolve(data as TResponse);
-              } else {
-                  let data: unknown;
-                  try {
-                      data = JSON.parse(xhr.responseText);
-                  } catch {
-                      data = xhr.responseText;
-                  }
-                  reject(new ApiError(
-                      xhr.statusText || 'Error on request',
-                      xhr.status,
-                      xhr.statusText,
-                      data,
-                      config as any
-                  ));
-              }
-          };
-
-          xhr.onerror = () => {
-              reject(new ApiError('Network Error', 0, 'Network Error', undefined, config as any, false, true, false));
-          };
-
-          xhr.ontimeout = () => {
-              reject(new ApiError('Request timeout', 408, 'Timeout', undefined, config as any, true, false, false));
-          };
-
-          xhr.onabort = () => {
-              reject(new ApiError('Request aborted', 0, 'Aborted', undefined, config as any, false, false, true));
-          };
-
-          if (config.signal) {
-              config.signal.addEventListener('abort', () => {
-                  xhr.abort();
-              });
-          }
-
-          if (body instanceof FormData || body instanceof URLSearchParams || body instanceof Blob || body instanceof ArrayBuffer) {
-              xhr.send(body);
-          } else if (body) {
-              xhr.setRequestHeader('Content-Type', 'application/json');
-              xhr.send(JSON.stringify(body));
-          } else {
-              xhr.send();
-          }
+    if (isAbortError) {
+      if (context.signal?.aborted) {
+        return ApiError.from("Request aborted", {
+          status: 0,
+          statusText: "Aborted",
+          request: context,
+          response,
+          cause: error instanceof Error ? error : undefined,
+          isAborted: true,
+          attempt: context.attempt,
+        });
+      }
+      return ApiError.from("Request timeout", {
+        status: 408,
+        statusText: "Timeout",
+        request: context,
+        response,
+        cause: error instanceof Error ? error : undefined,
+        isTimeout: true,
+        attempt: context.attempt,
       });
+    }
+
+    const message = error instanceof Error ? error.message : "Network Error";
+    return ApiError.from(message, {
+      status: 0,
+      statusText: "Network Error",
+      request: context,
+      response,
+      cause: error instanceof Error ? error : undefined,
+      isNetworkError: true,
+      attempt: context.attempt,
+    });
   }
 
   get<TResponse = unknown, TParams = Record<string, unknown>>(
     endpoint: string,
-    options?: RequestOptions<TResponse, unknown, TParams>
+    options?: RequestOptions<TResponse, unknown, TParams>,
   ) {
-    return this.request<TResponse, unknown, TParams>(endpoint, 'GET', undefined, options);
+    return this.request<TResponse, unknown, TParams>(
+      endpoint,
+      "GET",
+      undefined,
+      options,
+    );
   }
 
   post<TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(
     endpoint: string,
     body?: TBody,
-    options?: RequestOptions<TResponse, TBody, TParams>
+    options?: RequestOptions<TResponse, TBody, TParams>,
   ) {
-    return this.request<TResponse, TBody, TParams>(endpoint, 'POST', body, options);
+    return this.request<TResponse, TBody, TParams>(
+      endpoint,
+      "POST",
+      body,
+      options,
+    );
   }
 
   put<TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(
     endpoint: string,
     body?: TBody,
-    options?: RequestOptions<TResponse, TBody, TParams>
+    options?: RequestOptions<TResponse, TBody, TParams>,
   ) {
-    return this.request<TResponse, TBody, TParams>(endpoint, 'PUT', body, options);
+    return this.request<TResponse, TBody, TParams>(
+      endpoint,
+      "PUT",
+      body,
+      options,
+    );
   }
 
-  patch<TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(
+  patch<
+    TResponse = unknown,
+    TBody = unknown,
+    TParams = Record<string, unknown>,
+  >(
     endpoint: string,
     body?: TBody,
-    options?: RequestOptions<TResponse, TBody, TParams>
+    options?: RequestOptions<TResponse, TBody, TParams>,
   ) {
-    return this.request<TResponse, TBody, TParams>(endpoint, 'PATCH', body, options);
+    return this.request<TResponse, TBody, TParams>(
+      endpoint,
+      "PATCH",
+      body,
+      options,
+    );
   }
 
   delete<TResponse = unknown, TParams = Record<string, unknown>>(
     endpoint: string,
-    options?: RequestOptions<TResponse, unknown, TParams>
+    options?: RequestOptions<TResponse, unknown, TParams>,
   ) {
-    return this.request<TResponse, unknown, TParams>(endpoint, 'DELETE', undefined, options);
+    return this.request<TResponse, unknown, TParams>(
+      endpoint,
+      "DELETE",
+      undefined,
+      options,
+    );
   }
 }
 

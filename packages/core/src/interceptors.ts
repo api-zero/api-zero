@@ -1,16 +1,21 @@
-export class InterceptorManager<V> {
-  private handlers: Array<{
-    fulfilled?: (value: V) => V | Promise<V>;
-    rejected?: (error: unknown) => any;
-  } | null> = [];
+export interface InterceptorHandler<V, E = unknown> {
+  fulfilled?: (value: V) => V | Promise<V> | any;
+  rejected?: (error: E) => any;
+}
 
-  use(fulfilled?: (value: V) => V | Promise<V>, rejected?: (error: unknown) => any): number {
+export class InterceptorManager<V, E = unknown> {
+  private handlers: Array<InterceptorHandler<V, E> | null> = [];
+
+  use(
+    fulfilled?: (value: V) => V | Promise<V> | any,
+    rejected?: (error: E) => any,
+  ): number {
     this.handlers.push({ fulfilled, rejected });
     return this.handlers.length - 1;
   }
 
   eject(id: number): void {
-    if (this.handlers[id]) {
+    if (id >= 0 && id < this.handlers.length) {
       this.handlers[id] = null;
     }
   }
@@ -19,7 +24,13 @@ export class InterceptorManager<V> {
     this.handlers = [];
   }
 
-  forEach(fn: (handler: { fulfilled?: (value: V) => V | Promise<V>; rejected?: (error: unknown) => any }) => void): void {
+  get activeHandlers(): Array<InterceptorHandler<V, E>> {
+    return this.handlers.filter(
+      (h): h is InterceptorHandler<V, E> => h !== null,
+    );
+  }
+
+  forEach(fn: (handler: InterceptorHandler<V, E>) => void): void {
     this.handlers.forEach((h) => {
       if (h !== null) {
         fn(h);
