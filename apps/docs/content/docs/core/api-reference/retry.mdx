@@ -1,0 +1,178 @@
+---
+title: "Sistema de Reintentos"
+description: "Configura reintentos automáticos inteligentes con backoff, jitter y soporte de Retry-After."
+---
+
+# Sistema de Reintentos
+
+api-zero incluye un motor de reintentos de nivel de producción que gestiona fallos transitorios de forma inteligente y segura.
+
+## Configuración Básica
+
+```typescript
+import { createClient } from '@api-zero/core';
+
+const client = createClient({
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+    jitter: true,
+  },
+});
+```
+
+## Política de Elegibilidad por Defecto
+
+A diferencia de otros clientes, api-zero no reintenta a ciegas:
+
+1. **Por Error**: Solo se reintentan errores transitorios (`isNetworkError`, `isTimeout` / `408`, rate limits `429` y errores de servidor `500..599`). Los errores 4xx del cliente, cancelaciones del usuario (`isAborted`) y errores de validación (`isValidationError`) nunca se reintentan.
+2. **Por Método**: Por defecto solo se reintentan métodos seguros e idempotentes (`GET`, `PUT`, `DELETE`). Para reintentar métodos no idempotentes como `POST` o `PATCH`, debes activar `retryUnsafeMethods: true` o incluirlos en `retryMethods: ['POST']`.
+
+---
+
+## Interfaz `RetryConfig`
+
+```typescript
+export interface RetryConfig {
+  /** Número máximo de intentos (default: 3) */
+  attempts: number;
+  /** Delay base inicial en milisegundos (default: 1000) */
+  delay: number;
+  /** Límite superior máximo para el delay en milisegundos (default: 30000) */
+  maxDelay?: number;
+  /** Estrategia de backoff: 'exponential' (default), 'linear', o función personalizada */
+  backoff?:
+    | "linear"
+    | "exponential"
+    | ((attempt: number, error: ApiError) => number);
+  /** Aplica variación aleatoria al delay para mitigar el thundering herd (default: true) */
+  jitter?: boolean;
+  /** Respeta la cabecera Retry-After en respuestas 429 o 503 (default: true) */
+  respectRetryAfter?: boolean;
+  /** Métodos HTTP permitidos para reintento automático (default: ['GET', 'PUT', 'DELETE']) */
+  retryMethods?: HttpMethod[];
+  /** Permite reintentar métodos inseguros como POST y PATCH (default: false) */
+  retryUnsafeMethods?: boolean;
+  /** Condición personalizada para decidir si se reintenta */
+  retryCondition?: (error: ApiError, attempt: number) => boolean;
+  /** Callback de telemetría antes de cada reintento */
+  onRetry?: (event: RetryEvent) => void;
+}
+```
+
+---
+
+## Opciones en Detalle
+
+### `attempts` y `delay`
+Define el número total de intentos y el tiempo base entre ellos:
+
+```typescript
+retry: {
+  attempts: 3, // Realizará hasta 3 intentos en total
+  delay: 1000, // 1 segundo base
+}
+```
+
+### `backoff`
+Estrategia de cálculo del delay para cada intento:
+
+- **`exponential`** (default): `delay * 2^(attempt - 1)` (1s, 2s, 4s, 8s...).
+- **`linear`**: `delay * attempt` (1s, 2s, 3s, 4s...).
+- **Función personalizada**: `(attempt, error) => ms`.
+
+```typescript
+retry: {
+  attempts: 4,
+  delay: 500,
+  backoff: (attempt, error) => {
+    // Backoff personalizado según el código de estado
+    if (error.status === 429) return 5000;
+    return attempt * 1000;
+  },
+}
+```
+
+### `maxDelay`
+Límite superior que el delay calculado nunca superará (30.000 ms por defecto):
+
+```typescript
+retry: {
+  attempts: 5,
+  delay: 2000,
+  maxDelay: 10000, // Nunca esperará más de 10 segundos
+}
+```
+
+### `jitter`
+Añade aleatoriedad al delay (`0.5 * delay + random * 0.5 * delay`) para evitar que miles de clientes concurrentes reintenten exactamente en el mismo milisegundo:
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 1000,
+  jitter: true, // Activado por defecto
+}
+```
+
+### `respectRetryAfter`
+Si el servidor responde con cabecera `Retry-After: 120` o `Retry-After: <HTTP-Date>`, api-zero calculará automáticamente el tiempo exacto de espera respetando la instrucción del servidor:
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 1000,
+  respectRetryAfter: true, // Activado por defecto
+}
+```
+
+### `onRetry` (Telemetría)
+Monitorea los reintentos para logging o analítica:
+
+```typescript
+retry: {
+  attempts: 3,
+  delay: 1000,
+  onRetry: ({ attempt, maxAttempts, error, delay }) => {
+    console.warn(`[Retry ${attempt}/${maxAttempts}] esperando ${delay}ms debido a: ${error.message}`);
+  },
+}
+```
+
+---
+
+## Deshabilitar Reintentos
+
+### Globalmente
+
+```typescript
+const client = createClient({
+  retry: false,
+});
+```
+
+### Por Petición
+
+```typescript
+await client.get('/non-retryable-action', {
+  retry: false,
+});
+```
+
+---
+
+## Ver También
+
+<Cards>
+  <Card 
+    title="Configuración" 
+    href="/docs/core/api-reference/config"
+    description="Opciones completas del cliente"
+  />
+  <Card 
+    title="ApiError" 
+    href="/docs/core/api-reference/error"
+    description="Estructura y métodos de error"
+  />
+</Cards>

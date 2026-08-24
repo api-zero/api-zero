@@ -1,0 +1,299 @@
+---
+title: "Guía Rápida"
+description: "Crea tu primera petición HTTP con api-zero en menos de 5 minutos."
+icon: SwatchBook
+---
+
+Esta guía te llevará paso a paso desde la instalación hasta tu primera petición HTTP con api-zero.
+
+<Steps>
+
+## Instala los paquetes
+
+Primero, instala api-zero en tu proyecto:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+
+<Tab value="npm">
+
+```bash
+npm install @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+<Tab value="pnpm">
+
+```bash
+pnpm add @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+<Tab value="yarn">
+
+```bash
+yarn add @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+<Tab value="bun">
+
+```bash
+bun add @api-zero/core @api-zero/react
+```
+
+</Tab>
+
+</Tabs>
+
+<Callout type="info">
+Si no usas React, solo necesitas instalar `@api-zero/core`.
+</Callout>
+
+## Crea un cliente standalone
+
+La forma más simple de usar api-zero es crear una instancia del cliente con `createClient`:
+
+```typescript title="api-client.ts"
+import { createClient } from '@api-zero/core';
+
+export const apiClient = createClient({
+  baseURL: 'https://jsonplaceholder.typicode.com',
+  timeout: 5000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+```
+
+<Callout type="success">
+Exporta el cliente desde un módulo compartido para reutilizarlo en toda tu aplicación.
+</Callout>
+
+## Haz tu primera petición
+
+Usa el cliente para hacer una petición GET con tipado TypeScript automático:
+
+```typescript title="users.ts"
+import { apiClient } from './api-client';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  username: string;
+}
+
+async function getUsers() {
+  try {
+    const users = await apiClient.get<User[]>('/users');
+    console.log('Usuarios:', users);
+    return users;
+  } catch (error) {
+    console.error('Error al obtener usuarios:', error);
+    throw error;
+  }
+}
+
+getUsers();
+```
+
+## Configura el Provider de React (opcional)
+
+Si usas React, envuelve tu aplicación con `ApiProvider`:
+
+```tsx title="App.tsx"
+import { ApiProvider } from '@api-zero/react';
+import { UserList } from './components/UserList';
+
+function App() {
+  return (
+    <ApiProvider
+      config={{
+        baseURL: 'https://jsonplaceholder.typicode.com',
+        timeout: 5000,
+      }}
+    >
+      <UserList />
+    </ApiProvider>
+  );
+}
+
+export default App;
+```
+
+## Usa los hooks en tus componentes
+
+Usa `useRequest` para peticiones declarativas con estado de carga y cancelación automática en desmontaje:
+
+```tsx title="components/UserList.tsx"
+import { useRequest } from '@api-zero/react';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export function UserList() {
+  const { data: users, loading, error, refetch } = useRequest<User[]>('/users');
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div>
+      <button onClick={() => refetch()}>Recargar</button>
+      <ul>
+        {users?.map((user) => (
+          <li key={user.id}>
+            {user.name} ({user.email})
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+<Callout type="success">
+¡Felicidades! Has creado tu primera integración React con api-zero. 🎉
+</Callout>
+
+</Steps>
+
+## Peticiones POST, PUT, PATCH, DELETE
+
+api-zero soporta todos los métodos HTTP con tipado estático completo:
+
+### POST - Crear recurso
+
+```typescript title="users.ts"
+interface CreateUserData {
+  name: string;
+  email: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const newUser = await apiClient.post<User, CreateUserData>('/users', {
+  name: 'John Doe',
+  email: 'john@example.com',
+});
+
+console.log('Usuario creado:', newUser);
+```
+
+### PUT - Actualizar recurso completo
+
+```typescript title="users.ts"
+const updatedUser = await apiClient.put<User>('/users/1', {
+  id: 1,
+  name: 'Jane Doe',
+  email: 'jane@example.com',
+});
+```
+
+### PATCH - Actualizar recurso parcial
+
+```typescript title="users.ts"
+const patchedUser = await apiClient.patch<User>('/users/1', {
+  email: 'newemail@example.com',
+});
+```
+
+### DELETE - Eliminar recurso
+
+```typescript title="users.ts"
+await apiClient.delete('/users/1');
+console.log('Usuario eliminado');
+```
+
+## Query Parameters
+
+Pasa parámetros de query de forma estructurada:
+
+```typescript title="users.ts"
+const admins = await apiClient.get<User[]>('/users', {
+  params: {
+    role: 'admin',
+    status: 'active',
+  },
+  paramsSerializer: {
+    arrayFormat: 'brackets', // 'brackets' | 'repeat' | 'comma'
+  },
+});
+```
+
+## Headers y Autenticación
+
+```typescript title="users.ts"
+// Cabecera Bearer
+apiClient.setAuthToken('my-secret-jwt');
+
+// Basic Auth
+apiClient.setBasicAuth('username', 'password');
+
+// Limpiar autenticación
+apiClient.clearAuth();
+```
+
+## Manejo de Errores
+
+api-zero proporciona la clase `ApiError` con información enriquecida y helpers útiles:
+
+```typescript title="users.ts"
+import { ApiError } from '@api-zero/core';
+
+try {
+  await apiClient.get('/users/999999');
+} catch (error) {
+  if (error instanceof ApiError) {
+    if (error.isNotFound()) {
+      console.log('Usuario no encontrado (404)');
+    }
+    if (error.isUnauthorized()) {
+      console.log('No autorizado (401)');
+    }
+    if (error.isTimeout) {
+      console.log('Petición expiró por timeout');
+    }
+    if (error.isAborted) {
+      console.log('Petición cancelada por el usuario');
+    }
+    console.log('Status:', error.status);
+    console.log('Payload:', error.data);
+  }
+}
+```
+
+## Siguiente Nivel
+
+<Cards>
+  <Card
+    title="Interceptores"
+    href="/docs/core/api-reference/interceptors"
+    description="Transforma requests y responses con soporte de refresh token"
+  />
+  <Card
+    title="Sistema de Reintentos"
+    href="/docs/core/api-reference/retry"
+    description="Reintentos inteligentes con backoff, jitter y Retry-After"
+  />
+  <Card
+    title="Validación con Zod"
+    href="/docs/zod"
+    description="Contratos de runtime con @api-zero/zod"
+  />
+  <Card
+    title="Hooks de React"
+    href="/docs/react"
+    description="Guía completa de useRequest y useMutation"
+  />
+</Cards>

@@ -1,0 +1,169 @@
+---
+title: "useMutation"
+description: "Hook para realizar mutaciones de datos (POST, PUT, PATCH, DELETE) con control de estado y callbacks de ciclo de vida."
+---
+
+# useMutation
+
+`useMutation` es el hook para ejecutar operaciones de mutación de datos (creación, edición, eliminación). Soporta tanto ejecución síncrona `mutate(body)` como asíncrona basada en promesas `await mutateAsync(body)`, e incluye callbacks de ciclo de vida completos.
+
+## Importación
+
+```tsx
+import { useMutation } from '@api-zero/react';
+```
+
+## Firma
+
+```typescript
+function useMutation<
+  TData = unknown,
+  TBody = unknown,
+  TParams = Record<string, unknown>
+>(
+  endpoint: string,
+  method?: HttpMethod, // 'POST' | 'PUT' | 'PATCH' | 'DELETE' (default: 'POST')
+  options?: UseMutationOptions<TData, TBody, TParams>
+): UseMutationResult<TData, TBody, TParams>
+```
+
+### Opciones (`UseMutationOptions`)
+
+```typescript
+interface UseMutationOptions<TData, TBody, TParams>
+  extends RequestOptions<TData, TBody, TParams> {
+  /** Callback ejecutado al completarse con éxito */
+  onSuccess?: (data: TData, body?: TBody) => void;
+  /** Callback ejecutado si la mutación falla */
+  onError?: (error: ApiError, body?: TBody) => void;
+  /** Callback ejecutado al finalizar (éxito o error) */
+  onSettled?: (data?: TData, error?: ApiError, body?: TBody) => void;
+}
+```
+
+### Retorno (`UseMutationResult`)
+
+```typescript
+interface UseMutationResult<TData, TBody, TParams> {
+  data: TData | undefined;
+  loading: boolean;
+  error: ApiError | null;
+  isSuccess: boolean;
+  isError: boolean;
+  isIdle: boolean;
+  mutate: (body?: TBody, overrideOptions?: RequestOptions<TData, TBody, TParams>) => void;
+  mutateAsync: (body?: TBody, overrideOptions?: RequestOptions<TData, TBody, TParams>) => Promise<TData>;
+  reset: () => void;
+}
+```
+
+---
+
+## Ejemplos de Uso
+
+### 1. Formulario de Creación de Usuario (`POST`)
+
+```tsx
+import { useMutation } from '@api-zero/react';
+import React, { useState } from 'react';
+
+interface CreateUserInput {
+  name: string;
+  email: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export function CreateUserForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+
+  const { mutate, loading, error, isSuccess, reset } = useMutation<
+    User,
+    CreateUserInput
+  >('/users', 'POST', {
+    onSuccess: (newUser) => {
+      console.log('Usuario creado:', newUser.id);
+      setName('');
+      setEmail('');
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    mutate({ name, email });
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        placeholder="Nombre"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <button type="submit" disabled={loading}>
+        {loading ? 'Creando...' : 'Crear Usuario'}
+      </button>
+
+      {isSuccess && (
+        <p>
+          ¡Usuario creado con éxito! <button onClick={reset}>Nuevo</button>
+        </p>
+      )}
+      {error && <p className="error">Error: {error.message}</p>}
+    </form>
+  );
+}
+```
+
+### 2. Uso Asíncrono con `mutateAsync`
+
+```tsx
+import { useMutation } from '@api-zero/react';
+
+export function DeleteUserButton({ userId }: { userId: number }) {
+  const { mutateAsync, loading } = useMutation<{ deleted: boolean }>(
+    `/users/${userId}`,
+    'DELETE'
+  );
+
+  const handleDelete = async () => {
+    try {
+      await mutateAsync();
+      alert('Usuario eliminado correctamente');
+    } catch (err) {
+      alert('No se pudo eliminar el usuario');
+    }
+  };
+
+  return (
+    <button onClick={handleDelete} disabled={loading}>
+      {loading ? 'Eliminando...' : 'Eliminar'}
+    </button>
+  );
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card
+    title="useRequest"
+    href="/docs/react/api-reference/use-request"
+    description="Peticiones de lectura con cancelación reactiva"
+  />
+  <Card
+    title="ApiProvider"
+    href="/docs/react/api-reference/provider"
+    description="Configuración global del Provider"
+  />
+</Cards>

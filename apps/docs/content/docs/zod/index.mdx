@@ -1,0 +1,45 @@
+---
+title: "Zod Integration"
+description: "Validación estricta en tiempo de ejecución e inferencia estática de tipos con @api-zero/zod."
+icon: ShieldCheck
+---
+
+# Zod Integration
+
+El paquete `@api-zero/zod` añade soporte de primer nivel para validación de esquemas de Zod en `api-zero`, transformando errores en instancias estructuradas de `ZodValidationError` y proporcionando inferencia de tipos estáticos (`z.infer`).
+
+## Instalación
+
+```bash
+npm install @api-zero/core @api-zero/zod zod
+# o
+pnpm add @api-zero/core @api-zero/zod zod
+```
+
+## Características
+
+- 🛡️ **Validación de Respuestas y Peticiones**: Valida `response`, `body` y `params` con schemas de Zod.
+- ⚡️ **`ZodValidationError`**: Extiende de `ApiError` (`isValidationError: true`) con `.issues`, `.flatten()` y `.format()`.
+- 🔄 **Async & Coercion**: Soporta esquemas asíncronos y transformaciones de Zod (`safeParseAsync`).
+- 🪄 **`ZodApiClient`**: Cliente tipado con métodos directos (`api.get('/users', UserSchema)`).
+- 📜 **`defineContract`**: Definición de contratos de API fuertemente tipados y reutilizables.
+
+## Resumen de APIs
+
+<Cards>
+  <Card
+    title="Adaptadores Zod"
+    href="/docs/zod/adapters"
+    description="zodResponse, zodBody, zodParams y manejo de ZodValidationError"
+  />
+  <Card
+    title="ZodApiClient"
+    href="/docs/zod/client"
+    description="Cliente enriquecido con withZod() y createZodClient()"
+  />
+  <Card
+    title="defineContract"
+    href="/docs/zod/contracts"
+    description="Contratos de endpoints de API seguros y reutilizables"
+  />
+</Cards>

@@ -1,0 +1,88 @@
+---
+title: "useApi"
+description: "Hook para acceder directamente a la instancia de ApiClient provista en el contexto de React."
+---
+
+# useApi
+
+El hook `useApi` devuelve la instancia activa de `ApiClient` proporcionada por el `ApiProvider` más cercano en el árbol de componentes.
+
+## Importación
+
+```tsx
+import { useApi } from '@api-zero/react';
+```
+
+## Firma
+
+```typescript
+function useApi(): ApiClient
+```
+
+<Callout type="warning">
+Si `useApi` se invoca fuera del árbol de un `ApiProvider`, lanzará un error descriptivo: `"useApi must be used within an ApiProvider"`.
+</Callout>
+
+## Ejemplo de Uso
+
+```tsx
+import { useApi } from '@api-zero/react';
+
+export function CustomButton() {
+  const client = useApi();
+
+  const handleCustomAction = async () => {
+    // Acceso a todos los métodos del cliente: get, post, setHeader, interceptors, etc.
+    const result = await client.post('/analytics/events', {
+      type: 'BUTTON_CLICKED',
+      timestamp: Date.now(),
+    });
+    console.log('Evento enviado:', result);
+  };
+
+  return <button onClick={handleCustomAction}>Registrar Evento</button>;
+}
+```
+
+## Integración con TanStack Query
+
+`useApi` es la forma recomendada de integrar `api-zero` con bibliotecas externas de gestión de estado como TanStack Query o SWR:
+
+```tsx
+import { useQuery } from '@tanstack/react-query';
+import { useApi } from '@api-zero/react';
+
+export function UsersList() {
+  const api = useApi();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => api.get<User[]>('/users'),
+  });
+
+  if (isLoading) return <div>Cargando...</div>;
+
+  return (
+    <ul>
+      {data?.map((u) => (
+        <li key={u.id}>{u.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card
+    title="useRequest"
+    href="/docs/react/api-reference/use-request"
+    description="Hook declarativo con estado de carga integrado"
+  />
+  <Card
+    title="ApiProvider"
+    href="/docs/react/api-reference/provider"
+    description="Provider de contexto"
+  />
+</Cards>

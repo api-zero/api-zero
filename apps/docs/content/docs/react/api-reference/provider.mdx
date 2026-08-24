@@ -1,0 +1,94 @@
+---
+title: "ApiProvider"
+description: "Componente Provider para compartir la instancia del cliente HTTP en tu aplicación React."
+---
+
+# ApiProvider
+
+`ApiProvider` es el componente de React que proporciona la instancia activa de `ApiClient` mediante React Context, asegurando estabilidad referencial y evitando recreaciones innecesarias en re-renders.
+
+## Importación
+
+```tsx
+import { ApiProvider } from '@api-zero/react';
+```
+
+## Props
+
+`ApiProvider` soporta dos modalidades mutuamente excluyentes:
+
+```typescript
+export interface ApiProviderProps {
+  /** Pasa directamente una instancia existente de ApiClient */
+  client?: ApiClient;
+  /** O pasa un objeto de configuración para crear el cliente automáticamente */
+  config?: ApiClientConfig;
+  /** Componentes hijos */
+  children: React.ReactNode;
+}
+```
+
+### 1. Con `config` (Creación automática)
+
+```tsx
+import { ApiProvider } from '@api-zero/react';
+
+export function App() {
+  return (
+    <ApiProvider
+      config={{
+        baseURL: 'https://api.example.com',
+        timeout: 10000,
+      }}
+    >
+      <YourApp />
+    </ApiProvider>
+  );
+}
+```
+
+<Callout type="info">
+`ApiProvider` analiza estructuralmente la configuración (`areConfigsEqual`). Si el componente padre hace re-render con un objeto literal en JSX, el cliente **no** se recrea a menos que los valores de configuración hayan cambiado realmente.
+</Callout>
+
+### 2. Con `client` (Instancia inyectada)
+
+```tsx
+import { createClient } from '@api-zero/core';
+import { ApiProvider } from '@api-zero/react';
+
+const myClient = createClient({
+  baseURL: 'https://api.example.com',
+});
+
+// Puedes adjuntar interceptores o auth antes de renderizar
+myClient.setAuthToken('initial-token');
+
+export function App() {
+  return (
+    <ApiProvider client={myClient}>
+      <YourApp />
+    </ApiProvider>
+  );
+}
+```
+
+## Ver También
+
+<Cards>
+  <Card
+    title="useRequest"
+    href="/docs/react/api-reference/use-request"
+    description="Peticiones declarativas"
+  />
+  <Card
+    title="useMutation"
+    href="/docs/react/api-reference/use-mutation"
+    description="Mutaciones de datos"
+  />
+  <Card
+    title="useApi"
+    href="/docs/react/api-reference/use-api"
+    description="Acceso directo al cliente"
+  />
+</Cards>

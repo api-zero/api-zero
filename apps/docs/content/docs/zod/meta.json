@@ -1,0 +1,14 @@
+{
+  "title": "Zod",
+  "icon": "ShieldCheck",
+  "description": "Zod schema contracts & validation",
+  "root": true,
+  "pages": [
+    "index",
+    "---Validación---",
+    "adapters",
+    "---Clientes y Contratos---",
+    "client",
+    "contracts"
+  ]
+}

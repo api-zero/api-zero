@@ -1,0 +1,126 @@
+---
+title: "Troubleshooting"
+description: "Soluciones a problemas comunes con api-zero."
+---
+
+# Troubleshooting
+
+## useApi must be used within an ApiProvider
+
+**Error:**
+```
+Error: useApi must be used within an ApiProvider
+```
+
+**Causa:** Estás usando el hook `useApi`, `useRequest` o `useMutation` fuera del árbol de un `ApiProvider`.
+
+**Solución:** Envuelve tu aplicación con el Provider en el nivel superior:
+
+```tsx
+import { ApiProvider } from '@api-zero/react';
+
+<ApiProvider config={{ baseURL: 'https://api.example.com' }}>
+  <App />
+</ApiProvider>
+```
+
+## CORS Errors
+
+**Error:**
+```
+Access to fetch at 'https://api.example.com' from origin 'http://localhost:3000' has been blocked by CORS policy
+```
+
+**Causa:** El servidor de destino no incluye las cabeceras CORS adecuadas para tu origen.
+
+**Soluciones:**
+1. Configura cabeceras CORS en el servidor (`Access-Control-Allow-Origin`).
+2. Usa un proxy reverso o rewrite en desarrollo.
+3. Si necesitas enviar cookies/credenciales entre dominios, configura `credentials: 'include'`:
+
+```typescript
+const client = createClient({
+  baseURL: 'https://api.example.com',
+  credentials: 'include',
+});
+```
+
+## Timeout Errors
+
+**Error:** Peticiones que tardan demasiado y se cancelan por timeout.
+
+**Solución:** Ajusta el timeout global o específico por petición (en milisegundos):
+
+```typescript
+// Global (por defecto 30.000 ms)
+const client = createClient({
+  timeout: 45000,
+});
+
+// Por petición específica
+await client.get('/slow-export', {
+  timeout: 60000, // 60 segundos
+});
+```
+
+## Errores de Red en Producción
+
+**Error:** `error.isNetworkError === true`
+
+**Debugging y diagnóstico:**
+1. Verifica la URL base (`baseURL`) y el endpoint solicitado.
+2. Comprueba que el servidor esté activo y accesible desde el cliente.
+3. Usa interceptores para depuración centralizada:
+
+```typescript
+client.interceptors.request.use((context) => {
+  console.log('Dispatching request:', context.method, context.url);
+  return context;
+});
+
+client.interceptors.response.use(
+  (responseContext) => {
+    console.log('Received response:', responseContext.status, responseContext.data);
+    return responseContext;
+  },
+  (error) => {
+    console.error('Request failed:', error.status, error.message);
+    throw error;
+  }
+);
+```
+
+## Peticiones que no reintentan
+
+**Causa:** Por defecto, api-zero reintenta de forma segura métodos idempotentes (`GET`, `PUT`, `DELETE`) ante errores transitorios (5xx, 429, timeout, network error). Si una petición `POST` falla, no se reintentará automáticamente para evitar duplicaciones a menos que se configure explícitamente.
+
+**Solución:**
+
+```typescript
+// Para reintentar métodos no idempotentes como POST
+const client = createClient({
+  retry: {
+    attempts: 3,
+    delay: 1000,
+    backoff: 'exponential',
+    retryUnsafeMethods: true, // Habilita reintentos en POST/PATCH
+  },
+});
+```
+
+## Progress Events para Subidas y Descargas
+
+**Causa:** La API Fetch nativa del navegador no expone eventos de progreso de upload granulares.
+
+**Solución:** api-zero activa automáticamente su transporte `XhrTransport` en cuanto detecta `onUploadProgress` o `onDownloadProgress`:
+
+```typescript
+await client.post('/upload', formData, {
+  onUploadProgress: (progress) => {
+    if (progress.lengthComputable) {
+      const percent = Math.round((progress.loaded / progress.total) * 100);
+      console.log(`Subiendo: ${percent}%`);
+    }
+  },
+});
+```

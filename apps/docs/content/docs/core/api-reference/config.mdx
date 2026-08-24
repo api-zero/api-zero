@@ -18,11 +18,10 @@ interface ApiClientConfig {
   headers?: Record<string, string>;
   credentials?: RequestCredentials;
   retry?: RetryConfig | false;
-  debug?: boolean;
-  logger?: LoggerConfig;
-  transformRequest?: Array<(data: any) => any>;
-  transformResponse?: Array<(data: any) => any>;
-  paramsSerializer?: ParamsSerializerConfig;
+  transport?: Transport;
+  transformRequest?: TransformFunction<any, any> | Array<TransformFunction<any, any>>;
+  transformResponse?: TransformFunction<any, any> | Array<TransformFunction<any, any>>;
+  paramsSerializer?: ParamsSerializerOptions;
 }
 ```
 
@@ -552,11 +551,6 @@ const config: ApiClientConfig = {
   paramsSerializer: {
     arrayFormat: 'comma',
   },
-  logger: {
-    request: (config) => console.log('[REQ]', config.method, config.url),
-    response: (res) => console.log('[RES]', res.status),
-    error: (err) => console.error('[ERR]', err.message),
-  },
 };
 
 const client = createClient(config);
@@ -567,17 +561,17 @@ const client = createClient(config);
 <Cards>
   <Card 
     title="ApiClient" 
-    href="/docs/api/core/client"
+    href="/docs/core/api-reference/client"
     description="API completa del cliente HTTP"
   />
   <Card 
     title="Sistema de Reintentos" 
-    href="/docs/api/core/retry"
+    href="/docs/core/api-reference/retry"
     description="Detalles del sistema de retry"
   />
   <Card 
     title="Serialización de Parámetros" 
-    href="/docs/api/core/params"
+    href="/docs/core/api-reference/params"
     description="Cómo se serializan los query params"
   />
 </Cards>

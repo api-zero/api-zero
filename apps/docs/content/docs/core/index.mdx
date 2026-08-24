@@ -1,9 +1,10 @@
 ---
-title: Introducción
+title: ¿Qué es api-zero?
 description: Conoce api-zero, el cliente HTTP ligero y moderno para TypeScript.
+icon: CircleQuestionMark
 ---
 
-# Introducción a api-zero
+import { Feather, Shield, Atom, Rocket } from 'lucide-react';
 
 **api-zero** es un cliente HTTP moderno, ligero y fuertemente tipado diseñado específicamente para el ecosistema de TypeScript y React.
 
@@ -12,16 +13,16 @@ Nació de la necesidad de tener una alternativa a Axios que fuera más ligera, y
 ## ¿Por qué api-zero?
 
 <Cards>
-  <Card title="Ultra Ligero" icon="🪶">
+  <Card title="Ultra Ligero" icon={<Feather />}>
     Menos de 2KB gzipped. Sin dependencias innecesarias. Mantén tu bundle size bajo control.
   </Card>
-  <Card title="TypeScript First" icon="🛡️">
+  <Card title="TypeScript First" icon={<Shield />}>
     Tipado estático de primera clase. Genéricos para requests y responses. Autocompletado inteligente.
   </Card>
-  <Card title="React Ready" icon="⚛️">
+  <Card title="React Ready" icon={<Atom />}>
     Hooks personalizados (`useApi`) y Provider incluidos en el paquete `@api-zero/react`.
   </Card>
-  <Card title="Moderno" icon="🚀">
+  <Card title="Moderno" icon={<Rocket />}>
     API basada en Promesas, soporte para `AbortSignal`, interceptores asíncronos y más.
   </Card>
 </Cards>

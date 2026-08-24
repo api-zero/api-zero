@@ -1,0 +1,78 @@
+---
+title: "ZodApiClient"
+description: "Cliente HTTP enriquecido con métodos de validación directa mediante esquemas de Zod."
+---
+
+# ZodApiClient
+
+`ZodApiClient` envuelve un `ApiClient` estándar para ofrecer métodos HTTP que aceptan schemas de Zod como primer argumento de respuesta de forma fluida.
+
+## Creación
+
+### Con `withZod(client)`
+
+```typescript
+import { createClient } from '@api-zero/core';
+import { withZod } from '@api-zero/zod';
+
+const baseClient = createClient({ baseURL: 'https://api.example.com' });
+export const api = withZod(baseClient);
+```
+
+### Con `createZodClient(config)`
+
+```typescript
+import { createZodClient } from '@api-zero/zod';
+
+export const api = createZodClient({
+  baseURL: 'https://api.example.com',
+  timeout: 5000,
+});
+```
+
+---
+
+## Métodos Disponibles
+
+### `api.get(endpoint, schema, options?)`
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+// El tipo de retorno 'user' se infiere como { id: number; name: string }
+const user = await api.get('/users/1', UserSchema);
+```
+
+### `api.post(endpoint, body, schema, options?)`
+
+```typescript
+const ItemSchema = z.object({
+  id: z.number(),
+  title: z.string(),
+});
+
+const item = await api.post('/items', { title: 'Nuevo Item' }, ItemSchema);
+```
+
+### `api.put(endpoint, body, schema, options?)`
+
+```typescript
+const updated = await api.put('/items/1', { title: 'Item Actualizado' }, ItemSchema);
+```
+
+### `api.patch(endpoint, body, schema, options?)`
+
+```typescript
+const patched = await api.patch('/items/1', { title: 'Parcial' }, ItemSchema);
+```
+
+### `api.delete(endpoint, schema?, options?)`
+
+```typescript
+const result = await api.delete('/items/1', z.object({ success: z.boolean() }));
+```

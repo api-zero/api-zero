@@ -1,0 +1,50 @@
+---
+title: "React Integration"
+description: "Bindings oficiales de React para api-zero: Provider, useRequest, useMutation y useApi."
+icon: Component
+---
+
+# React Integration
+
+El paquete `@api-zero/react` proporciona una integración idiomática, declarativa y type-safe con React 18 y React 19.
+
+## Instalación
+
+```bash
+npm install @api-zero/core @api-zero/react
+# o
+pnpm add @api-zero/core @api-zero/react
+```
+
+## Características
+
+- ⚛️ **Compatible con React 18 y 19**: Soporta concurrent features y StrictMode sin memory leaks.
+- 🛡️ **ApiProvider Estable**: Acepta configuración o una instancia existente de cliente, asegurando estabilidad referencial.
+- 📡 **`useRequest`**: Hook declarativo para data fetching con auto-abort en desmontaje o cambio de parámetros.
+- ⚡️ **`useMutation`**: Hook de mutaciones con soporte síncrono y asíncrono (`mutate` / `mutateAsync`), y callbacks de ciclo de vida (`onSuccess`, `onError`, `onSettled`).
+- 🎯 **Integración con Zod**: Totalmente interoperable con `@api-zero/zod` para validación e inferencia de tipos de esquemas.
+
+## Resumen de APIs
+
+<Cards>
+  <Card
+    title="ApiProvider"
+    href="/docs/react/api-reference/provider"
+    description="Context Provider para compartir clientes HTTP en el árbol de componentes"
+  />
+  <Card
+    title="useRequest"
+    href="/docs/react/api-reference/use-request"
+    description="Hook de consulta con loading, error, refetch y cancelación automática"
+  />
+  <Card
+    title="useMutation"
+    href="/docs/react/api-reference/use-mutation"
+    description="Hook para POST, PUT, PATCH, DELETE con callbacks de ciclo de vida"
+  />
+  <Card
+    title="useApi"
+    href="/docs/react/api-reference/use-api"
+    description="Hook para obtener acceso directo a la instancia de ApiClient"
+  />
+</Cards>

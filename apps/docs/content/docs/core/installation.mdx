@@ -1,0 +1,227 @@
+---
+title: "Instalación"
+description: "Cómo instalar y configurar api-zero en tu proyecto."
+icon: Wrench
+---
+
+# Instalación
+
+Empezar con **api-zero** es muy sencillo. Puedes instalar el paquete core para cualquier proyecto JavaScript/TypeScript, y añadir los paquetes opcionales de React o Zod según tus necesidades:
+
+## Prerrequisitos
+
+- Node.js 18 o superior (`api-zero` usa `fetch` nativo).
+- Un gestor de paquetes (npm, pnpm, yarn, bun).
+
+## Instalación Básica (@api-zero/core)
+
+Para instalar el núcleo de la librería (cliente HTTP, interceptores, retry, transportes, tipos):
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```bash
+    npm install @api-zero/core
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @api-zero/core
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @api-zero/core
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add @api-zero/core
+    ```
+  </Tab>
+</Tabs>
+
+## Instalación para React (@api-zero/react)
+
+Si estás usando React, instala el paquete de bindings para tener acceso a `ApiProvider`, `useApi`, `useRequest`, y `useMutation`:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```bash
+    npm install @api-zero/core @api-zero/react
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @api-zero/core @api-zero/react
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @api-zero/core @api-zero/react
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add @api-zero/core @api-zero/react
+    ```
+  </Tab>
+</Tabs>
+
+## Instalación para Zod (@api-zero/zod)
+
+Para validación en runtime con esquemas de Zod e inferencia de tipos estáticos:
+
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+  <Tab value="npm">
+    ```bash
+    npm install @api-zero/core @api-zero/zod zod
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add @api-zero/core @api-zero/zod zod
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add @api-zero/core @api-zero/zod zod
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add @api-zero/core @api-zero/zod zod
+    ```
+  </Tab>
+</Tabs>
+
+## Configuración Inicial
+
+### Uso Standalone (Sin React)
+
+Puedes crear una instancia del cliente y exportarla para usarla en toda tu aplicación:
+
+```typescript title="lib/api.ts"
+import { createClient } from '@api-zero/core';
+
+export const api = createClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.example.com',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+```
+
+### Uso con React Provider
+
+Para aplicaciones React, envuelve tu árbol de componentes con `ApiProvider`:
+
+```tsx title="app/layout.tsx"
+import { ApiProvider } from '@api-zero/react';
+
+const apiConfig = {
+  baseURL: 'https://api.example.com',
+  timeout: 5000,
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ApiProvider config={apiConfig}>
+      {children}
+    </ApiProvider>
+  );
+}
+```
+
+Luego usa los hooks en tus componentes:
+
+```tsx title="UserList.tsx"
+import { useRequest } from '@api-zero/react';
+
+interface User {
+  id: number;
+  name: string;
+}
+
+export function UserList() {
+  const { data: users, loading, error } = useRequest<User[]>('/users');
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <ul>
+      {users?.map((u) => (
+        <li key={u.id}>{u.name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+## Verificación de la Instalación
+
+Para verificar que api-zero se instaló correctamente, crea un archivo de prueba:
+
+```typescript title="test.ts"
+import { createClient } from '@api-zero/core';
+
+const client = createClient({
+  baseURL: 'https://jsonplaceholder.typicode.com',
+});
+
+async function test() {
+  try {
+    const data = await client.get('/users/1');
+    console.log('✅ api-zero funciona correctamente:', data);
+  } catch (error) {
+    console.error('❌ Error:', error);
+  }
+}
+
+test();
+```
+
+Ejecuta el archivo:
+
+```bash
+npx tsx test.ts
+```
+
+## Configuración de TypeScript
+
+api-zero está escrito en TypeScript y proporciona tipos completos out-of-the-box. Asegúrate de tener una configuración adecuada en tu `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx"
+  }
+}
+```
+
+## Próximos Pasos
+
+<Cards>
+  <Card
+    title="Guía Rápida"
+    href="/docs/core/getting-started"
+    description="Haz tu primera petición HTTP en menos de 5 minutos"
+  />
+  <Card
+    title="Conceptos Clave"
+    href="/docs/core/concepts"
+    description="Aprende sobre la arquitectura, interceptores y lifecycle"
+  />
+  <Card
+    title="Referencia de API"
+    href="/docs/core/api-reference/client"
+    description="Documentación completa de ApiClient y createClient"
+  />
+</Cards>
