@@ -1,0 +1,62 @@
+{
+  "name": "@api-zero/zod",
+  "version": "0.0.1",
+  "description": "Zod runtime contracts and schema validation adapters for api-zero.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/api-zero/api-zero.git",
+    "directory": "packages/zod"
+  },
+  "homepage": "https://api-zero.vercel.app",
+  "bugs": {
+    "url": "https://github.com/api-zero/api-zero/issues"
+  },
+  "keywords": [
+    "api-zero",
+    "zod",
+    "validation",
+    "schema",
+    "typescript",
+    "http",
+    "client"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "peerDependencies": {
+    "@api-zero/core": "workspace:*",
+    "zod": "^3.0.0 || ^4.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "lint": "biome check .",
+    "format": "biome format --write ."
+  },
+  "devDependencies": {
+    "@api-zero/core": "workspace:*",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^1.0.0",
+    "zod": "^3.24.2"
+  }
+}
