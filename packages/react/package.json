@@ -1,7 +1,7 @@
 {
   "name": "@api-zero/react",
-  "version": "0.0.1",
-  "description": "React bindings for api-zero \u2014 ApiProvider and useApi.",
+  "version": "0.1.0",
+  "description": "React bindings for api-zero — ApiProvider and useApi.",
   "type": "module",
   "license": "MIT",
   "repository": {
