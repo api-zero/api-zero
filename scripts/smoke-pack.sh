@@ -51,12 +51,12 @@ npm install --no-audit --no-fund --loglevel=error \
 echo "==> ESM import"
 cat > esm.mjs <<'JS'
 import { ApiClient, ApiError, createClient, FetchTransport } from "@api-zero/core";
-import { ApiProvider, useRequest } from "@api-zero/react";
+import { ApiProvider, useApi } from "@api-zero/react";
 import { ZodValidationError } from "@api-zero/zod";
 
 const missing = Object.entries({
   ApiClient, ApiError, createClient, FetchTransport,
-  ApiProvider, useRequest, ZodValidationError,
+  ApiProvider, useApi, ZodValidationError,
 }).filter(([, v]) => v === undefined).map(([k]) => k);
 
 if (missing.length > 0) {

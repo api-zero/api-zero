@@ -1,7 +1,7 @@
 {
   "name": "@api-zero/react",
   "version": "0.0.1",
-  "description": "React bindings for api-zero — ApiProvider, useApi, useRequest, and useMutation hooks.",
+  "description": "React bindings for api-zero \u2014 ApiProvider and useApi.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -19,9 +19,7 @@
     "http",
     "client",
     "provider",
-    "hook",
-    "useRequest",
-    "useMutation"
+    "hook"
   ],
   "sideEffects": false,
   "engines": {
@@ -55,7 +53,6 @@
   },
   "devDependencies": {
     "@api-zero/core": "workspace:*",
-    "@api-zero/zod": "workspace:*",
     "@testing-library/react": "^16.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
@@ -64,7 +61,6 @@
     "react-dom": "^18.3.1",
     "tsup": "^8.0.0",
     "typescript": "^5.9.3",
-    "vitest": "^1.0.0",
-    "zod": "^3.24.2"
+    "vitest": "^1.0.0"
   }
 }

@@ -8,8 +8,6 @@
     "---Componentes---",
     "api-reference/provider",
     "---Hooks---",
-    "api-reference/use-request",
-    "api-reference/use-mutation",
     "api-reference/use-api"
   ]
 }

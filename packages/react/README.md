@@ -1,6 +1,22 @@
 # @api-zero/react
 
-Official React bindings for `api-zero` — featuring `ApiProvider`, `useApi`, `useRequest`, and `useMutation` hooks.
+React bindings for `api-zero`: one configured client, available anywhere in the tree.
+
+## What this package is for
+
+Every project ends up with the same hand-written `api.ts`: a client wrapper, a
+place to stash the auth token, an interceptor or two, and re-declared `.get` /
+`.post` helpers. That file is what this package replaces.
+
+## What it deliberately is not
+
+It is not a data-fetching library. There is no cache, no deduplication, no
+invalidation, and no `useQuery` equivalent — those belong to
+[TanStack Query](https://tanstack.com/query) or [SWR](https://swr.vercel.app),
+which solve them far better than a transport layer should try to.
+
+api-zero is the transport and contract layer underneath them. Pairing the two is
+the intended setup, not a workaround.
 
 ## Installation
 
@@ -10,117 +26,85 @@ npm install @api-zero/react @api-zero/core
 pnpm add @api-zero/react @api-zero/core
 ```
 
-## Features
+## Usage
 
-- ⚛️ **React 18 & 19 Ready**: Full support for modern React hooks, concurrent rendering, and strict mode.
-- 🛡️ **Safe Client Memoization**: `ApiProvider` accepts an existing `client` or `config` with stable memoization across re-renders.
-- 📡 **`useRequest`**: Declarative data fetching hook with automatic abort on component unmount and parameter changes.
-- ⚡️ **`useMutation`**: Ergonomic mutation hook supporting both `mutate()` and `await mutateAsync()` with full lifecycle callbacks (`onSuccess`, `onError`, `onSettled`).
-- 🎯 **Seamless Zod Integration**: Pass `@api-zero/zod` schemas (`zodResponse`, `zodBody`, `zodContract`) directly into React hooks with full static type inference.
+### 1. Provide the client once
 
-## Quick Start
-
-### 1. Setup Provider
+`ApiProvider` accepts either an existing `client` or a `config`. Passing a
+client you created yourself is the recommended form: it makes the instance's
+lifetime explicit and immune to re-render identity changes.
 
 ```tsx
+import { createClient } from "@api-zero/core";
 import { ApiProvider } from "@api-zero/react";
-import React from "react";
 import App from "./App";
+
+const api = createClient({
+  baseURL: "https://api.example.com",
+  timeout: 10_000,
+});
 
 export default function Root() {
   return (
-    <ApiProvider config={{ baseURL: "https://api.example.com", timeout: 10000 }}>
+    <ApiProvider client={api}>
       <App />
     </ApiProvider>
   );
 }
 ```
 
-### 2. Fetch Data with `useRequest`
+### 2. Reach it anywhere with `useApi`
 
 ```tsx
-import { useRequest } from "@api-zero/react";
+import { useApi } from "@api-zero/react";
 
-interface User {
-  id: number;
-  name: string;
-}
+function LoginButton() {
+  const api = useApi();
 
-function UserProfile({ userId }: { userId: number }) {
-  const { data, loading, error, refetch } = useRequest<User>(`/users/${userId}`);
+  async function signIn() {
+    const session = await api.post<{ token: string }>("/auth/login", {
+      email: "alice@example.com",
+      password: "…",
+    });
+    api.setAuthToken(session.token);
+  }
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-  if (!data) return null;
-
-  return (
-    <div>
-      <h1>{data.name}</h1>
-      <button onClick={() => refetch()}>Refresh</button>
-    </div>
-  );
+  return <button onClick={signIn}>Sign in</button>;
 }
 ```
 
-### 3. Mutate Data with `useMutation`
+Every component now shares that client, its headers, its interceptors and its
+retry policy. No wrapper module, no token plumbing.
+
+### 3. Combine with TanStack Query
+
+`useApi()` returns the client; hand its request to `queryFn` and forward the
+`signal` TanStack provides so cancellation reaches the actual HTTP request.
 
 ```tsx
-import { useMutation } from "@api-zero/react";
+import { useQuery } from "@tanstack/react-query";
+import { useApi } from "@api-zero/react";
 
-interface CreateUserInput {
-  name: string;
-  email: string;
-}
+function useUser(id: number) {
+  const api = useApi();
 
-function CreateUserForm() {
-  const { mutate, loading, error, isSuccess, reset } = useMutation<
-    { id: number },
-    CreateUserInput
-  >("/users", "POST", {
-    onSuccess: (data) => {
-      console.log("User created with ID:", data.id);
-    },
+  return useQuery({
+    queryKey: ["user", id],
+    queryFn: ({ signal }) => api.get<User>(`/users/${id}`, { signal }),
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutate({ name: "Alice", email: "alice@example.com" });
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <button type="submit" disabled={loading}>
-        {loading ? "Creating..." : "Create User"}
-      </button>
-      {isSuccess && <p>User created successfully!</p>}
-      {error && <p>Error: {error.message}</p>}
-    </form>
-  );
 }
 ```
 
-### 4. Integration with `@api-zero/zod`
+TanStack owns the cache and the server-state lifecycle. api-zero owns the
+request, the errors and the contract. Neither reimplements the other.
 
-```tsx
-import { useRequest } from "@api-zero/react";
-import { zodResponse } from "@api-zero/zod";
-import { z } from "zod";
+## API
 
-const ProductSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-  price: z.number(),
-  createdAt: z.string().transform((d) => new Date(d)),
-});
-
-function ProductCard({ id }: { id: number }) {
-  // data is fully inferred as { id: number; title: string; price: number; createdAt: Date }!
-  const { data, loading } = useRequest(`/products/${id}`, zodResponse(ProductSchema));
-
-  if (loading) return <p>Loading product...</p>;
-  return <div>{data?.title} - ${data?.price}</div>;
-}
-```
+| Export | Purpose |
+| --- | --- |
+| `ApiProvider` | Publishes an `ApiClient` to the tree, from a `client` or a `config`. |
+| `useApi()` | Returns the provided client. Throws outside a provider. |
+| `ApiContext` | The underlying context, for advanced composition. |
 
 ## License
 
