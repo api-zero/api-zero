@@ -19,7 +19,7 @@
 | Package | Description | Version | Size |
 |---------|-------------|---------|------|
 | [`@api-zero/core`](packages/core) | Core HTTP client, typed interceptors, smart retry engine with jitter & `Retry-After`, pluggable transports (Fetch / XHR), and rich error handling. | `0.0.1` | ~9 kB |
-| [`@api-zero/react`](packages/react) | React 18 & 19 bindings: stable `ApiProvider`, declarative `useRequest` (with auto-abort on unmount/params change), and `useMutation`. | `0.0.1` | ~8 kB |
+| [`@api-zero/react`](packages/react) | React bindings: `ApiProvider` and `useApi`, so one configured client is available anywhere in the tree. | `0.0.1` | ~8 kB |
 | [`@api-zero/zod`](packages/zod) | Schema validation, type inference (`z.infer`), `ZodApiClient`, and contracts with `@api-zero/zod`. | `0.0.1` | ~8 kB |
 
 ---
@@ -30,7 +30,7 @@
 - 🔒 **End-to-End Type Safety**: First-class TypeScript generics for response, request body, and query parameters.
 - 🔄 **Smart Retry Engine**: Idempotent method protection, exponential/linear backoff, random jitter (anti-thundering herd), and native `Retry-After` header parsing.
 - 🛑 **Async Interceptors**: Full lifecycle pipeline with asynchronous request and response interceptors supporting error recovery (e.g. JWT token refresh).
-- ⚛️ **Declarative React Hooks**: `useRequest` with automatic abort on unmount/params change, and `useMutation` with full lifecycle callbacks (`onSuccess`, `onError`, `onSettled`).
+- ⚛️ **React Without a Wrapper**: `ApiProvider` and `useApi` remove the hand-written `api.ts` from every project. Server-state caching stays with TanStack Query or SWR, which api-zero is designed to sit underneath.
 - 📜 **Zod Contracts**: Seamlessly pass Zod schemas directly to HTTP calls and React hooks for automatic validation and type inference.
 
 ---
@@ -84,32 +84,37 @@ const users = await api.get<User[]>("/users", {
 ### 2. React Integration
 
 ```tsx
-import { ApiProvider, useRequest, useMutation } from "@api-zero/react";
-import React from "react";
+import { createClient } from "@api-zero/core";
+import { ApiProvider, useApi } from "@api-zero/react";
+import { useQuery } from "@tanstack/react-query";
+
+const api = createClient({ baseURL: "https://api.example.com" });
 
 function App() {
   return (
-    <ApiProvider config={{ baseURL: "https://api.example.com" }}>
+    <ApiProvider client={api}>
       <UserList />
     </ApiProvider>
   );
 }
 
 function UserList() {
-  const { data: users, loading, error, refetch } = useRequest<User[]>("/users");
+  const api = useApi();
 
-  if (loading) return <p>Loading users...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  // TanStack Query owns the cache and the server-state lifecycle.
+  // api-zero owns the request, the errors and the contract.
+  // Forwarding `signal` is what makes cancellation reach the real request.
+  const { data: users } = useQuery({
+    queryKey: ["users"],
+    queryFn: ({ signal }) => api.get<User[]>("/users", { signal }),
+  });
 
   return (
-    <div>
-      <button onClick={() => refetch()}>Refresh</button>
-      <ul>
-        {users?.map((user) => (
-          <li key={user.id}>{user.name}</li>
-        ))}
-      </ul>
-    </div>
+    <ul>
+      {users?.map((user) => (
+        <li key={user.id}>{user.name}</li>
+      ))}
+    </ul>
   );
 }
 ```

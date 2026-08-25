@@ -175,9 +175,6 @@ importers:
       '@api-zero/core':
         specifier: workspace:*
         version: link:../core
-      '@api-zero/zod':
-        specifier: workspace:*
-        version: link:../zod
       '@testing-library/react':
         specifier: ^16.0.0
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.27))(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -205,9 +202,6 @@ importers:
       vitest:
         specifier: ^1.0.0
         version: 1.6.1(@types/node@24.10.1)(happy-dom@15.11.7)(lightningcss@1.30.2)
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
 
   packages/zod:
     devDependencies:
