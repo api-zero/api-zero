@@ -1,7 +1,7 @@
 # ADR-001: Scope, Naming and Runtime Policy
 
 **Date:** 2026-08-17
-**Status:** Accepted — section 4 (Node.js rows) and the `engines` decision in section 7 are superseded by [ADR-002](002-supported-node-versions.md).
+**Status:** Accepted — section 4 (Node.js rows) and the `engines` decision in section 7 are superseded by [ADR-002](002-supported-node-versions.md); section 5 is refined by [ADR-003](003-scope-boundary-and-public-surface.md).
 **Context:** api-zero needs formal decisions before behavioral changes begin.
 
 ## Decisions
@@ -43,6 +43,8 @@ MIT — already present in `/LICENSE`.
 - The `exports` field in `package.json` handles ESM/CJS. No separate browser/node entry points needed.
 
 ### 5. Zod Integration Strategy
+
+> **Refined by [ADR-003](003-scope-boundary-and-public-surface.md):** Zod stays a separate package, but ships one entry point rather than three overlapping ones.
 
 Zod is the **first-class contract integration**, delivered as `@api-zero/zod`:
 - **Separate package** — not a core dependency.
