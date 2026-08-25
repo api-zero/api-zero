@@ -46,68 +46,44 @@ export function zodBody<TSchema extends ZodTypeAny>(
   };
 }
 
-/**
- * Validates query parameters with a Zod schema.
- */
-export function zodParams<TSchema extends ZodTypeAny>(
-  schema: TSchema,
-): {
-  validateParams: (params: unknown) => Promise<z.infer<TSchema>>;
-} {
-  return {
-    validateParams: async (params: unknown) => {
-      const result = await schema.safeParseAsync(params);
-      if (!result.success) {
-        throw new ZodValidationError(result.error, "params", { data: params });
-      }
-      return result.data;
-    },
-  };
-}
-
 export interface ZodContractOptions<
   TResponseSchema extends ZodTypeAny | undefined = undefined,
   TBodySchema extends ZodTypeAny | undefined = undefined,
-  TParamsSchema extends ZodTypeAny | undefined = undefined,
 > {
   response?: TResponseSchema;
   body?: TBodySchema;
-  params?: TParamsSchema;
 }
 
 /**
- * Combines response, body, and params Zod schemas into a unified RequestOptions object.
+ * Combines response and body Zod schemas into a single RequestOptions object.
+ *
+ * Query parameters are deliberately absent: the core request pipeline has no
+ * params-validation hook, so accepting a params schema here would type the
+ * result as validated while validating nothing.
  */
 export function zodContract<
   TResponseSchema extends ZodTypeAny | undefined = undefined,
   TBodySchema extends ZodTypeAny | undefined = undefined,
-  TParamsSchema extends ZodTypeAny | undefined = undefined,
 >(
-  options: ZodContractOptions<TResponseSchema, TBodySchema, TParamsSchema>,
+  options: ZodContractOptions<TResponseSchema, TBodySchema>,
 ): RequestOptions<
   TResponseSchema extends ZodTypeAny ? z.infer<TResponseSchema> : unknown,
-  TBodySchema extends ZodTypeAny ? z.infer<TBodySchema> : unknown,
-  TParamsSchema extends ZodTypeAny
-    ? z.infer<TParamsSchema>
-    : Record<string, unknown>
+  TBodySchema extends ZodTypeAny ? z.infer<TBodySchema> : unknown
 > {
   const resultOptions: RequestOptions<any, any, any> = {};
 
   if (options.body) {
-    const bodyValidator = zodBody(options.body);
-    resultOptions.transformRequest = bodyValidator.transformRequest;
+    resultOptions.transformRequest = zodBody(options.body).transformRequest;
   }
 
   if (options.response) {
-    const responseValidator = zodResponse(options.response);
-    resultOptions.transformResponse = responseValidator.transformResponse;
+    resultOptions.transformResponse = zodResponse(
+      options.response,
+    ).transformResponse;
   }
 
   return resultOptions as RequestOptions<
     TResponseSchema extends ZodTypeAny ? z.infer<TResponseSchema> : unknown,
-    TBodySchema extends ZodTypeAny ? z.infer<TBodySchema> : unknown,
-    TParamsSchema extends ZodTypeAny
-      ? z.infer<TParamsSchema>
-      : Record<string, unknown>
+    TBodySchema extends ZodTypeAny ? z.infer<TBodySchema> : unknown
   >;
 }

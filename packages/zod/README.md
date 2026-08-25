@@ -17,7 +17,6 @@ pnpm add @api-zero/zod @api-zero/core zod
 - 🛡️ **Fail-Fast Outbound Validation**: `zodBody()` validates payloads *before* sending them across the network.
 - 🔄 **Automatic Transforms & Coercion**: Fully supports Zod transforms (`.transform()`, `z.coerce`).
 - 🚨 **Structured Errors**: `ZodValidationError` extends `ApiError` with `.issues`, `.flatten()`, and `.format()`.
-- 📋 **Declarative Contracts**: Define end-to-end type-safe API contracts with `defineContract()`.
 
 ## Usage
 
@@ -75,23 +74,7 @@ const created = await api.post(
 );
 ```
 
-### 4. `defineContract` (Declarative API Endpoints)
-
-```typescript
-import { defineContract } from "@api-zero/zod";
-
-export const getUserContract = defineContract({
-  method: "GET",
-  path: (params: { id: number }) => `/users/${params.id}`,
-  params: z.object({ id: z.number() }),
-  response: UserSchema,
-});
-
-// Execute typed contract
-const user = await getUserContract.fetch(client, { params: { id: 123 } });
-```
-
-### 5. Error Handling with `ZodValidationError`
+### 4. Error Handling with `ZodValidationError`
 
 ```typescript
 import { ZodValidationError } from "@api-zero/zod";
@@ -100,7 +83,7 @@ try {
   await api.get("/users/1", UserSchema);
 } catch (error) {
   if (error instanceof ZodValidationError) {
-    console.error("Target:", error.target); // 'response' | 'body' | 'params'
+    console.error("Target:", error.target); // 'response' | 'body'
     console.error("Issues:", error.issues);
     console.error("Field errors:", error.flatten().fieldErrors);
   }

@@ -31,44 +31,17 @@ function mergeTransforms<T>(
   return list;
 }
 
+/**
+ * Adds schema-aware verbs on top of an ApiClient.
+ *
+ * It deliberately does NOT mirror the client's configuration API (auth,
+ * headers, interceptors). Every mirrored method is one more thing to keep in
+ * sync with core, and it silently falls behind the moment core grows a method.
+ * Reach the underlying client through `.client` instead — it is the same
+ * instance, so configuring it configures this.
+ */
 export class ZodApiClient {
   constructor(public readonly client: ApiClient) {}
-
-  get interceptors() {
-    return this.client.interceptors;
-  }
-
-  setConfig(config: Partial<ApiClientConfig>) {
-    this.client.setConfig(config);
-  }
-
-  getConfig(): ApiClientConfig {
-    return this.client.getConfig();
-  }
-
-  setAuthToken(token: string) {
-    this.client.setAuthToken(token);
-  }
-
-  setBasicAuth(username: string, password: string) {
-    this.client.setBasicAuth(username, password);
-  }
-
-  clearAuth() {
-    this.client.clearAuth();
-  }
-
-  setHeader(key: string, value: string) {
-    this.client.setHeader(key, value);
-  }
-
-  removeHeader(key: string) {
-    this.client.removeHeader(key);
-  }
-
-  updateHeaders(headers: Record<string, string>) {
-    this.client.updateHeaders(headers);
-  }
 
   async get<TSchema extends ZodTypeAny, TParams = Record<string, unknown>>(
     endpoint: string,

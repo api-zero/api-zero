@@ -1,9 +1,8 @@
 import { createClient } from "@api-zero/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { zodBody, zodContract, zodParams, zodResponse } from "../adapters";
+import { zodBody, zodContract, zodResponse } from "../adapters";
 import { createZodClient, withZod } from "../client";
-import { defineContract } from "../contract";
 import { ZodValidationError } from "../error";
 
 // ---------------------------------------------------------------------------
@@ -160,36 +159,6 @@ describe("@api-zero/zod Integration", () => {
   });
 
   // =========================================================================
-  // 3. zodParams adapter
-  // =========================================================================
-  describe("zodParams", () => {
-    const QuerySchema = z.object({
-      search: z.string().min(1),
-      limit: z.number().max(50),
-    });
-
-    it("should validate parameters correctly", async () => {
-      const validator = zodParams(QuerySchema);
-      const validParams = { search: "phones", limit: 20 };
-
-      const parsed = await validator.validateParams(validParams);
-      expect(parsed).toEqual(validParams);
-    });
-
-    it("should throw ZodValidationError with target 'params' on invalid params", async () => {
-      const validator = zodParams(QuerySchema);
-      const invalidParams = { search: "", limit: 100 };
-
-      await expect(
-        validator.validateParams(invalidParams),
-      ).rejects.toMatchObject({
-        target: "params",
-        isValidationError: true,
-      });
-    });
-  });
-
-  // =========================================================================
   // 4. zodContract combined adapter
   // =========================================================================
   describe("zodContract", () => {
@@ -270,72 +239,16 @@ describe("@api-zero/zod Integration", () => {
       expect(deleteResult.deleted).toBe(true);
     });
 
-    it("should preserve client config and auth tokens", () => {
+    it("should expose the same underlying client, so configuring it configures both", () => {
       const client = createClient({ baseURL: "https://api.test" });
       const api = withZod(client);
 
-      api.setAuthToken("jwt-token-xyz");
-      expect(api.getConfig().headers?.Authorization).toBe(
-        "Bearer jwt-token-xyz",
-      );
+      expect(api.client).toBe(client);
+
+      api.client.setAuthToken("jwt-token-xyz");
       expect(client.getConfig().headers?.Authorization).toBe(
         "Bearer jwt-token-xyz",
       );
-    });
-  });
-
-  // =========================================================================
-  // 6. defineContract (Declarative Endpoints)
-  // =========================================================================
-  describe("defineContract", () => {
-    const getUserContract = defineContract({
-      method: "GET",
-      path: (params: { id: number }) => `/users/${params.id}`,
-      params: z.object({ id: z.number() }),
-      response: UserSchema,
-    });
-
-    const createUserContract = defineContract({
-      method: "POST",
-      path: "/users",
-      body: CreateUserSchema,
-      response: UserSchema,
-    });
-
-    it("should execute contract with full input/output validation and dynamic paths", async () => {
-      mockFetch((url) => {
-        if (url.startsWith("https://api.test/users/99")) {
-          return jsonResponse({
-            id: 99,
-            name: "Dave",
-            email: "dave@example.com",
-            createdAt: "2026-08-18T00:00:00.000Z",
-          });
-        }
-        if (url.startsWith("https://api.test/users")) {
-          return jsonResponse({
-            id: 100,
-            name: "Eve",
-            email: "eve@example.com",
-            createdAt: "2026-08-18T00:00:00.000Z",
-          });
-        }
-        return jsonResponse({});
-      });
-
-      const client = createClient({ baseURL: "https://api.test" });
-
-      // Execute GET contract
-      const user = await getUserContract.fetch(client, { params: { id: 99 } });
-      expect(user.id).toBe(99);
-      expect(user.name).toBe("Dave");
-
-      // Execute POST contract
-      const created = await createUserContract.fetch(client, {
-        body: { name: "Eve", email: "eve@example.com" },
-      });
-      expect(created.id).toBe(100);
-      expect(created.name).toBe("Eve");
     });
   });
 
