@@ -41,7 +41,7 @@
     }
   },
   "peerDependencies": {
-    "@api-zero/core": "workspace:*",
+    "@api-zero/core": ">=0.0.1",
     "react": ">=18"
   },
   "scripts": {
@@ -62,5 +62,8 @@
     "tsup": "^8.0.0",
     "typescript": "^5.9.3",
     "vitest": "^1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
