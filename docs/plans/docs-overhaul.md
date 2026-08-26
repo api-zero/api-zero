@@ -13,9 +13,9 @@ Phases are ordered by dependency. Each is verified before the next begins.
 
 ---
 
-## Phase 0 — Upgrade the stack
+## Phase 0 — Upgrade the stack ✅
 
-Blocks everything else. A first attempt failed and was reverted because only
+Done. Blocks everything else. A first attempt failed and was reverted because only
 `fumadocs-mdx` was moved; the cascade was not followed through.
 
 | Package | Current | Target |
@@ -32,8 +32,14 @@ emits `-inset-s-4`, a utility 4.1 does not know.
 **Unlocks:** `<include>file.ts#region</include>` region extraction,
 `MarkdownCopyButton`, `ViewOptionsPopover`, AI search trigger, `TypeTable`.
 
-- [ ] Upgrade all five together, build, fix fallout
-- [ ] Re-evaluate one-file-per-snippet vs regions now that regions work
+- [x] Upgraded all five together. Nothing broke: doing them in one step is
+      what the first attempt got wrong. The five Turbopack warnings the build
+      used to emit are gone too.
+- [x] Regions verified working (content inside the region renders, content
+      outside does not, markers do not appear). Keeping one file per snippet
+      anyway: a complete file shows its imports, and importing the client from
+      `create-client.ts` demonstrates the intended pattern. Regions are held in
+      reserve for showing a slice of a longer realistic file.
 
 ## Phase 1 — Theme and layout
 
