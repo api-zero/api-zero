@@ -1,5 +1,13 @@
 # @api-zero/core
 
+## 0.1.2
+
+### Patch Changes
+
+- [`fb57c1a`](https://github.com/api-zero/api-zero/commit/fb57c1aef1a26ad429c09f28562079830e313579) Thanks [@gorkadev](https://github.com/gorkadev)! - Documentation only: the published size figures are now measured from the built
+  bundles rather than estimated, and CI enforces a ceiling on each so they cannot
+  quietly stop being true.
+
 ## 0.1.1
 
 ### Patch Changes
