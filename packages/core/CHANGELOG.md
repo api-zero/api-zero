@@ -1,5 +1,15 @@
 # @api-zero/core
 
+## 0.1.1
+
+### Patch Changes
+
+- [`b7ef791`](https://github.com/api-zero/api-zero/commit/b7ef7911d44bfc1c25da2a8819a845821c667939) Thanks [@gorkadev](https://github.com/gorkadev)! - Correct the documented default for `retry.retryMethods`. The JSDoc claimed
+  `['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']`, but the actual default is
+  `['GET', 'PUT', 'DELETE']` and `HttpMethod` accepts neither `HEAD` nor
+  `OPTIONS`. The README example carried the same mistake and would not have
+  compiled.
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@api-zero/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React bindings for api-zero — ApiProvider and useApi.",
   "type": "module",
   "license": "MIT",
