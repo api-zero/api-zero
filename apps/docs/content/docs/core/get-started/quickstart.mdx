@@ -12,14 +12,14 @@ page can mislead you.
 
 ## Create a client
 
-<include>../../../../../examples/src/create-client.ts</include>
+<include>../../../../../../examples/src/create-client.ts</include>
 
 Export this from a shared module. One instance carries your base URL, headers,
 auth and retry policy for the whole application.
 
 ## Make a request
 
-<include>../../../../../examples/src/http-verbs.ts</include>
+<include>../../../../../../examples/src/http-verbs.ts</include>
 
 The type parameter describes the response body. It is a static promise, not a
 runtime check — for payloads you do not control, add
@@ -27,7 +27,7 @@ runtime check — for payloads you do not control, add
 
 ## Handle failure
 
-<include>../../../../../examples/src/error-handling.ts</include>
+<include>../../../../../../examples/src/error-handling.ts</include>
 
 Everything that can go wrong arrives as an `ApiError`: HTTP status, network
 failure, timeout, caller cancellation and invalid JSON alike.
@@ -36,7 +36,7 @@ failure, timeout, caller cancellation and invalid JSON alike.
 
 ## Query parameters
 
-<include>../../../../../examples/src/query-params.ts</include>
+<include>../../../../../../examples/src/query-params.ts</include>
 
 Arrays can be serialized as `brackets`, `repeat` or `comma` through
 `paramsSerializer`, per client or per request.
@@ -45,19 +45,19 @@ Arrays can be serialized as `brackets`, `repeat` or `comma` through
 
 Set it once on the client; every later request carries it.
 
-<include>../../../../../examples/src/auth-bearer.ts</include>
+<include>../../../../../../examples/src/auth-bearer.ts</include>
 
 Arbitrary headers work the same way, and header names are matched
 case-insensitively:
 
-<include>../../../../../examples/src/auth-headers.ts</include>
+<include>../../../../../../examples/src/auth-headers.ts</include>
 
 ## What an error carries
 
 An `ApiError` is not just a message. It keeps the context you need to decide
 what to do next.
 
-<include>../../../../../examples/src/error-context.ts</include>
+<include>../../../../../../examples/src/error-context.ts</include>
 
 `isTimeout` and `isAborted` stay distinct on purpose: a request the server was
 too slow to answer and a request your own code cancelled deserve different
@@ -65,7 +65,7 @@ handling, and most clients collapse them into one.
 
 ## Cancellation
 
-<include>../../../../../examples/src/cancellation.ts</include>
+<include>../../../../../../examples/src/cancellation.ts</include>
 
 Timeouts compose with caller cancellation into a single signal, and the
 resulting error tells you which one fired.
@@ -75,12 +75,12 @@ resulting error tells you which one fired.
 <Cards>
   <Card
     title="Concepts"
-    href="/docs/core/concepts"
+    href="/docs/core/get-started/concepts"
     description="The request lifecycle and the retry policy"
   />
   <Card
     title="Retries"
-    href="/docs/core/api-reference/retry"
+    href="/docs/core/guides/retries"
     description="Backoff, jitter and Retry-After"
   />
   <Card

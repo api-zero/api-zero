@@ -1,0 +1,124 @@
+---
+title: Retries
+description: A policy you can defend, off until you choose it.
+---
+
+**Retries are off by default.** A client that silently repeats requests is a
+client that can charge a customer twice, and most libraries either retry
+everything or nothing. Both are wrong.
+
+Turning them on is a decision you make per API, with a policy you chose.
+
+<include>../../../../../../examples/src/retry-config.ts</include>
+
+Every option and its default is in
+[`RetryConfig`](/docs/core/api-reference/retry-config). This page is about the
+policy behind them.
+
+## What retries, and what does not
+
+A failure clears three gates before a retry happens.
+
+<Steps>
+
+### Cancellation always wins
+
+An aborted request is never retried. You asked for it to stop.
+
+### The method must be idempotent
+
+`GET`, `PUT` and `DELETE` produce the same result done twice as done once, so
+they retry. `POST` and `PATCH` do not: a retried `POST` can create the same
+resource twice, and the client cannot know whether the first one landed before
+the connection dropped.
+
+Opt in with `retryUnsafeMethods: true` only when you know the endpoint tolerates
+it — an idempotency key on the server is the usual reason.
+
+### The error must be worth repeating
+
+By default that means what
+[`isRetryable()`](/docs/core/api-reference/api-error) reports: network failures,
+timeouts, `408`, `429` and any `5xx`.
+
+Not a `400`, not a `404`, not a validation failure. Those describe your request,
+and repeating it produces the same answer more slowly.
+
+</Steps>
+
+<Callout type="warn">
+  **`retryCondition` bypasses the method check.** It replaces the entire
+  eligibility test, so `(error) => error.is5xx()` will retry a `POST` even with
+  `retryUnsafeMethods: false`. If you write one, decide about method safety
+  inside it — `error.request?.method` is right there.
+</Callout>
+
+## How long it waits
+
+<Steps>
+
+### Retry-After wins outright
+
+If the response carries one and `respectRetryAfter` is not `false`, that value
+is used and backoff is skipped entirely. Both forms are parsed: seconds
+(`Retry-After: 30`) and an HTTP date.
+
+The server knows when it will be ready. Guessing over it is worse, and on a
+`429` it is how you get rate-limited harder.
+
+### Otherwise, backoff
+
+`exponential` gives `delay × 2^(attempt-1)` — 1s, 2s, 4s, 8s. `linear` gives
+`delay × attempt` — 1s, 2s, 3s. A function receives `(attempt, error)` and
+returns milliseconds.
+
+### Capped, then jittered
+
+The delay is clamped to `maxDelay`, then multiplied by a random factor between
+0.5 and 1.
+
+Jitter is not decoration. When an outage ends, every client that was retrying
+wakes on the same schedule and hits the recovering server simultaneously — a
+thundering herd that can knock it straight back down. Jitter spreads them out,
+and it only ever shortens a wait.
+
+</Steps>
+
+## Per request
+
+<include>../../../../../../examples/src/retry-per-request.ts</include>
+
+## Watch them happen
+
+`onRetry` fires before each wait with the attempt, the error and the delay about
+to be taken.
+
+Retries that nobody can see turn a slow API into a mysteriously slow app: the
+request eventually succeeds, so nothing is logged, and the p99 quietly triples.
+Log this.
+
+## Cancelling mid-retry
+
+Aborting while the client waits between attempts stops it immediately. The sleep
+is signal-aware rather than a plain `setTimeout`, which matters once backoff has
+grown to eight seconds.
+
+## See also
+
+<Cards>
+  <Card
+    title="RetryConfig"
+    href="/docs/core/api-reference/retry-config"
+    description="Every option and its default"
+  />
+  <Card
+    title="ApiError"
+    href="/docs/core/api-reference/api-error"
+    description="isRetryable() and the failure flags"
+  />
+  <Card
+    title="Testing with transports"
+    href="/docs/core/guides/testing-with-transports"
+    description="Asserting that a retry happened"
+  />
+</Cards>

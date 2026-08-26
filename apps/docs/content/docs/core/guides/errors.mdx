@@ -1,0 +1,98 @@
+---
+title: Handling errors
+description: One error type for every way a request can fail.
+---
+
+Native `fetch` gets this backwards. A DNS failure rejects with
+`TypeError: Failed to fetch`, while a `500` **resolves successfully** — so a
+correct handler needs two unrelated code paths and most codebases only write
+one.
+
+api-zero normalizes everything into a single `ApiError`: HTTP statuses, network
+failures, timeouts, cancellations and validation failures alike.
+
+## Catching it
+
+<include>../../../../../../examples/src/error-handling.ts</include>
+
+Check `instanceof ApiError` before touching its properties. A bug inside your
+own `then` handler is still a plain `Error`, and swallowing it as a transport
+failure hides real defects.
+
+## Deciding what happened
+
+<include>../../../../../../examples/src/error-context.ts</include>
+
+<Callout type="info">
+  `isTimeout` and `isAborted` stay distinct. A server too slow to answer and a
+  request your own code cancelled deserve different handling — the first is
+  worth reporting, the second is routine when a component unmounts. Most clients
+  collapse both into a generic abort and lose that.
+</Callout>
+
+## Branching cleanly
+
+The helpers exist so call sites read as intent rather than arithmetic on status
+codes.
+
+<Accordions>
+  <Accordion title="A missing resource is often not an error">
+    `isNotFound()` usually means an empty state, not a failure screen. Returning
+    `null` and letting the UI decide keeps a normal outcome out of your error
+    reporting.
+  </Accordion>
+  <Accordion title="An expired session is a redirect, not a message">
+    `isUnauthorized()` calls for re-authentication. Showing the raw message to
+    the user tells them nothing they can act on — see
+    [authentication](/docs/core/guides/authentication) for refreshing the token
+    instead.
+  </Accordion>
+  <Accordion title="A 4xx you caused will not fix itself">
+    `is4xx()` other than 401, 408 and 429 means the request was wrong. Retrying
+    produces the same answer; log it and fix the caller.
+  </Accordion>
+  <Accordion title="A 5xx is worth trying again">
+    `is5xx()` and network failures are transient by nature, which is exactly what
+    the [retry policy](/docs/core/guides/retries) automates.
+  </Accordion>
+</Accordions>
+
+## Logging
+
+`toJSON()` returns a flat object with the message, status, flags, attempt and
+the resolved URL and method — without the native `Response`, which does not
+serialize.
+
+```typescript
+logger.error("request failed", error.toJSON());
+```
+
+Logging `error.message` alone throws away the context that makes an incident
+diagnosable: which URL, which attempt, which underlying cause.
+
+## Centralising it
+
+A response interceptor sees every failure before the caller does, which is where
+cross-cutting concerns belong — telemetry, a toast, a redirect.
+
+<include>../../../../../../examples/src/interceptor-response.ts</include>
+
+## See also
+
+<Cards>
+  <Card
+    title="ApiError"
+    href="/docs/core/api-reference/api-error"
+    description="Every property and helper"
+  />
+  <Card
+    title="Interceptors"
+    href="/docs/core/guides/interceptors"
+    description="Handling failures in one place"
+  />
+  <Card
+    title="Retries"
+    href="/docs/core/guides/retries"
+    description="Which failures are worth repeating"
+  />
+</Cards>

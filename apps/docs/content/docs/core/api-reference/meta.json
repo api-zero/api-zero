@@ -1,0 +1,12 @@
+{
+  "title": "API reference",
+  "icon": "Braces",
+  "pages": [
+    "api-client",
+    "configuration",
+    "request-options",
+    "api-error",
+    "retry-config",
+    "transport"
+  ]
+}

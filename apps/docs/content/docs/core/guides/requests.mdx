@@ -1,0 +1,121 @@
+---
+title: Making requests
+description: Verbs, query parameters, bodies and response types.
+---
+
+## The verbs
+
+<include>../../../../../../examples/src/http-verbs.ts</include>
+
+Each returns the parsed body, not a wrapper. There is no `.data` to unwrap.
+
+`get` and `delete` take `(endpoint, options?)`. `post`, `put` and `patch` take
+`(endpoint, body, options?)`.
+
+<Callout type="warn">
+  The type parameter defaults to `unknown`, not `any`. That is deliberate: `any`
+  silently disables checking everywhere the value travels, while `unknown` makes
+  you declare the shape or narrow it. Declaring it is a promise to yourself —
+  for payloads you do not control, have it
+  [checked at runtime](/docs/zod).
+</Callout>
+
+## Query parameters
+
+<include>../../../../../../examples/src/query-params.ts</include>
+
+### Arrays
+
+Arrays are the only genuinely ambiguous case: HTTP never standardised an
+encoding, so every backend framework picked differently.
+
+<TypeTable
+  type={{
+    brackets: {
+      type: '"brackets"',
+      default: "default",
+      description: "tag[]=a&tag[]=b — Rails, PHP, Laravel",
+    },
+    repeat: { type: '"repeat"', description: "tag=a&tag=b — Express, Go, Spring" },
+    comma: { type: '"comma"', description: "tag=a,b — some REST APIs" },
+  }}
+/>
+
+```typescript
+await api.get("/posts", {
+  params: { tag: ["typescript", "http"] },
+  paramsSerializer: { arrayFormat: "repeat" },
+});
+```
+
+Getting this wrong is quiet: the request succeeds, the server parses what it
+can, and you get the wrong rows back with a `200`.
+
+### What is skipped, and what is stringified
+
+`null` and `undefined` are dropped entirely, so an optional filter can be passed
+straight through:
+
+```typescript
+params: { role: "admin", team: selectedTeam ?? undefined }
+```
+
+Everything else goes through `String(value)`.
+
+<Callout type="warn">
+  A `Date` becomes its full `toString()` form, and a nested object becomes the
+  literal `[object Object]`. Neither is rejected. Format dates and flatten
+  objects yourself:
+
+```typescript
+params: { since: date.toISOString(), sort: "name:asc" }
+```
+</Callout>
+
+Encoding uses the platform's `URLSearchParams`, so spaces and non-ASCII are
+handled. Encoding values yourself produces double-encoded output.
+
+## Bodies
+
+A plain object is JSON-encoded and gets `Content-Type: application/json`, unless
+you already set one.
+
+`FormData`, `URLSearchParams`, `Blob` and `ArrayBuffer` pass through untouched.
+For `FormData` the `Content-Type` header is **removed**, so the platform can
+generate the multipart boundary — see
+[uploads](/docs/core/guides/uploads-and-progress).
+
+## Response types
+
+`responseType` decides how the body is read.
+
+<TypeTable
+  type={{
+    json: { type: '"json"', default: "default", description: "Parsed as JSON." },
+    text: { type: '"text"', description: "Returned as a string." },
+    blob: { type: '"blob"', description: "For binary payloads in the browser." },
+    arrayBuffer: { type: '"arrayBuffer"', description: "For binary payloads anywhere." },
+  }}
+/>
+
+An empty successful response — a `204`, most often — yields `undefined` rather
+than failing to parse, which is what a naive `res.json()` does.
+
+## The generic `request()`
+
+<include>../../../../../../examples/src/generic-request.ts</include>
+
+## See also
+
+<Cards>
+  <Card
+    title="RequestOptions"
+    href="/docs/core/api-reference/request-options"
+    description="Every option a single call accepts"
+  />
+  <Card
+    title="Errors"
+    href="/docs/core/guides/errors"
+    description="What happens when a request fails"
+  />
+</Cards>

@@ -1,0 +1,14 @@
+{
+  "title": "Guides",
+  "icon": "BookOpen",
+  "pages": [
+    "requests",
+    "errors",
+    "retries",
+    "interceptors",
+    "authentication",
+    "cancellation-and-timeouts",
+    "uploads-and-progress",
+    "testing-with-transports"
+  ]
+}

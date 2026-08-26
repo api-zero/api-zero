@@ -1,0 +1,95 @@
+---
+title: Testing with transports
+description: Deterministic tests with no network and no global patching.
+---
+
+Most HTTP clients are tested by monkey-patching `globalThis.fetch` or by
+standing up a mock server. Both work, and both leak: a patched global survives
+into the next test if a cleanup is missed, and a mock server adds ports,
+lifecycle and flakiness to a unit test.
+
+`Transport` is a public interface with one method, so replacing it replaces the
+whole network boundary — scoped to the client you replaced it on.
+
+<include>../../../../../../examples/src/testing-transport.ts</include>
+
+## What you get to assert
+
+The transport receives the fully resolved `RequestContext`, so a test can check
+what would actually have gone over the wire:
+
+<TypeTable
+  type={{
+    method: { type: "HttpMethod" },
+    url: {
+      type: "string",
+      description: "Fully resolved, base URL and query string included.",
+    },
+    headers: {
+      type: "Record<string, string>",
+      description: "After interceptors, so an auth header is visible here.",
+    },
+    body: { type: "unknown", description: "After request transforms." },
+    attempt: {
+      type: "number",
+      description: "Which try this is — how you assert that a retry happened.",
+    },
+  }}
+/>
+
+## Testing the failure paths
+
+Returning a non-2xx status exercises the error pipeline for real, rather than
+faking an `ApiError`:
+
+```typescript
+const failing: Transport = {
+  async send() {
+    return {
+      status: 503,
+      statusText: "Service Unavailable",
+      headers: { "retry-after": "1" },
+      data: { message: "try later" },
+    };
+  },
+};
+```
+
+That single object tests error normalization, `isRetryable()`, and `Retry-After`
+handling at once, with no timers to fake and no server to stop.
+
+<Callout type="info">
+  This is how api-zero tests itself. The core suite has no network access and no
+  patched globals, which is why it runs in milliseconds and does not flake.
+</Callout>
+
+## Asserting on retries
+
+Count invocations. Because `attempt` is on the context, the transport can also
+fail the first N times and succeed after:
+
+```typescript
+let calls = 0;
+const flaky: Transport = {
+  async send(context) {
+    calls++;
+    if (context.attempt < 3) throw new Error("network down");
+    return { status: 200, statusText: "OK", headers: {}, data: { ok: true } };
+  },
+};
+```
+
+## See also
+
+<Cards>
+  <Card
+    title="Transport"
+    href="/docs/core/api-reference/transport"
+    description="The interface and its built-in implementations"
+  />
+  <Card
+    title="Retries"
+    href="/docs/core/guides/retries"
+    description="The behaviour worth asserting"
+  />
+</Cards>

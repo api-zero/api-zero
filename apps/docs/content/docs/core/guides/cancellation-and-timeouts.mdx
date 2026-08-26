@@ -1,0 +1,79 @@
+---
+title: Cancellation and timeouts
+description: Stopping a request, and telling the two apart.
+---
+
+Both stop a request in flight, and they mean opposite things. A timeout is the
+server failing to answer in time. A cancellation is your own code deciding the
+answer is no longer wanted.
+
+api-zero composes them into one signal and keeps them distinguishable in the
+resulting error.
+
+## Cancelling
+
+<include>../../../../../../examples/src/cancellation.ts</include>
+
+A signal that is **already aborted** before the request starts is honoured
+immediately — no connection is opened.
+
+## Timeouts
+
+<include>../../../../../../examples/src/timeouts.ts</include>
+
+The client default is 30 seconds. Raise it for the one slow endpoint rather than
+globally: a global raise means a genuinely hung request ties up a connection for
+as long as you allowed.
+
+<Callout type="info">
+  `timeout: 0` disables it. The value is resolved with `??` rather than `||`, so
+  a deliberate zero is not mistaken for "unset" — a distinction many clients get
+  wrong, which is why they cannot express "no timeout" at all.
+</Callout>
+
+## Telling them apart
+
+```typescript
+if (error.isTimeout) {
+  // The server did not answer in time. Worth reporting.
+}
+if (error.isAborted) {
+  // We cancelled it. Usually routine — a component unmounted, or a
+  // newer search superseded this one.
+}
+```
+
+Reporting cancellations as errors is how a dashboard fills with noise that
+nobody can act on.
+
+## Cancelling during a retry
+
+Aborting while the client waits between attempts stops it immediately. The sleep
+is signal-aware, so it does not run the delay out before noticing — which
+matters when the backoff has grown to eight seconds.
+
+## With TanStack Query
+
+TanStack supplies an `AbortSignal` to every `queryFn` and aborts it when the
+query is cancelled, unmounted or superseded. Forwarding it is what makes the
+HTTP request actually stop.
+
+<include>../../../../../../examples/src/react-tanstack.tsx</include>
+
+Without that forward, a cancelled query stops updating React but the request
+keeps running to completion — you pay for the response and throw it away.
+
+## See also
+
+<Cards>
+  <Card
+    title="ApiError"
+    href="/docs/core/api-reference/api-error"
+    description="isTimeout and isAborted"
+  />
+  <Card
+    title="RequestOptions"
+    href="/docs/core/api-reference/request-options"
+    description="signal and timeout"
+  />
+</Cards>

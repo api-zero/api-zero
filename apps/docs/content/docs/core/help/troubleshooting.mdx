@@ -44,7 +44,7 @@ const api = createClient({
 The default is 30 seconds. Raise it per request rather than globally when only
 one endpoint is slow:
 
-<include>../../../../../examples/src/timeouts.ts</include>
+<include>../../../../../../examples/src/timeouts.ts</include>
 
 Check `error.isTimeout` to tell a timeout apart from `error.isAborted`, which
 means your own code cancelled it. A component that unmounts mid-request produces
@@ -58,7 +58,7 @@ CORS preflight rejection. The status is `0` because there is nothing to report.
 Log the resolved URL from an interceptor before assuming the server is down —
 a wrong `baseURL` produces exactly this.
 
-<include>../../../../../examples/src/interceptor-logging.ts</include>
+<include>../../../../../../examples/src/interceptor-logging.ts</include>
 
 ## A request is not being retried
 
@@ -72,7 +72,7 @@ With retries on, a request is still skipped when:
 - The error is not retryable. A `400` or `404` will fail identically next time.
 - The request was cancelled. Aborts are never retried.
 
-See [Retries](/docs/core/api-reference/retry).
+See [Retries](/docs/core/guides/retries).
 
 ## Progress callbacks never fire
 
@@ -85,7 +85,7 @@ switch to, so keep progress callbacks on the client side.
 Check `event.lengthComputable` before dividing: without a `Content-Length` the
 total is unknown and the percentage is meaningless.
 
-<include>../../../../../examples/src/upload-progress.ts</include>
+<include>../../../../../../examples/src/upload-progress.ts</include>
 
 ## Query parameters arrive wrong
 
@@ -96,7 +96,7 @@ Two usual causes:
 - **Objects and dates.** They are stringified, so a nested object becomes the
   literal `[object Object]`. Flatten them and format dates yourself.
 
-See [Query parameters](/docs/core/api-reference/params).
+See [Query parameters](/docs/core/guides/requests).
 
 ## `Content-Type` is missing on a `FormData` upload
 

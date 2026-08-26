@@ -4,6 +4,8 @@ description: A small Fetch-based HTTP client built around reliable transport and
 icon: CircleQuestionMark
 ---
 
+import { Braces, Rocket, Workflow, Wrench } from 'lucide-react';
+
 Every project starts the same way. You add `fetch`, then you write a wrapper to
 hold the base URL. Then a place to stash the auth token. Then an interceptor for
 401s. Then `.get` and `.post` helpers so callers stop repeating themselves. That
@@ -53,7 +55,7 @@ Only `@api-zero/core` is required. The other two are opt-in.
 <Cards>
   <Card
     title="@api-zero/core"
-    href="/docs/core/getting-started"
+    href="/docs/core/get-started/quickstart"
     description="Framework-agnostic client. Runs in browsers, Node 22+ and Edge runtimes."
   />
   <Card
@@ -76,18 +78,27 @@ your runtime already has.
 
 <Cards>
   <Card
+    icon={<Wrench className="text-blue-500" />}
     title="Installation"
-    href="/docs/core/installation"
-    description="Requirements and package setup"
+    href="/docs/core/get-started/installation"
+    description="Requirements and packages"
   />
   <Card
-    title="Getting started"
-    href="/docs/core/getting-started"
+    icon={<Rocket className="text-violet-500" />}
+    title="Quickstart"
+    href="/docs/core/get-started/quickstart"
     description="Your first request, and what happens when it fails"
   />
   <Card
+    icon={<Workflow className="text-emerald-500" />}
     title="Concepts"
-    href="/docs/core/concepts"
+    href="/docs/core/get-started/concepts"
     description="The request lifecycle and the retry policy"
+  />
+  <Card
+    icon={<Braces className="text-amber-500" />}
+    title="API reference"
+    href="/docs/core/api-reference/api-client"
+    description="Every option, exactly as it is typed"
   />
 </Cards>

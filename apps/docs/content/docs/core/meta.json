@@ -1,21 +1,7 @@
 {
   "title": "Core",
   "icon": "Cpu",
-  "description": "The core HTTP client",
+  "description": "The framework-agnostic HTTP client",
   "root": true,
-  "pages": [
-    "---Getting Started---",
-    "index",
-    "getting-started",
-    "installation",
-    "concepts",
-    "---API Reference---",
-    "...api-reference",
-    "---Guides---",
-    "...guides",
-    "examples",
-    "---Help---",
-    "faq",
-    "troubleshooting"
-  ]
+  "pages": ["index", "get-started", "guides", "api-reference", "help"]
 }
