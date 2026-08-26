@@ -1,6 +1,6 @@
 {
   "name": "@api-zero/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Lightweight, type-safe HTTP client built on the Fetch API with interceptors, retries, and structured errors.",
   "type": "module",
   "license": "MIT",
