@@ -81,7 +81,7 @@ const api = createClient({
     // Retry-After from 429/503 is honored
     respectRetryAfter: true,
     // idempotent methods only, unless you opt in explicitly
-    retryMethods: ["GET", "HEAD", "OPTIONS", "PUT", "DELETE"],
+    retryMethods: ["GET", "PUT", "DELETE"],
     retryUnsafeMethods: false,
     onRetry: (event) => console.warn("retrying", event),
   },

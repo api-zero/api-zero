@@ -63,7 +63,7 @@ export interface RetryConfig {
   jitter?: boolean;
   /** Respect Retry-After header from 429/503 responses (default: true) */
   respectRetryAfter?: boolean;
-  /** HTTP methods allowed to be automatically retried (default: ['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']) */
+  /** HTTP methods allowed to be automatically retried (default: ['GET', 'PUT', 'DELETE']) */
   retryMethods?: HttpMethod[];
   /** Allow retrying non-idempotent unsafe methods like POST and PATCH (default: false) */
   retryUnsafeMethods?: boolean;
