@@ -299,9 +299,25 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+}
+
+/*
+ * The landing page uses its own shadcn-style palette. The documentation does
+ * not: it belongs to Fumadocs' neutral preset, which is a softer near-black
+ * (hsl(0 0% 7.04%)) than the shadcn background (~#0a0a0a) and is tuned to the
+ * contrast of every Fumadocs component around it.
+ *
+ * Applying the shadcn background to `body` painted the whole site, docs
+ * included, and that is what made the documentation read as pure OLED black.
+ * The landing scopes it to itself instead.
+ */
+.landing-surface {
+  @apply bg-background text-foreground;
+}
+
+/* Content column width for the documentation layout. */
+:root {
+  --fd-layout-width: 1400px;
 }

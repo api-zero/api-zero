@@ -41,22 +41,25 @@ emits `-inset-s-4`, a utility 4.1 does not know.
       `create-client.ts` demonstrates the intended pattern. Regions are held in
       reserve for showing a slice of a longer realistic file.
 
-## Phase 1 — Theme and layout
+## Phase 1 — Theme and layout ◐
 
 The site is near-black (`#0a0a0a`) because `global.css` layers a shadcn palette
 (`--background`, `--card`, `--popover`) over the Fumadocs preset. Fumadocs' own
 neutral preset is `hsl(0, 0%, 7.04%)` (~`#121212`) and reads far better.
 
-- [ ] Strip the shadcn palette override; keep `fumadocs-ui/css/neutral.css`
-      as the source of truth, override only what genuinely differs
-- [ ] Narrower left sidebar, narrower TOC, wider content with more lateral
-      padding — configured on `DocsLayout`, not by hand-written CSS
+- [x] Found the real cause: `@layer base { body { @apply bg-background } }`
+      painted the shadcn near-black over the whole site, docs included. The
+      landing now scopes that palette to itself via `.landing-surface`, so the
+      documentation uses Fumadocs' neutral preset as intended.
+- [x] `--fd-layout-width: 1400px` set. Sidebar and TOC widths still to review
+      against the reference once the background change is confirmed by eye.
 - [ ] Audit the remaining 307 lines of `global.css` for what is still needed
 
-## Phase 2 — Page furniture
+## Phase 2 — Page furniture ◐
 
-- [ ] `MarkdownCopyButton` + `ViewOptionsPopover` in the page header
-      (`fumadocs-ui/layouts/docs/page`)
+- [x] `MarkdownCopyButton` + `ViewOptionsPopover` in the page header, backed
+      by a new `/api/md/[[...slug]]` route serving each page as raw Markdown
+      (2.7-3.2 kB per page, verified in the build output).
 - [ ] Ask AI trigger, bottom-right, on every view
 - [ ] Hover cards on internal links: underlined, accent-coloured, previewing
       the target page's title and description
