@@ -11,9 +11,13 @@ export interface ApiClientConfig {
   credentials?: RequestCredentials;
   retry?: RetryConfig | false;
   transformRequest?:
-    | ((data: any, headers?: Record<string, string>) => any)
-    | Array<(data: any, headers?: Record<string, string>) => any>;
-  transformResponse?: ((data: any) => any) | Array<(data: any) => any>;
+    | ((data: any, headers?: Record<string, string>) => any | Promise<any>)
+    | Array<
+        (data: any, headers?: Record<string, string>) => any | Promise<any>
+      >;
+  transformResponse?:
+    | ((data: any) => any | Promise<any>)
+    | Array<(data: any) => any | Promise<any>>;
   paramsSerializer?: ParamsSerializerConfig;
   /**
    * Optional custom or mocked transport adapter.
@@ -40,9 +44,13 @@ export interface RequestOptions<
   validateResponse?: (data: TResponse) => boolean | Promise<boolean>;
   onValidationError?: (error: ApiError) => void;
   transformRequest?:
-    | ((data: TBody, headers?: Record<string, string>) => any)
-    | Array<(data: any, headers?: Record<string, string>) => any>;
-  transformResponse?: ((data: any) => TResponse) | Array<(data: any) => any>;
+    | ((data: TBody, headers?: Record<string, string>) => any | Promise<any>)
+    | Array<
+        (data: any, headers?: Record<string, string>) => any | Promise<any>
+      >;
+  transformResponse?:
+    | ((data: any) => TResponse | Promise<TResponse>)
+    | Array<(data: any) => any | Promise<any>>;
   paramsSerializer?: ParamsSerializerConfig;
   metadata?: Record<string, unknown>;
 }

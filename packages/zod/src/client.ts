@@ -54,7 +54,7 @@ export class ZodApiClient {
       transformResponse: mergeTransforms(
         options?.transformResponse,
         zodOpts.transformResponse,
-      ) as any,
+      ),
     });
   }
 
@@ -84,11 +84,11 @@ export class ZodApiClient {
         transformRequest: mergeTransforms(
           options?.transformRequest,
           contractOpts.transformRequest,
-        ) as any,
+        ),
         transformResponse: mergeTransforms(
           options?.transformResponse,
           contractOpts.transformResponse,
-        ) as any,
+        ),
       },
     );
   }
@@ -119,11 +119,11 @@ export class ZodApiClient {
         transformRequest: mergeTransforms(
           options?.transformRequest,
           contractOpts.transformRequest,
-        ) as any,
+        ),
         transformResponse: mergeTransforms(
           options?.transformResponse,
           contractOpts.transformResponse,
-        ) as any,
+        ),
       },
     );
   }
@@ -154,11 +154,11 @@ export class ZodApiClient {
         transformRequest: mergeTransforms(
           options?.transformRequest,
           contractOpts.transformRequest,
-        ) as any,
+        ),
         transformResponse: mergeTransforms(
           options?.transformResponse,
           contractOpts.transformResponse,
-        ) as any,
+        ),
       },
     );
   }
@@ -174,7 +174,7 @@ export class ZodApiClient {
       transformResponse: mergeTransforms(
         options?.transformResponse,
         zodOpts.transformResponse,
-      ) as any,
+      ),
     });
   }
 }
