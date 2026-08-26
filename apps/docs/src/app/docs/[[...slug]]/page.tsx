@@ -1,8 +1,9 @@
+import Link from "fumadocs-core/link";
+import { PathUtils } from "fumadocs-core/source";
 import {
   MarkdownCopyButton,
   ViewOptionsPopover,
 } from "fumadocs-ui/layouts/docs/page";
-import { createRelativeLink } from "fumadocs-ui/mdx";
 import {
   DocsBody,
   DocsDescription,
@@ -11,6 +12,11 @@ import {
 } from "fumadocs-ui/page";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { getPageImage, source } from "@/lib/source";
 import { getMDXComponents } from "@/mdx-components";
 
@@ -40,8 +46,34 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
       <DocsBody>
         <MDX
           components={getMDXComponents({
-            // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(source, page),
+            // Internal links resolve to their target page and preview its title
+            // and description on hover, so a reader can tell whether a link is
+            // worth following without leaving the paragraph.
+            a({ href, ...props }) {
+              const found = source.getPageByHref(href ?? "", {
+                dir: PathUtils.dirname(page.path),
+              });
+
+              if (!found) return <Link href={href} {...props} />;
+
+              const target = found.hash
+                ? `${found.page.url}#${found.hash}`
+                : found.page.url;
+
+              return (
+                <HoverCard>
+                  <HoverCardTrigger href={target} {...props} />
+                  <HoverCardContent>
+                    <p className="font-medium text-sm">
+                      {found.page.data.title}
+                    </p>
+                    <p className="mt-1 text-fd-muted-foreground text-sm">
+                      {found.page.data.description}
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
+              );
+            },
           })}
         />
       </DocsBody>

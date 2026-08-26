@@ -42,6 +42,9 @@ jobs:
       - name: Run unit and integration test suites
         run: pnpm test
 
+      - name: Validate internal documentation links
+        run: pnpm --filter docs validate-links
+
   smoke:
     name: Consumer tarball smoke
     runs-on: ubuntu-latest

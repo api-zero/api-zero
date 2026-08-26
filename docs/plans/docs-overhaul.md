@@ -66,11 +66,16 @@ neutral preset is `hsl(0, 0%, 7.04%)` (~`#121212`) and reads far better.
 - [x] `MarkdownCopyButton` + `ViewOptionsPopover` in the page header, backed
       by a new `/api/md/[[...slug]]` route serving each page as raw Markdown
       (2.7-3.2 kB per page, verified in the build output).
-- [ ] Ask AI trigger, bottom-right, on every view
-- [ ] Hover cards on internal links: underlined, accent-coloured, previewing
-      the target page's title and description
-- [ ] Replace the hand-rolled Python link checker with `next-validate-link`
-      in CI
+- [ ] Ask AI trigger, bottom-right. **Needs a decision:** the reference's
+      button is backed by Inkeep, a paid third-party service. Fumadocs ships no
+      free equivalent, so this means either paying for a service or hosting a
+      route against an LLM API with the cost that implies.
+- [x] Hover cards on internal links, previewing the target's title and
+      description. Verified per page against the source: 3/3, 1/1, 0/0 —
+      applied to every internal markdown link and to nothing else.
+- [x] `next-validate-link` in CI, replacing the ad-hoc checker. It also
+      validates `<Card href>`, which the old one could not see. Verified it
+      fails on both a broken markdown link and a broken Card href.
 
 ## Phase 3 — Information architecture
 
