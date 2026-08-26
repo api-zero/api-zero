@@ -51,8 +51,14 @@ neutral preset is `hsl(0, 0%, 7.04%)` (~`#121212`) and reads far better.
       painted the shadcn near-black over the whole site, docs included. The
       landing now scopes that palette to itself via `.landing-surface`, so the
       documentation uses Fumadocs' neutral preset as intended.
-- [x] `--fd-layout-width: 1400px` set. Sidebar and TOC widths still to review
-      against the reference once the background change is confirmed by eye.
+- [x] Widths left to Fumadocs. Its defaults are already
+      `--fd-sidebar-width: 268px`, `--fd-toc-width: 268px`,
+      `--fd-layout-width: 1400px`, and the reference site overrides none of
+      them — its whole global.css is 140 lines. Ours was fighting a theme
+      tuned as a whole.
+- [x] Fonts wired through `--font-sans` and `--font-mono` as the preset expects,
+      instead of `className` overriding the family directly. `--font-mono` was
+      never defined at all, so code blocks fell back to the system stack.
 - [ ] Audit the remaining 307 lines of `global.css` for what is still needed
 
 ## Phase 2 — Page furniture ◐

@@ -314,10 +314,15 @@
  * The landing scopes it to itself instead.
  */
 .landing-surface {
-  @apply bg-background text-foreground;
+  @apply flex min-h-screen flex-1 flex-col bg-background text-foreground;
 }
 
-/* Content column width for the documentation layout. */
-:root {
-  --fd-layout-width: 1400px;
+/*
+ * The documentation surface belongs to Fumadocs. Its layout widths
+ * (--fd-sidebar-width, --fd-toc-width and --fd-layout-width) already default to
+ * 268px, 268px and 1400px, so overriding them here only risks drifting from a
+ * theme that is tuned as a whole.
+ */
+body {
+  background-color: var(--color-fd-background);
 }
