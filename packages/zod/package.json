@@ -1,6 +1,6 @@
 {
   "name": "@api-zero/zod",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Zod runtime contracts and schema validation adapters for api-zero.",
   "type": "module",
   "license": "MIT",
