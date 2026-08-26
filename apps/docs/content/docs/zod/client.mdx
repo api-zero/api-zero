@@ -1,78 +1,79 @@
 ---
-title: "ZodApiClient"
-description: "Cliente HTTP enriquecido con métodos de validación directa mediante esquemas de Zod."
+title: ZodApiClient
+description: Schema-aware verbs with full type inference.
 ---
 
-# ZodApiClient
+`ZodApiClient` wraps an `ApiClient` and adds verbs that take a schema. The return
+type is inferred from that schema, so there is no generic to pass and nothing to
+keep in sync.
 
-`ZodApiClient` envuelve un `ApiClient` estándar para ofrecer métodos HTTP que aceptan schemas de Zod como primer argumento de respuesta de forma fluida.
-
-## Creación
-
-### Con `withZod(client)`
+## Creating one
 
 ```typescript
-import { createClient } from '@api-zero/core';
-import { withZod } from '@api-zero/zod';
+import { createZodClient, withZod } from "@api-zero/zod";
+import { createClient } from "@api-zero/core";
 
-const baseClient = createClient({ baseURL: 'https://api.example.com' });
-export const api = withZod(baseClient);
+// From configuration
+const api = createZodClient({ baseURL: "https://api.example.com" });
+
+// Or wrap a client you already have
+const wrapped = withZod(createClient({ baseURL: "https://api.example.com" }));
 ```
 
-### Con `createZodClient(config)`
+## Reading
+
+<include>../../../../../examples/src/zod-typed-response.ts</include>
+
+## Writing
+
+<include>../../../../../examples/src/zod-validated-body.ts</include>
+
+`post`, `put` and `patch` accept either a bare response schema or an object with
+`response` and `body`. When `body` is present the payload is validated **before
+the request leaves the process** — an invalid body never reaches the network, and
+the failure arrives as a `ZodValidationError` with `target: "body"`.
+
+## Configuration goes through `.client`
+
+<Callout type="info">
+  `ZodApiClient` deliberately does not mirror the configuration API. Use the
+  underlying client — it is the same instance, so configuring one configures
+  both.
 
 ```typescript
-import { createZodClient } from '@api-zero/zod';
-
-export const api = createZodClient({
-  baseURL: 'https://api.example.com',
-  timeout: 5000,
-});
+api.client.setAuthToken("a-jwt-token");
+api.client.interceptors.request.use(/* … */);
 ```
+</Callout>
 
----
+Every mirrored method would be one more thing to keep in step with core, falling
+silently behind the moment core grows one. Exposing the real client has no such
+failure mode.
 
-## Métodos Disponibles
+## Verbs
 
-### `api.get(endpoint, schema, options?)`
+| Method | Signature |
+| ------ | --------- |
+| `get` | `(endpoint, schema, options?)` |
+| `delete` | `(endpoint, schema, options?)` |
+| `post` | `(endpoint, body, schemas, options?)` |
+| `put` | `(endpoint, body, schemas, options?)` |
+| `patch` | `(endpoint, body, schemas, options?)` |
 
-```typescript
-import { z } from 'zod';
+`options` is the same `RequestOptions` as core: `params`, `signal`, `timeout`,
+`retry` and the rest all work unchanged.
 
-const UserSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-});
+## See also
 
-// El tipo de retorno 'user' se infiere como { id: number; name: string }
-const user = await api.get('/users/1', UserSchema);
-```
-
-### `api.post(endpoint, body, schema, options?)`
-
-```typescript
-const ItemSchema = z.object({
-  id: z.number(),
-  title: z.string(),
-});
-
-const item = await api.post('/items', { title: 'Nuevo Item' }, ItemSchema);
-```
-
-### `api.put(endpoint, body, schema, options?)`
-
-```typescript
-const updated = await api.put('/items/1', { title: 'Item Actualizado' }, ItemSchema);
-```
-
-### `api.patch(endpoint, body, schema, options?)`
-
-```typescript
-const patched = await api.patch('/items/1', { title: 'Parcial' }, ItemSchema);
-```
-
-### `api.delete(endpoint, schema?, options?)`
-
-```typescript
-const result = await api.delete('/items/1', z.object({ success: z.boolean() }));
-```
+<Cards>
+  <Card
+    title="Adapters"
+    href="/docs/zod/adapters"
+    description="Use schemas with a plain ApiClient instead"
+  />
+  <Card
+    title="Configuration"
+    href="/docs/core/api-reference/config"
+    description="The options these verbs accept"
+  />
+</Cards>

@@ -1,104 +1,67 @@
 ---
-title: "Adaptadores Zod"
-description: "Adaptadores para validar respuestas, cuerpos y parámetros con esquemas de Zod."
+title: Adapters
+description: Use Zod schemas with a plain ApiClient.
 ---
 
-# Adaptadores Zod
+The adapters turn a schema into plain `RequestOptions`. Use them when you want
+schema validation on a client you already have, without wrapping it.
 
-Los adaptadores de `@api-zero/zod` transforman esquemas de Zod en opciones compatibles con `RequestOptions` para cualquier cliente de `api-zero` o hook de React.
+<include>../../../../../examples/src/zod-adapters.ts</include>
 
-## Importación
+Because they return ordinary options, they spread alongside everything else:
+`timeout`, `signal`, `params`, `retry`. Nothing is special-cased.
 
-```typescript
-import {
-  zodResponse,
-  zodBody,
-  zodParams,
-  zodContract,
-  ZodValidationError,
-} from '@api-zero/zod';
-```
+## `zodResponse(schema)`
 
----
+Returns `{ transformResponse }`. The response is parsed with `safeParseAsync`,
+so async refinements and transforms work. On failure it throws a
+`ZodValidationError` with `target: "response"`.
 
-## 1. `zodResponse(schema)`
+Since it is a response transform, it runs **after** the body is parsed and
+**before** validation and the response interceptors — so an interceptor sees the
+already-validated, already-transformed data.
 
-Valida y transforma la respuesta del servidor antes de devolverla a la aplicación.
+## `zodBody(schema)`
 
-```typescript
-import { createClient } from '@api-zero/core';
-import { zodResponse } from '@api-zero/zod';
-import { z } from 'zod';
+Returns `{ transformRequest }`. The body is validated before the request is
+built, so an invalid payload never reaches the network and fails with
+`target: "body"`.
 
-const client = createClient({ baseURL: 'https://api.example.com' });
+## `zodContract({ response, body })`
 
-const UserSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  createdAt: z.string().transform((d) => new Date(d)),
-});
+Combines both into one options object. `ZodApiClient` is built on it.
 
-// El tipo de retorno se infiere automáticamente a partir del schema
-const user = await client.get('/users/1', zodResponse(UserSchema));
+<Callout type="info">
+  There is no `params` schema. The request pipeline has no params-validation
+  hook, and accepting a schema that types query parameters as validated while
+  validating nothing is worse than not offering it —
+  [ADR-003](https://github.com/api-zero/api-zero/blob/main/docs/adr/003-scope-boundary-and-public-surface.md).
+</Callout>
 
-console.log(user.id);        // number
-console.log(user.name);      // string
-console.log(user.createdAt); // Date
-```
+## Adapters or `ZodApiClient`?
 
----
+| | Adapters | [`ZodApiClient`](/docs/zod/client) |
+| --- | --- | --- |
+| Client | Your existing `ApiClient` | A wrapper around one |
+| Return type | Pass the generic yourself | Inferred from the schema |
+| Composition | Spread into any options object | Schema is an argument |
 
-## 2. `zodBody(schema)`
+Inference is the reason `ZodApiClient` exists: `api.get("/users/1", schema)`
+needs no generic, and it cannot drift from the schema. Reach for the adapters
+when you want validation on a specific call without changing how the rest of
+your code gets its client.
 
-Valida el cuerpo de la petición antes de enviarlo a la red (fail-fast del lado cliente):
+## See also
 
-```typescript
-const CreateUserSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-});
-
-await client.post(
-  '/users',
-  { name: 'A', email: 'invalid-email' },
-  zodBody(CreateUserSchema) // Lanzará ZodValidationError sin enviar petición HTTP
-);
-```
-
----
-
-## 3. `zodParams(schema)`
-
-Valida y sanea los parámetros de consulta antes de serializarlos:
-
-```typescript
-const PaginationSchema = z.object({
-  page: z.number().int().positive(),
-  limit: z.number().max(100),
-});
-
-await client.get('/items', {
-  params: { page: 1, limit: 20 },
-  ...zodParams(PaginationSchema),
-});
-```
-
----
-
-## 4. `ZodValidationError`
-
-Cuando una validación falla, se lanza una instancia de `ZodValidationError` (que hereda de `ApiError` con `isValidationError: true`):
-
-```typescript
-import { ZodValidationError } from '@api-zero/zod';
-
-try {
-  await client.get('/users/1', zodResponse(UserSchema));
-} catch (error) {
-  if (error instanceof ZodValidationError) {
-    console.error('Target fallido:', error.target); // 'response' | 'body' | 'params'
-    console.error('Lista de issues:', error.issues);
-    console.error('Formato aplanado:', error.flatten());
-  }
-}
-```
+<Cards>
+  <Card
+    title="ZodApiClient"
+    href="/docs/zod/client"
+    description="Schema-aware verbs with inference"
+  />
+  <Card
+    title="Configuration"
+    href="/docs/core/api-reference/config"
+    description="Where transforms sit in the lifecycle"
+  />
+</Cards>

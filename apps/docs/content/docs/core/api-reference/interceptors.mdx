@@ -1,338 +1,109 @@
 ---
-title: "Interceptores"
-description: "Sistema de interceptores para transformar requests y responses automáticamente."
+title: Interceptors
+description: Enrich every request, inspect every response, and recover from failures.
 ---
 
-# Interceptores
-
-Los interceptores permiten interceptar y transformar peticiones HTTP antes de enviarlas y respuestas antes de procesarlas.
-
-## InterceptorManager
-
-Clase que gestiona los interceptores para requests o responses.
+Interceptors are the extension point of the request lifecycle. Request handlers
+run before the transport; response handlers run after the body is parsed.
 
 ```typescript
-class InterceptorManager<V> {
-  use(
-    fulfilled?: (value: V) => V | Promise<V>,
-    rejected?: (error: any) => any
-  ): number;
-  
-  eject(id: number): void;
-  clear(): void;
-}
+client.interceptors.request  // InterceptorManager<RequestContext, unknown>
+client.interceptors.response // InterceptorManager<ResponseContext, ApiError>
 ```
 
-## Acceso a los Interceptores
+`use(fulfilled?, rejected?)` returns a numeric id. `eject(id)` removes one,
+`clear()` removes all.
 
-El cliente expone dos managers de interceptores:
+## Request interceptors
+
+A request handler receives the full `RequestContext` and returns it.
+
+<include>../../../../../../examples/src/interceptor-request.ts</include>
+
+The context is the resolved request, not the options you passed:
+
+| Field | Meaning |
+| ----- | ------- |
+| `method` | The HTTP method. |
+| `endpoint` | The path as the caller wrote it, e.g. `/users`. |
+| `baseURL` | The base in effect for this request. |
+| `url` | **The fully resolved URL**, base and query string included. |
+| `body` | The body after request transforms. |
+| `params` | Query parameters, before serialization. |
+| `headers` | Normalized headers. Mutate these to add one. |
+| `attempt` | `1` on the first try, higher on a retry. |
+| `metadata` | Your own bucket. Nothing in the library reads it. |
+
+<Callout type="warn">
+  `url` is already complete. Building `${context.baseURL}${context.url}` for a
+  log line produces the base URL twice — a mistake that survives review because
+  the request still works and only the logs are wrong.
+</Callout>
+
+<include>../../../../../../examples/src/interceptor-logging.ts</include>
+
+## Response interceptors
+
+<include>../../../../../../examples/src/interceptor-response.ts</include>
+
+The success handler receives a `ResponseContext`: the `request` that produced it,
+the parsed `data`, `status`, `statusText`, `headers` and `timing`. Not a raw
+`Response` — the body has already been read, transformed and validated.
+
+The rejection handler receives an `ApiError`, and **it receives every failure
+class**: HTTP status, network failure, timeout, cancellation and validation
+alike. Errors are normalized before the chain runs, which is what makes the next
+pattern possible at all.
+
+## Recovering: refreshing an expired token
+
+The canonical use for a rejection handler is turning a failure into a success by
+fixing the cause and replaying the request.
+
+<include>../../../../../../examples/src/auth-refresh.ts</include>
+
+Three details are what separate this from a version that breaks in production:
+
+1. **One refresh at a time.** Ten concurrent requests hitting a 401 must not
+   trigger ten refreshes. The shared promise makes the rest wait for the first.
+2. **The refresh call is excluded.** If refreshing itself returns 401, a handler
+   that retries everything calls itself forever.
+3. **The replay is tagged through `metadata`.** Without a marker, a replay that
+   fails again re-enters the handler, and you are back to an infinite loop.
+
+`metadata` exists for exactly this: request-scoped state that travels with the
+context and that no header has to carry.
+
+## Order and removal
+
+Handlers run in registration order. `use()` returns an id:
 
 ```typescript
-client.interceptors.request  // Para requests
-client.interceptors.response // Para responses
+const id = client.interceptors.request.use(handler);
+client.interceptors.request.eject(id);
+client.interceptors.request.clear(); // removes all
 ```
 
-## Request Interceptors
+Returning nothing from a request handler leaves the context unchanged, so a
+logging handler does not have to return it — but returning it is clearer, and
+required when you replaced it.
 
-Se ejecutan **antes** de enviar la petición.
-
-### Sintaxis
-
-```typescript
-const interceptorId = client.interceptors.request.use(
-  (config) => {
-    // Modificar config
-    return config;
-  },
-  (error) => {
-    // Manejar errores en la preparación
-    return Promise.reject(error);
-  }
-);
-```
-
-### Ejemplo: Añadir Token de Autenticación
-
-```typescript
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-  return config;
-});
-```
-
-### Ejemplo: Logging de Requests
-
-```typescript
-client.interceptors.request.use((config) => {
-  console.log(`→ ${config.method} ${config.baseURL}${config.url}`);
-  console.log('Headers:', config.headers);
-  console.log('Params:', config.params);
-  return config;
-});
-```
-
-### Ejemplo: Transformar Request Body
-
-```typescript
-client.interceptors.request.use((config) => {
-  // Convertir camelCase a snake_case
-  if (config.body && typeof config.body === 'object') {
-    config.body = convertToSnakeCase(config.body);
-  }
-  return config;
-});
-```
-
-## Response Interceptors
-
-Se ejecutan **después** de recibir la respuesta.
-
-### Sintaxis
-
-```typescript
-const interceptorId = client.interceptors.response.use(
-  (response) => {
-    // La respuesta es exitosa (2xx)
-    return response;
-  },
-  (error) => {
-    // La respuesta es un error (4xx, 5xx, network, etc.)
-    return Promise.reject(error);
-  }
-);
-```
-
-### Ejemplo: Refresh Token Automático
-
-```typescript
-let isRefreshing = false;
-let failedQueue = [];
-
-client.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.isUnauthorized() && !originalRequest._retry) {
-      if (isRefreshing) {
-        // Esperar a que termine el refresh
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        }).then(() => {
-          return client.request(
-            originalRequest.url,
-            originalRequest.method,
-            originalRequest.body,
-            originalRequest
-          );
-        });
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const newToken = await refreshAuthToken();
-        localStorage.setItem('authToken', newToken);
-        
-        // Reintentar todas las peticiones en cola
-        failedQueue.forEach(({ resolve }) => resolve());
-        failedQueue = [];
-
-        // Reintentar la petición original
-        return client.request(
-          originalRequest.url,
-          originalRequest.method,
-          originalRequest.body,
-          originalRequest
-        );
-      } catch (refreshError) {
-        failedQueue.forEach(({ reject }) => reject(refreshError));
-        failedQueue = [];
-        
-        // Redirect a login
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-```
-
-### Ejemplo: Transformar Response Data
-
-```typescript
-client.interceptors.response.use((response) => {
-  // Convertir snake_case a camelCase
-  if (response.data && typeof response.data === 'object') {
-    response.data = convertToCamelCase(response.data);
-  }
-  return response;
-});
-```
-
-### Ejemplo: Global Error Handling
-
-```typescript
-import { toast } from 'react-toastify';
-
-client.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error instanceof ApiError) {
-      if (error.is5xx()) {
-        toast.error('Error del servidor. Intenta más tarde.');
-      } else if (error.isTimeout) {
-        toast.error('La petición tardó demasiado.');
-      } else if (error.isNetworkError) {
-        toast.error('Sin conexión a internet.');
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-```
-
-## Gestión de Interceptores
-
-### Eliminar un Interceptor
-
-```typescript
-const interceptorId = client.interceptors.request.use(config => config);
-
-// Eliminar el interceptor
-client.interceptors.request.eject(interceptorId);
-```
-
-### Limpiar Todos los Interceptores
-
-```typescript
-// Limpiar todos los request interceptors
-client.interceptors.request.clear();
-
-// Limpiar todos los response interceptors
-client.interceptors.response.clear();
-```
-
-## Múltiples Interceptores
-
-Puedes tener múltiples interceptores. Se ejecutan en el orden en que fueron añadidos:
-
-```typescript
-// 1. Primero
-client.interceptors.request.use(config => {
-  console.log('Interceptor 1');
-  return config;
-});
-
-// 2. Segundo
-client.interceptors.request.use(config => {
-  console.log('Interceptor 2');
-  return config;
-});
-
-// 3. Tercero
-client.interceptors.request.use(config => {
-  console.log('Interceptor 3');
-  return config;
-});
-
-// Output: Interceptor 1, Interceptor 2, Interceptor 3
-```
-
-## Ejemplo Completo
-
-```typescript
-import { createClient, ApiError } from '@api-zero/core';
-
-const api = createClient({
-  baseURL: 'https://api.example.com',
-});
-
-// Request: Añadir token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Request: Logging
-api.interceptors.request.use((config) => {
-  console.log(`[${new Date().toISOString()}] ${config.method} ${config.url}`);
-  return config;
-});
-
-// Response: Transformar data
-api.interceptors.response.use((response) => {
-  // Convertir fechas ISO a Date objects
-  if (response.data) {
-    Object.keys(response.data).forEach(key => {
-      if (typeof response.data[key] === 'string' && 
-          response.data[key].match(/^\d{4}-\d{2}-\d{2}T/)) {
-        response.data[key] = new Date(response.data[key]);
-      }
-    });
-  }
-  return response;
-});
-
-// Response: Error handling
-api.interceptors.response.use(
-  undefined,
-  async (error) => {
-    if (error instanceof ApiError && error.isUnauthorized()) {
-      try {
-        const newToken = await refreshToken();
-        localStorage.setItem('token', newToken);
-        
-        // Reintentar
-        return api.request(
-          error.config.url,
-          error.config.method,
-          error.config.body,
-          error.config
-        );
-      } catch {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-    }
-    
-    return Promise.reject(error);
-  }
-);
-```
-
-## Ver También
+## See also
 
 <Cards>
-  <Card 
-    title="ApiClient" 
-    href="/docs/core/api-reference/client"
-    description="API completa del cliente HTTP"
+  <Card
+    title="ApiError"
+    href="/docs/core/api-reference/error"
+    description="What a rejection handler receives"
   />
-  <Card 
-    title="Autenticación" 
-    href="/docs/core/guides/authentication"
-    description="Patrones de autenticación con interceptores"
+  <Card
+    title="Configuration"
+    href="/docs/core/api-reference/config"
+    description="Transforms, which run around the interceptor chain"
+  />
+  <Card
+    title="Concepts"
+    href="/docs/core/concepts"
+    description="Where interceptors sit in the lifecycle"
   />
 </Cards>

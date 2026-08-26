@@ -1,45 +1,67 @@
 ---
-title: "Zod Integration"
-description: "Validación estricta en tiempo de ejecución e inferencia estática de tipos con @api-zero/zod."
+title: Zod
+description: Runtime-validated contracts with inferred types.
 icon: ShieldCheck
 ---
 
-# Zod Integration
+`api.get<User>("/users/1")` is a promise you make to yourself. Nothing checks it.
+If the API renames a field, drops one, or returns `null` where you expected a
+string, TypeScript stays quiet and your code fails somewhere else entirely —
+usually in a component, usually with a message that says nothing about the API.
 
-El paquete `@api-zero/zod` añade soporte de primer nivel para validación de esquemas de Zod en `api-zero`, transformando errores en instancias estructuradas de `ZodValidationError` y proporcionando inferencia de tipos estáticos (`z.infer`).
+`@api-zero/zod` closes that gap. The schema validates the payload **and**
+produces the type, so the two cannot disagree.
 
-## Instalación
+## Installation
 
 ```bash
-npm install @api-zero/core @api-zero/zod zod
-# o
 pnpm add @api-zero/core @api-zero/zod zod
 ```
 
-## Características
+Both `@api-zero/core` and `zod` are peer dependencies: you keep control of the
+versions, and there is only ever one copy of each in your tree.
 
-- 🛡️ **Validación de Respuestas y Peticiones**: Valida `response`, `body` y `params` con schemas de Zod.
-- ⚡️ **`ZodValidationError`**: Extiende de `ApiError` (`isValidationError: true`) con `.issues`, `.flatten()` y `.format()`.
-- 🔄 **Async & Coercion**: Soporta esquemas asíncronos y transformaciones de Zod (`safeParseAsync`).
-- 🪄 **`ZodApiClient`**: Cliente tipado con métodos directos (`api.get('/users', UserSchema)`).
-- 📜 **`defineContract`**: Definición de contratos de API fuertemente tipados y reutilizables.
+## The shape of it
 
-## Resumen de APIs
+<include>../../../../../examples/src/zod-typed-response.ts</include>
+
+Two things happen at once. `createdAt` arrives as a string and is handed to you
+as a `Date`, because the schema said so. And `user` is typed from that same
+schema — no interface to keep in sync, no cast.
+
+## When a payload does not match
+
+<include>../../../../../examples/src/zod-error.ts</include>
+
+`ZodValidationError` extends `ApiError`, so it flows through the same catch
+blocks, the same interceptors and the same `instanceof ApiError` checks as every
+other failure. It adds `issues`, the original `zodError`, and `target` — which
+tells you whether the request body or the response was at fault.
+
+`flatten()` and `format()` come from Zod and are useful for turning issues into
+form errors.
+
+<Callout type="info">
+  Validation failures are never retried. A payload that failed the schema will
+  fail identically on the next attempt — retrying only delays the error.
+</Callout>
+
+## What to reach for
 
 <Cards>
   <Card
-    title="Adaptadores Zod"
-    href="/docs/zod/adapters"
-    description="zodResponse, zodBody, zodParams y manejo de ZodValidationError"
-  />
-  <Card
     title="ZodApiClient"
     href="/docs/zod/client"
-    description="Cliente enriquecido con withZod() y createZodClient()"
+    description="createZodClient and withZod: schema-aware verbs with inference"
   />
   <Card
-    title="defineContract"
-    href="/docs/zod/contracts"
-    description="Contratos de endpoints de API seguros y reutilizables"
+    title="Adapters"
+    href="/docs/zod/adapters"
+    description="zodResponse and zodBody, for a plain ApiClient"
   />
 </Cards>
+
+There is one way to describe a contract and one way to run it. The package used
+to ship three overlapping ones — see
+[ADR-003](https://github.com/api-zero/api-zero/blob/main/docs/adr/003-scope-boundary-and-public-surface.md)
+for why they were removed.

@@ -1,75 +1,89 @@
 ---
-title: "Serialización de Parámetros"
-description: "Cómo api-zero serializa los query parameters incluyendo arrays."
+title: Query parameters
+description: How params become a query string, and where it can surprise you.
 ---
 
-# Serialización de Parámetros
+Pass `params` and api-zero builds the query string for you.
 
-api-zero serializa automáticamente los query parameters con soporte para diferentes formatos de arrays.
+<include>../../../../../../examples/src/query-params.ts</include>
 
-## Formatos de Arrays
+## Arrays
 
-### Brackets (default)
+Arrays are the only genuinely ambiguous case: HTTP never standardised how to
+encode one, so every backend framework picked differently. `paramsSerializer`
+lets you match yours.
 
-```typescript
-await client.get('/users', {
-  params: { ids: [1, 2, 3] },
-  paramsSerializer: { arrayFormat: 'brackets' },
-});
-// URL: /users?ids[]=1&ids[]=2&ids[]=3
-```
-
-### Repeat
+| `arrayFormat` | `{ tag: ["a", "b"] }` becomes |
+| ------------- | ----------------------------- |
+| `"brackets"` (default) | `tag[]=a&tag[]=b` |
+| `"repeat"` | `tag=a&tag=b` |
+| `"comma"` | `tag=a,b` |
 
 ```typescript
-await client.get('/users', {
-  params: { ids: [1, 2, 3] },
-  paramsSerializer: { arrayFormat: 'repeat' },
-});
-// URL: /users?ids=1&ids=2&ids=3
-```
-
-### Comma
-
-```typescript
-await client.get('/users', {
-  params: { ids: [1, 2, 3] },
-  paramsSerializer: { arrayFormat: 'comma' },
-});
-// URL: /users?ids=1,2,3
-```
-
-## Configuración Global
-
-```typescript
-const client = createClient({
-  paramsSerializer: {
-    arrayFormat: 'comma',
-  },
+await api.get("/posts", {
+  params: { tag: ["typescript", "http"] },
+  paramsSerializer: { arrayFormat: "repeat" },
 });
 ```
 
-## Valores null y undefined
+Getting this wrong is quiet. The request succeeds, the server parses what it can,
+and you get the wrong rows back with a `200`. Check what your backend expects
+rather than assuming.
 
-Los valores `null` y `undefined` se ignoran automáticamente:
+## What gets skipped
+
+`null` and `undefined` values are dropped entirely — no empty `key=` in the
+output. That means an optional filter can be passed straight through without
+guarding it:
 
 ```typescript
-await client.get('/users', {
-  params: {
-    name: 'John',
-    age: undefined, // Se ignora
-    city: null, // Se ignora
-  },
+await api.get("/users", {
+  params: { role: "admin", team: selectedTeam ?? undefined },
 });
-// URL: /users?name=John
 ```
 
-## Ver También
+## What gets stringified
+
+Every other value goes through `String(value)`. Numbers and booleans behave as
+you would expect. Two cases do not:
+
+| Value | Produces |
+| ----- | -------- |
+| `new Date()` | The full `toString()` form, not ISO 8601 |
+| `{ a: 1 }` | `[object Object]` |
+
+<Callout type="warn">
+  Neither is rejected, so a nested object silently becomes the literal string
+  `[object Object]` in your URL. Format dates and flatten objects before passing
+  them:
+
+```typescript
+params: { since: date.toISOString(), sort: "name:asc" }
+```
+</Callout>
+
+## Encoding
+
+Serialization uses the platform's `URLSearchParams`, so keys and values are
+percent-encoded correctly, including spaces and non-ASCII characters. You do not
+need to encode anything yourself — doing it produces double-encoded values.
+
+## Where to set it
+
+`paramsSerializer` works on the client, applying to every request, or on a single
+request. Per-request wins.
+
+## See also
 
 <Cards>
-  <Card 
-    title="Configuración" 
+  <Card
+    title="Configuration"
     href="/docs/core/api-reference/config"
-    description="Opciones de configuración completas"
+    description="Every option on the client and on a request"
+  />
+  <Card
+    title="ApiClient"
+    href="/docs/core/api-reference/client"
+    description="The verbs that accept params"
   />
 </Cards>
