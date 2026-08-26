@@ -1,577 +1,114 @@
 ---
-title: "Configuración"
-description: "Referencia completa de todas las opciones de configuración de api-zero."
+title: Configuration
+description: Every option on the client and on a single request.
 ---
 
-# Configuración
+Configuration lives in two places. `ApiClientConfig` is passed to
+`createClient` and applies to every request. `RequestOptions` is passed to a
+single call and overrides the client for that call only.
 
-api-zero ofrece un sistema de configuración flexible con múltiples interfaces que controlan el comportamiento del cliente HTTP.
+Per-request wins, option by option. Setting `timeout` on one request does not
+disturb the headers or the retry policy configured on the client.
 
-## ApiClientConfig
+## `ApiClientConfig`
 
-Interfaz principal para configurar el cliente al crearlo.
-
-```typescript
-interface ApiClientConfig {
-  baseURL?: string;
-  timeout?: number;
-  headers?: Record<string, string>;
-  credentials?: RequestCredentials;
-  retry?: RetryConfig | false;
-  transport?: Transport;
-  transformRequest?: TransformFunction<any, any> | Array<TransformFunction<any, any>>;
-  transformResponse?: TransformFunction<any, any> | Array<TransformFunction<any, any>>;
-  paramsSerializer?: ParamsSerializerOptions;
-}
-```
-
-### baseURL
-
-URL base para todas las peticiones.
-
-**Tipo:** `string | undefined`  
-**Default:** `undefined`
-
-```typescript
-const client = createClient({
-  baseURL: 'https://api.example.com',
-});
-
-// GET https://api.example.com/users
-await client.get('/users');
-```
+| Option | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `baseURL` | `string` | `""` | Prefix for every endpoint. |
+| `timeout` | `number` | `30000` | Milliseconds. `0` disables the timeout. |
+| `headers` | `Record<string, string>` | `{}` | Sent with every request. |
+| `credentials` | `RequestCredentials` | unset | Standard Fetch credentials mode. |
+| `retry` | `RetryConfig \| false` | `false` | Off unless configured. See [Retries](/docs/core/api-reference/retry). |
+| `transformRequest` | fn or fn[] | — | Runs before request interceptors. |
+| `transformResponse` | fn or fn[] | — | Runs after the response is parsed. |
+| `paramsSerializer` | `ParamsSerializerConfig` | — | How arrays become query strings. |
+| `transport` | `Transport` | auto | Replaces the network layer entirely. |
 
 <Callout type="info">
-api-zero normaliza automáticamente las barras diagonales, así que `baseURL: 'https://api.com'` y `endpoint: '/users'` funcionan correctamente.
+  **Retries are off by default.** A client that silently repeats requests is a
+  client that can double-charge a customer. Turning them on is a decision you
+  make per API, with a policy you chose.
 </Callout>
 
-### timeout
+<include>../../../../../../examples/src/client-config.ts#set-config</include>
 
-Tiempo máximo de espera en milisegundos antes de abortar la petición.
+## `RequestOptions`
 
-**Tipo:** `number | undefined`  
-**Default:** `30000` (30 segundos)
+Everything above except `transport`, plus:
 
-```typescript
-const client = createClient({
-  timeout: 5000, // 5 segundos
-});
+| Option | Type | Default | Description |
+| ------ | ---- | ------- | ----------- |
+| `params` | `object` | — | Query parameters. |
+| `signal` | `AbortSignal` | — | Caller cancellation. Composes with `timeout`. |
+| `responseType` | `"json" \| "text" \| "blob" \| "arrayBuffer"` | `"json"` | How to read the body. |
+| `onUploadProgress` | `(event) => void` | — | Browser only. Switches to `XhrTransport`. |
+| `onDownloadProgress` | `(event) => void` | — | Browser only. Switches to `XhrTransport`. |
+| `validateResponse` | `(data) => boolean \| Promise<boolean>` | — | Reject a structurally valid but unacceptable body. |
+| `onValidationError` | `(error: ApiError) => void` | — | Called when validation rejects. |
+| `metadata` | `Record<string, unknown>` | `{}` | Carried through the context, untouched. |
 
-// Sobrescribir por petición
-await client.get('/users', {
-  timeout: 10000, // 10 segundos solo para esta petición
-});
-```
+### `timeout`
 
-### headers
+`0` disables it. This works because the value is resolved with `??` rather than
+`||`, so a deliberate zero is not mistaken for "unset" — a distinction many
+clients get wrong.
 
-Headers HTTP que se envían con todas las peticiones.
+<include>../../../../../../examples/src/cancellation.ts#timeout</include>
 
-**Tipo:** `Record<string, string> | undefined`  
-**Default:** `{}`
+### `metadata`
 
-```typescript
-const client = createClient({
-  headers: {
-    'Content-Type': 'application/json',
-    'X-App-Version': '1.0.0',
-    'Accept-Language': 'es',
-  },
-});
-```
+An untouched bucket that travels with the request context. Interceptors and
+transports can read it, which is how you tag a request as "skip auth refresh"
+or attach a correlation id without inventing a header.
 
-Los headers se **combinan** con los headers por-petición:
+## Query parameters
 
-```typescript
-// Headers finales: { 'Content-Type': 'application/json', 'X-Custom': 'value' }
-await client.get('/users', {
-  headers: {
-    'X-Custom': 'value',
-  },
-});
-```
+<include>../../../../../../examples/src/quick-start.ts#params</include>
 
-### credentials
+Arrays need a convention, and no standard picked one. `paramsSerializer`
+chooses:
 
-Controla si se envían cookies con las peticiones (CORS).
+| `arrayFormat` | `{ tag: ["a", "b"] }` becomes |
+| ------------- | ----------------------------- |
+| `"brackets"` | `tag[]=a&tag[]=b` |
+| `"repeat"` | `tag=a&tag=b` |
+| `"comma"` | `tag=a,b` |
 
-**Tipo:** `RequestCredentials | undefined`  
-**Valores:** `'include'` | `'same-origin'` | `'omit'`  
-**Default:** `undefined`
+Match whatever your backend parses. Guessing produces a request that looks
+correct and silently returns the wrong rows.
 
-```typescript
-const client = createClient({
-  credentials: 'include', // Siempre enviar cookies
-});
-```
+## Transforms
 
-- **`'include'`**: Envía cookies incluso en peticiones cross-origin
-- **`'same-origin'`**: Solo envía cookies en peticiones same-origin
-- **`'omit'`**: Nunca envía cookies
+`transformRequest` runs on the body before request interceptors.
+`transformResponse` runs on the parsed body before validation. Both accept a
+function or an array applied in order, and both may be async.
 
-### retry
+Client-level transforms run first, then per-request ones. This is how
+[`@api-zero/zod`](/docs/zod) plugs in: a schema is just a response transform
+that throws on a mismatch.
 
-Configuración del sistema de reintentos.
+## Custom transports
 
-**Tipo:** `RetryConfig | false | undefined`  
-**Default:** `false` (disabled)
+<include>../../../../../../examples/src/transports.ts#mock</include>
 
-```typescript
-const client = createClient({
-  retry: {
-    attempts: 3,
-    delay: 1000,
-    backoff: 'exponential',
-  },
-});
+Setting `transport` bypasses the automatic Fetch/XHR selection completely.
 
-// Deshabilitar retry para una petición específica
-await client.get('/users', {
-  retry: false,
-});
-```
-
-Ver [RetryConfig](#retryconfig) para más detalles.
-
-### debug
-
-Habilita logging detallado de peticiones y respuestas (útil en desarrollo).
-
-**Tipo:** `boolean | undefined`  
-**Default:** `false`
-
-```typescript
-const client = createClient({
-  debug: true,
-});
-```
-
-<Callout type="warning">
-No uses `debug: true` en producción, ya que puede exponer información sensible en los logs.
-</Callout>
-
-### logger
-
-Callbacks personalizados para logging.
-
-**Tipo:** `LoggerConfig | undefined`  
-**Default:** `undefined`
-
-```typescript
-const client = createClient({
-  logger: {
-    request: (config) => {
-      console.log('[REQUEST]', config.method, config.url);
-    },
-    response: (response) => {
-      console.log('[RESPONSE]', response.status);
-    },
-    error: (error) => {
-      console.error('[ERROR]', error.message);
-    },
-  },
-});
-```
-
-Ver [LoggerConfig](#loggerconfig) para más detalles.
-
-### transformRequest
-
-Array de funciones que transforman el body del request antes de enviarlo.
-
-**Tipo:** `Array<(data: any) => any> | undefined`  
-**Default:** `[]`
-
-```typescript
-const client = createClient({
-  transformRequest: [
-    (data) => {
-      // Convertir camelCase a snake_case
-      return Object.keys(data).reduce((acc, key) => {
-        const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-        acc[snakeKey] = data[key];
-        return acc;
-      }, {});
-    },
-  ],
-});
-```
-
-Las transformaciones se aplican en orden:
-
-```typescript
-transformRequest: [
-  (data) => { /* transform 1 */ },
-  (data) => { /* transform 2 */ },
-  (data) => { /* transform 3 */ },
-]
-```
-
-### transformResponse
-
-Array de funciones que transforman la respuesta antes de devolverla.
-
-**Tipo:** `Array<(data: any) => any> | undefined`  
-**Default:** `[]`
-
-```typescript
-const client = createClient({
-  transformResponse: [
-    (data) => {
-      // Convertir snake_case a camelCase
-      return Object.keys(data).reduce((acc, key) => {
-        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-        acc[camelKey] = data[key];
-        return acc;
-      }, {});
-    },
-  ],
-});
-```
-
-### paramsSerializer
-
-Configuración para serializar query parameters.
-
-**Tipo:** `ParamsSerializerConfig | undefined`  
-**Default:** `{ arrayFormat: 'brackets' }`
-
-```typescript
-const client = createClient({
-  paramsSerializer: {
-    arrayFormat: 'comma', // 'brackets' | 'repeat' | 'comma'
-  },
-});
-```
-
-Ver [ParamsSerializerConfig](#paramsserializerconfig) para más detalles.
-
----
-
-## RequestOptions
-
-Opciones que se pueden pasar en cada petición individual.
-
-```typescript
-interface RequestOptions<TParams = Record<string, any>> {
-  params?: TParams;
-  headers?: Record<string, string>;
-  timeout?: number;
-  signal?: AbortSignal;
-  baseURL?: string;
-  credentials?: RequestCredentials;
-  retry?: RetryConfig | false;
-  responseType?: 'json' | 'text' | 'blob' | 'arrayBuffer';
-  onUploadProgress?: (progress: ProgressEvent) => void;
-  onDownloadProgress?: (progress: ProgressEvent) => void;
-  validateResponse?: any;
-  onValidationError?: (error: any) => void;
-}
-```
-
-### params
-
-Query parameters para la petición.
-
-**Tipo:** `Record<string, any> | undefined`
-
-```typescript
-await client.get<User[]>('/users', {
-  params: {
-    role: 'admin',
-    status: 'active',
-    ids: [1, 2, 3], // Arrays soportados
-  },
-});
-// GET /users?role=admin&status=active&ids[]=1&ids[]=2&ids[]=3
-```
-
-### signal
-
-AbortSignal para cancelar la petición manualmente.
-
-**Tipo:** `AbortSignal | undefined`
-
-```typescript
-const controller = new AbortController();
-
-const promise = client.get('/users', {
-  signal: controller.signal,
-});
-
-// Cancelar después de 2 segundos
-setTimeout(() => controller.abort(), 2000);
-```
-
-### responseType
-
-Tipo de respuesta esperada.
-
-**Tipo:** `'json' | 'text' | 'blob' | 'arrayBuffer'`  
-**Default:** `'json'`
-
-```typescript
-// Descargar un archivo
-const blob = await client.get<Blob>('/download/file.pdf', {
-  responseType: 'blob',
-});
-
-// Obtener HTML como texto
-const html = await client.get<string>('/page', {
-  responseType: 'text',
-});
-```
-
-### onUploadProgress
-
-Callback que se ejecuta durante el upload para tracking del progreso.
-
-**Tipo:** `(progress: ProgressEvent) => void | undefined`
-
-```typescript
-await client.post('/upload', formData, {
-  onUploadProgress: (progress) => {
-    const percent = (progress.loaded / progress.total) * 100;
-    console.log(`Upload: ${percent.toFixed(2)}%`);
-  },
-});
-```
-
-### onDownloadProgress
-
-Callback que se ejecuta durante el download para tracking del progreso.
-
-**Tipo:** `(progress: ProgressEvent) => void | undefined`
-
-```typescript
-await client.get('/large-file', {
-  responseType: 'blob',
-  onDownloadProgress: (progress) => {
-    const percent = (progress.loaded / progress.total) * 100;
-    console.log(`Download: ${percent.toFixed(2)}%`);
-  },
-});
-```
-
----
-
-## RetryConfig
-
-Configura el comportamiento del sistema de reintentos.
-
-```typescript
-interface RetryConfig {
-  attempts: number;
-  delay: number;
-  backoff?: 'linear' | 'exponential' | ((attempt: number) => number);
-  retryCondition?: (error: any) => boolean;
-}
-```
-
-### attempts
-
-Número máximo de reintentos.
-
-**Tipo:** `number`
-
-```typescript
-retry: {
-  attempts: 3, // Intentará hasta 3 veces (4 peticiones total)
-  delay: 1000,
-}
-```
-
-### delay
-
-Delay base en milisegundos entre reintentos.
-
-**Tipo:** `number`
-
-```typescript
-retry: {
-  attempts: 3,
-  delay: 2000, // 2 segundos de delay base
-}
-```
-
-### backoff
-
-Estrategia de incremento del delay.
-
-**Tipo:** `'linear' | 'exponential' | ((attempt: number) => number) | undefined`  
-**Default:** Sin backoff (delay constante)
-
-```typescript
-// Backoff exponencial: 1s, 2s, 4s, 8s
-retry: {
-  attempts: 4,
-  delay: 1000,
-  backoff: 'exponential',
-}
-
-// Backoff lineal: 1s, 2s, 3s, 4s
-retry: {
-  attempts: 4,
-  delay: 1000,
-  backoff: 'linear',
-}
-
-// Backoff personalizado
-retry: {
-  attempts: 3,
-  delay: 1000,
-  backoff: (attempt) => {
-    return 1000 * Math.pow(2, attempt) + Math.random() * 100;
-  },
-}
-```
-
-### retryCondition
-
-Función que determina si se debe reintentar basándose en el error.
-
-**Tipo:** `(error: any) => boolean | undefined`  
-**Default:** `undefined` (reintenta todos los errores)
-
-```typescript
-retry: {
-  attempts: 3,
-  delay: 1000,
-  retryCondition: (error) => {
-    // Solo reintentar errores de red y 5xx
-    return error.isNetworkError || error.is5xx();
-  },
-}
-```
-
----
-
-## LoggerConfig
-
-Interfaz para configurar logging personalizado.
-
-```typescript
-interface LoggerConfig {
-  request?: (config: any) => void;
-  response?: (response: any) => void;
-  error?: (error: any) => void;
-}
-```
-
-**Ejemplo completo:**
-
-```typescript
-const client = createClient({
-  logger: {
-    request: (config) => {
-      console.log(`→ ${config.method} ${config.url}`);
-      if (config.params) {
-        console.log('  Params:', config.params);
-      }
-    },
-    response: (response) => {
-      console.log(`← ${response.status} ${response.statusText}`);
-    },
-    error: (error) => {
-      console.error(`✗ ${error.status}: ${error.message}`);
-      if (error.data) {
-        console.error('  Data:', error.data);
-      }
-    },
-  },
-});
-```
-
----
-
-## ParamsSerializerConfig
-
-Configura cómo se serializan los arrays en query parameters.
-
-```typescript
-interface ParamsSerializerConfig {
-  arrayFormat?: 'brackets' | 'repeat' | 'comma';
-}
-```
-
-### arrayFormat
-
-**Tipo:** `'brackets' | 'repeat' | 'comma'`  
-**Default:** `'brackets'`
-
-```typescript
-const params = { ids: [1, 2, 3] };
-
-// brackets: ?ids[]=1&ids[]=2&ids[]=3
-paramsSerializer: { arrayFormat: 'brackets' }
-
-// repeat: ?ids=1&ids=2&ids=3
-paramsSerializer: { arrayFormat: 'repeat' }
-
-// comma: ?ids=1,2,3
-paramsSerializer: { arrayFormat: 'comma' }
-```
-
----
-
-## Ejemplo Completo
-
-```typescript
-import { createClient, ApiClientConfig } from '@api-zero/core';
-
-const config: ApiClientConfig = {
-  baseURL: 'https://api.example.com',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-    'X-App-Version': '1.0.0',
-  },
-  credentials: 'include',
-  retry: {
-    attempts: 3,
-    delay: 1000,
-    backoff: 'exponential',
-    retryCondition: (error) => error.is5xx() || error.isNetworkError,
-  },
-  transformRequest: [
-    (data) => {
-      // Añadir timestamp a todos los requests
-      return { ...data, _timestamp: Date.now() };
-    },
-  ],
-  transformResponse: [
-    (data) => {
-      // Convertir fechas ISO a Date objects
-      if (data.createdAt) {
-        data.createdAt = new Date(data.createdAt);
-      }
-      return data;
-    },
-  ],
-  paramsSerializer: {
-    arrayFormat: 'comma',
-  },
-};
-
-const client = createClient(config);
-```
-
-## Ver También
+## See also
 
 <Cards>
-  <Card 
-    title="ApiClient" 
+  <Card
+    title="ApiClient"
     href="/docs/core/api-reference/client"
-    description="API completa del cliente HTTP"
+    description="The verbs and configuration methods"
   />
-  <Card 
-    title="Sistema de Reintentos" 
+  <Card
+    title="Retries"
     href="/docs/core/api-reference/retry"
-    description="Detalles del sistema de retry"
+    description="Every RetryConfig option"
   />
-  <Card 
-    title="Serialización de Parámetros" 
+  <Card
+    title="Parameters"
     href="/docs/core/api-reference/params"
-    description="Cómo se serializan los query params"
+    description="Serialization in detail"
   />
 </Cards>

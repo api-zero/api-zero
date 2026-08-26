@@ -1,476 +1,124 @@
 ---
-title: "ApiClient"
-description: "Referencia completa de la clase ApiClient, el corazón de api-zero."
+title: ApiClient
+description: The client class, its verbs and its configuration methods.
 ---
 
-# ApiClient
+`ApiClient` holds your base URL, headers, auth, interceptors and retry policy,
+and applies them to every request made through it.
 
-La clase `ApiClient` es el núcleo de api-zero. Proporciona una API completa para realizar peticiones HTTP con soporte para configuración, interceptores, reintentos y mucho más.
+Create one and export it. A client per call throws away everything you
+configured.
 
-## Creación del Cliente
+## Creating a client
 
-### createClient
+<include>../../../../../../examples/src/quick-start.ts#create</include>
 
-Factory function recomendada para crear instancias del cliente:
+`createClient(config?)` is the recommended factory. `new ApiClient(config?)` is
+equivalent — the factory exists so call sites read as intent rather than
+construction.
 
-```typescript
-import { createClient } from '@api-zero/core';
-
-const client = createClient({
-  baseURL: 'https://api.example.com',
-  timeout: 5000,
-});
-```
-
-**Firma:**
+## HTTP verbs
 
 ```typescript
-function createClient(config?: ApiClientConfig): ApiClient
+get   <TResponse = unknown, TParams = Record<string, unknown>>(endpoint, options?)
+delete<TResponse = unknown, TParams = Record<string, unknown>>(endpoint, options?)
+
+post  <TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(endpoint, body?, options?)
+put   <TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(endpoint, body?, options?)
+patch <TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(endpoint, body?, options?)
 ```
 
-### new ApiClient
+Every one returns `Promise<TResponse>` — the parsed body, not a `Response`
+wrapper. There is no `.data` to unwrap.
 
-También puedes instanciar la clase directamente:
+<include>../../../../../../examples/src/quick-start.ts#verbs</include>
 
-```typescript
-import { ApiClient } from '@api-zero/core';
-
-const client = new ApiClient({
-  baseURL: 'https://api.example.com',
-});
-```
-
-## Métodos HTTP
-
-Todos los métodos HTTP soportan **tipado genérico** para type-safe responses.
-
-### get()
-
-Realiza una petición GET.
-
-```typescript
-get<T = any>(endpoint: string, options?: RequestOptions): Promise<T>
-```
-
-**Ejemplo básico:**
-
-```typescript
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-const users = await client.get<User[]>('/users');
-// users es de tipo User[]
-```
-
-**Ejemplo con query params:**
-
-```typescript
-const admins = await client.get<User[]>('/users', {
-  params: {
-    role: 'admin',
-    status: 'active',
-  },
-});
-// GET /users?role=admin&status=active
-```
-
-**Ejemplo con headers:**
-
-```typescript
-const data = await client.get<User>('/profile', {
-  headers: {
-    'Authorization': 'Bearer token123',
-  },
-  timeout: 10000,
-});
-```
-
-### post()
-
-Realiza una petición POST.
-
-```typescript
-post<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<T>
-```
-
-**Ejemplo básico:**
-
-```typescript
-interface CreateUserDto {
-  name: string;
-  email: string;
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  createdAt: string;
-}
-
-const newUser = await client.post<User>('/users', {
-  name: 'John Doe',
-  email: 'john@example.com',
-} as CreateUserDto);
-```
-
-**Ejemplo con FormData:**
-
-```typescript
-const formData = new FormData();
-formData.append('file', fileBlob);
-formData.append('title', 'My Image');
-
-const response = await client.post('/upload', formData, {
-  onUploadProgress: (progress) => {
-    const percent = (progress.loaded / progress.total) * 100;
-    console.log(`Upload: ${percent.toFixed(2)}%`);
-  },
-});
-```
-
-<Callout type="info">
-api-zero detecta automáticamente FormData y establece el Content-Type correcto.
+<Callout type="warn">
+  `TResponse` defaults to `unknown`, not `any`. That is deliberate: `any`
+  silently disables type checking downstream, while `unknown` forces you to
+  either declare the shape or narrow it. Declaring it is a promise you are
+  making to yourself — for payloads you do not control, have it
+  [checked at runtime](/docs/zod).
 </Callout>
 
-### put()
+## The generic `request()`
 
-Realiza una petición PUT (actualización completa de recurso).
+<include>../../../../../../examples/src/client-config.ts#request</include>
 
-```typescript
-put<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<T>
-```
+## Uploads and progress
 
-**Ejemplo:**
+<include>../../../../../../examples/src/uploads.ts#upload</include>
 
-```typescript
-const updatedUser = await client.put<User>('/users/1', {
-  id: 1,
-  name: 'Jane Doe',
-  email: 'jane@example.com',
-  role: 'admin',
-});
-```
+`FormData` is detected and any `Content-Type` header is **removed** — the header
+is matched case-insensitively. This is intentional: a multipart body needs a
+boundary parameter that only the platform can generate, so setting the header
+yourself produces a request the server cannot parse.
 
-### patch()
+`URLSearchParams`, `Blob` and `ArrayBuffer` pass through untouched. Anything else
+is JSON-encoded and gets `Content-Type: application/json`, unless you already set
+one.
 
-Realiza una petición PATCH (actualización parcial de recurso).
+Requesting progress switches the request to `XhrTransport`, because `fetch`
+cannot report upload progress. Download progress works the same way:
 
-```typescript
-patch<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<T>
-```
+<include>../../../../../../examples/src/uploads.ts#download</include>
 
-**Ejemplo:**
-
-```typescript
-// Solo actualiza el email
-const updatedUser = await client.patch<User>('/users/1', {
-  email: 'newemail@example.com',
-});
-```
-
-### delete()
-
-Realiza una petición DELETE.
-
-```typescript
-delete<T = any>(endpoint: string, options?: RequestOptions): Promise<T>
-```
-
-**Ejemplo:**
-
-```typescript
-await client.delete('/users/1');
-
-// Con confirmación del servidor
-const result = await client.delete<{ success: boolean }>('/users/1');
-console.log(result.success); // true
-```
-
-## Gestión de Configuración
-
-### setConfig()
-
-Actualiza la configuración del cliente dinámicamente.
-
-```typescript
-client.setConfig({
-  timeout: 10000,
-  headers: {
-    'X-App-Version': '2.0.0',
-  },
-});
-```
-
-<Callout type="warning">
-`setConfig` **sobreescribe parcialmente** la configuración existente. Los valores no especificados se mantienen.
+<Callout type="warn">
+  XHR exists only in browsers. Asking for progress in Node or on an Edge runtime
+  cannot work — keep progress callbacks on the client side.
 </Callout>
 
-### getConfig()
+## Configuration
 
-Obtiene la configuración actual del cliente.
+<include>../../../../../../examples/src/client-config.ts#set-config</include>
 
-```typescript
-const config = client.getConfig();
-console.log(config.baseURL);
-console.log(config.timeout);
-```
+## Headers and authentication
 
-## Gestión de Headers
+<include>../../../../../../examples/src/auth.ts#headers</include>
 
-### setHeader()
+<include>../../../../../../examples/src/auth.ts#bearer</include>
 
-Establece un header específico.
+`setAuthToken(token)` is shorthand for `Authorization: Bearer <token>`.
+`setBasicAuth(user, pass)` base64-encodes the pair. `clearAuth()` removes the
+header.
 
-```typescript
-client.setHeader(key: string, value: string): void
-```
-
-**Ejemplo:**
+## Interceptors
 
 ```typescript
-client.setHeader('X-API-Key', 'abc123');
-client.setHeader('X-Device-Id', 'device-123');
+client.interceptors.request  // InterceptorManager<RequestContext, unknown>
+client.interceptors.response // InterceptorManager<ResponseContext, ApiError>
 ```
 
-### removeHeader()
+Request handlers receive a `RequestContext` — method, resolved URL, body, params,
+headers, attempt and metadata. Response handlers receive a `ResponseContext` with
+parsed `data`, status, headers and timing; rejection handlers receive an
+`ApiError`.
 
-Elimina un header específico.
+<include>../../../../../../examples/src/interceptors.ts#request</include>
 
-```typescript
-client.removeHeader(key: string): void
-```
+See [Interceptors](/docs/core/api-reference/interceptors) for the full contract.
 
-**Ejemplo:**
-
-```typescript
-client.removeHeader('Authorization');
-```
-
-### updateHeaders()
-
-Actualiza múltiples headers a la vez.
-
-```typescript
-client.updateHeaders(headers: Record<string, string>): void
-```
-
-**Ejemplo:**
-
-```typescript
-client.updateHeaders({
-  'X-App-Version': '1.0.0',
-  'X-Platform': 'web',
-  'X-Language': 'es',
-});
-```
-
-## Helpers de Autenticación
-
-api-zero incluye helpers para configurar autenticación rápidamente.
-
-### setAuthToken()
-
-Establece un token Bearer automáticamente.
-
-```typescript
-client.setAuthToken(token: string): void
-```
-
-**Ejemplo:**
-
-```typescript
-const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-client.setAuthToken(token);
-
-// Equivalente a:
-client.setHeader('Authorization', `Bearer ${token}`);
-```
-
-### setBasicAuth()
-
-Establece autenticación Basic Auth.
-
-```typescript
-client.setBasicAuth(username: string, password: string): void
-```
-
-**Ejemplo:**
-
-```typescript
-client.setBasicAuth('admin', 'secret123');
-
-// Equivalente a:
-const token = btoa('admin:secret123');
-client.setHeader('Authorization', `Basic ${token}`);
-```
-
-### clearAuth()
-
-Elimina el header de Authorization.
-
-```typescript
-client.clearAuth(): void
-```
-
-**Ejemplo:**
-
-```typescript
-// Al hacer logout
-client.clearAuth();
-```
-
-## Interceptores
-
-El cliente expone un objeto `interceptors` para request y response interceptors.
-
-```typescript
-client.interceptors = {
-  request: InterceptorManager<RequestOptions>,
-  response: InterceptorManager<Response>,
-}
-```
-
-Ver [Interceptores](/docs/api/core/interceptors) para más detalles.
-
-**Ejemplo rápido:**
-
-```typescript
-// Request interceptor
-client.interceptors.request.use((config) => {
-  console.log('Petición:', config);
-  return config;
-});
-
-// Response interceptor
-client.interceptors.response.use(
-  (response) => {
-    console.log('Respuesta exitosa:', response);
-    return response;
-  },
-  (error) => {
-    console.error('Error en respuesta:', error);
-    return Promise.reject(error);
-  }
-);
-```
-
-## Método Request Genérico
-
-Todos los métodos HTTP (`get`, `post`, etc.) internamente llaman a `request()`:
-
-```typescript
-request<T = any>(
-  endpoint: string,
-  method: HttpMethod,
-  body?: any,
-  options?: RequestOptions
-): Promise<T>
-```
-
-**Úsalo cuando necesites control total:**
-
-```typescript
-const data = await client.request<User>(
-  '/users/1',
-  'GET',
-  undefined,
-  {
-    timeout: 15000,
-    headers: { 'X-Custom': 'value' },
-  }
-);
-```
-
-## Ejemplo Completo
-
-```typescript
-import { createClient, ApiError } from '@api-zero/core';
-
-// Crear cliente
-const api = createClient({
-  baseURL: 'https://api.example.com',
-  timeout: 5000,
-  headers: {
-    'X-App-Version': '1.0.0',
-  },
-  retry: {
-    attempts: 3,
-    delay: 1000,
-    backoff: 'exponential',
-  },
-});
-
-// Configurar autenticación
-api.setAuthToken('your-jwt-token');
-
-// Interceptor para logging
-api.interceptors.request.use((config) => {
-  console.log(`[${new Date().toISOString()}] ${config.method} ${config.url}`);
-  return config;
-});
-
-// Realizar peticiones
-async function exampleUsage() {
-  try {
-    // GET con query params
-    const users = await api.get<User[]>('/users', {
-      params: { role: 'admin' },
-    });
-
-    // POST para crear
-    const newUser = await api.post<User>('/users', {
-      name: 'John',
-      email: 'john@example.com',
-    });
-
-    // PATCH para actualizar
-    const updated = await api.patch<User>(`/users/${newUser.id}`, {
-      email: 'newemail@example.com',
-    });
-
-    // DELETE
-    await api.delete(`/users/${newUser.id}`);
-
-    return users;
-  } catch (error) {
-    if (error instanceof ApiError) {
-      if (error.isUnauthorized()) {
-        // Refresh token o redirect a login
-      }
-      if (error.is5xx()) {
-        // Error del servidor, reintentar después
-      }
-    }
-    throw error;
-  }
-}
-```
-
-## Ver También
+## See also
 
 <Cards>
-  <Card 
-    title="Configuración" 
+  <Card
+    title="Configuration"
     href="/docs/core/api-reference/config"
-    description="Todas las opciones de configuración disponibles"
+    description="Every option on ApiClientConfig and RequestOptions"
   />
-  <Card 
-    title="Interceptores" 
+  <Card
+    title="Interceptors"
     href="/docs/core/api-reference/interceptors"
-    description="Sistema de interceptores request/response"
+    description="Enrich requests and recover from failures"
   />
   <Card
-    title="Manejo de Errores"
+    title="ApiError"
     href="/docs/core/api-reference/error"
-    description="ApiError y manejo de errores"
+    description="What a failure carries"
   />
   <Card
-    title="Reintentos"
+    title="Retries"
     href="/docs/core/api-reference/retry"
-    description="Sistema de retry con backoff y jitter"
+    description="Backoff, jitter and Retry-After"
   />
 </Cards>
