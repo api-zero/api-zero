@@ -1,187 +1,82 @@
 ---
-title: "Ejemplos Completos"
-description: "Ejemplos reales y completos de uso de api-zero en diferentes escenarios."
+title: Examples
+description: Complete patterns, assembled from the pieces.
 ---
 
-# Ejemplos Completos
+Every snippet on this page is a real file in the repository, compiled against
+the published packages on every CI run. If one stops matching the API, the build
+fails before the page can mislead you.
 
-Ejemplos prácticos de uso de api-zero en aplicaciones reales.
+## The shared client
 
-## CRUD Básico
+Create it once, export it, import it everywhere. This single decision is most of
+what api-zero is for.
 
-```typescript
-import { createClient, ApiError } from '@api-zero/core';
+<include>../../../../../examples/src/create-client.ts</include>
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+## CRUD
 
-const api = createClient({
-  baseURL: 'https://api.example.com',
-  retry: {
-    attempts: 3,
-    delay: 1000,
-    backoff: 'exponential',
-  },
-});
+<include>../../../../../examples/src/http-verbs.ts</include>
 
-// Create
-async function createUser(data: Omit<User, 'id'>) {
-  return api.post<User>('/users', data);
-}
+Each verb returns the parsed body. There is no envelope to unwrap.
 
-// Read
-async function getUser(id: number) {
-  return api.get<User>(`/users/${id}`);
-}
+## Failure handling worth shipping
 
-// Update
-async function updateUser(id: number, data: Partial<User>) {
-  return api.patch<User>(`/users/${id}`, data);
-}
+<include>../../../../../examples/src/error-handling.ts</include>
 
-// Delete
-async function deleteUser(id: number) {
-  return api.delete(`/users/${id}`);
-}
-```
+A `404` is often not an error for the caller — a missing resource is an answer.
+Distinguishing it from a network failure is the difference between an empty state
+and an error screen.
 
-## Con TanStack Query
+## Retries for a flaky upstream
 
-```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useApi } from '@api-zero/react';
+<include>../../../../../examples/src/retry-config.ts</include>
 
-function UserManagement() {
-  const client = useApi();
-  const queryClient = useQueryClient();
+## Authentication that survives an expired token
 
-  const { data: users, isLoading } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => client.get<User[]>('/users'),
-  });
+<include>../../../../../examples/src/auth-refresh.ts</include>
 
-  const createMutation = useMutation({
-    mutationFn: (userData: CreateUserDto) =>
-      client.post<User>('/users', userData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-  });
+## React with TanStack Query
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => client.delete(`/users/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-  });
+The intended React setup. TanStack owns the cache and the server-state
+lifecycle; api-zero owns the request, the errors and the contract.
 
-  return (/* UI */);
-}
-```
+<include>../../../../../examples/src/react-provider.tsx</include>
 
-## Autenticación Completa
+<include>../../../../../examples/src/react-tanstack.tsx</include>
 
-```typescript
-import { createClient } from '@api-zero/core';
+Forwarding `signal` is the detail that matters. Without it, a cancelled query
+stops updating React but the HTTP request keeps running to completion — you pay
+for the response and throw it away.
 
-const api = createClient({
-  baseURL: 'https://api.example.com',
-});
+## Runtime-validated contracts
 
-// Request interceptor para añadir token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers = { ...config.headers, Authorization: `Bearer ${token}` };
-  }
-  return config;
-});
+<include>../../../../../examples/src/zod-typed-response.ts</include>
 
-// Response interceptor para refresh token
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.isUnauthorized() && !error.config._retry) {
-      error.config._retry = true;
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const { data } = await api.post('/auth/refresh', { refreshToken });
-        localStorage.setItem('token', data.accessToken);
-        return api.request(
-          error.config.url,
-          error.config.method,
-          error.config.body,
-          error.config
-        );
-      } catch {
-        localStorage.clear();
-        window.location.href = '/login';
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+The schema produces both the validation and the type, so they cannot disagree.
 
-// Login
-async function login(email: string, password: string) {
-  const { data } = await api.post('/auth/login', { email, password });
-  localStorage.setItem('token', data.accessToken);
-  localStorage.setItem('refreshToken', data.refreshToken);
-  return data;
-}
+## Upload with progress
 
-// Logout
-async function logout() {
-  await api.post('/auth/logout');
-  localStorage.clear();
-}
-```
+<include>../../../../../examples/src/upload-progress.ts</include>
 
-## Upload con Progress
+## A test with no network
 
-```typescript
-import { useState } from 'react';
-import { useApi } from '@api-zero/react';
+<include>../../../../../examples/src/custom-transport.ts</include>
 
-function FileUploader() {
-  const client = useApi();
-  const [progress, setProgress] = useState(0);
-  const [uploading, setUploading] = useState(false);
+Replacing `transport` replaces the entire network boundary — no global patching,
+no local server, no flakiness.
 
-  async function handleUpload(file: File) {
-    setUploading(true);
-    setProgress(0);
+## See also
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      await client.post('/upload', formData, {
-        onUploadProgress: (e) => {
-          setProgress((e.loaded / e.total) * 100);
-        },
-      });
-      alert('Upload completo!');
-    } catch (error) {
-      alert('Error en upload');
-    } finally {
-      setUploading(false);
-      setProgress(0);
-    }
-  }
-
-  return (
-    <div>
-      <input 
-        type="file" 
-        onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
-        disabled={uploading}
-      />
-      {uploading && <progress value={progress} max={100} />}
-    </div>
-  );
-}
-```
+<Cards>
+  <Card
+    title="Getting started"
+    href="/docs/core/getting-started"
+    description="The same pieces, explained one at a time"
+  />
+  <Card
+    title="Concepts"
+    href="/docs/core/concepts"
+    description="The lifecycle these examples run through"
+  />
+</Cards>

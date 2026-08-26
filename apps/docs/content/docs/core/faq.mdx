@@ -1,78 +1,85 @@
 ---
-title: "FAQ"
-description: "Preguntas frecuentes sobre api-zero."
+title: FAQ
+description: Common questions about api-zero.
 ---
 
-# Preguntas Frecuentes
+## When should I use api-zero instead of plain `fetch`?
 
-## ¿Cuándo usar api-zero vs fetch nativo?
+If you call one endpoint once, use `fetch`. You do not need a library.
 
-Usa **api-zero** cuando necesites:
-- Configuración global reutilizable
-- Sistema de reintentos automático
-- Interceptores para auth o transformaciones
-- Progress tracking
-- Mejor manejo de errores
-- TypeScript de primera clase
+Reach for api-zero when you notice yourself writing the same wrapper again: a
+base URL, a place to keep the auth token, a helper that throws on non-2xx, an
+interceptor for 401s. That file is what this replaces.
 
-Usa **fetch nativo** para peticiones simples y puntuales donde no necesitas estas características.
+## Does it compete with TanStack Query or SWR?
 
-## ¿Cómo se compara con Axios?
-
-**api-zero**:
-- ✅ Más ligero (sin dependencias)
-- ✅ Basado en fetch moderno
-- ✅ Diseñado para React
-- ✅ TypeScript superior
-
-**Axios**:
-- ✅ Más maduro y establecido
-- ✅ Soporte para navegadores antiguos
-- ✅ Más características out-of-the-box
-
-## ¿Puedo usar con SWR o TanStack Query?
-
-¡Absolutamente! api-zero está diseñado específicamente para complementar bibliotecas de data fetching:
+No, and it deliberately does not try. They own the cache, deduplication,
+invalidation and the server-state lifecycle. api-zero owns the request, the
+errors and the contract, and is designed to sit underneath them.
 
 ```typescript
-// Con TanStack Query
-const { data } = useQuery({
-  queryKey: ['users'],
-  queryFn: () => client.get('/users'),
+useQuery({
+  queryKey: ["users"],
+  queryFn: ({ signal }) => api.get<User[]>("/users", { signal }),
 });
-
-// Con SWR
-const { data } = useSWR('/users', (url) => client.get(url));
 ```
 
-## ¿Soporta Server-Side Rendering (SSR)?
+Forwarding `signal` is what makes their cancellation reach the real request.
+See [the React package](/docs/react).
 
-Sí, api-zero funciona perfectamente en SSR con Next.js, Remix, etc. Solo asegúrate de crear instancias del cliente en el servidor cuando sea necesario.
+## How does it compare to Axios?
 
-## ¿Funciona en Node.js?
+Axios is older, larger and works on browsers that predate `fetch`. If you need
+those browsers, use Axios.
 
-Sí. api-zero usa `fetch` nativo y los runtimes soportados son Node.js 22 o superior. Node.js 18 y 20 llegaron a su fin de soporte y no se prueban ni se admiten.
+api-zero is smaller because it assumes a modern platform, and it differs in
+kind on two points: errors are normalized so a network failure and a 500 arrive
+the same way, and retries are a policy that refuses to repeat unsafe methods
+rather than a loop.
 
-## ¿Cómo cancelo una petición?
+We do not publish a size comparison table. Ours is
+[measured in CI](/docs/core); numbers for other libraries are not ours to claim.
 
-Usa `AbortController`:
+## Does it work with SSR?
+
+Yes, with one caveat that applies to any HTTP client. A module-level client is
+shared by every request the server handles, so anything request-scoped — an
+auth token above all — must not be set on it. On the server, create a client per
+request, or pass the token per call.
+
+## Does it work in Node?
+
+Node 22 and newer. It uses native `fetch`. Node 18 and 20 reached end of life
+and are not tested or supported.
+
+Edge runtimes work too, minus upload and download progress, which need XHR.
+
+## How do I cancel a request?
+
+<include>../../../../../examples/src/cancellation.ts</include>
+
+The resulting error distinguishes your cancellation from a timeout.
+
+## Can I have more than one client?
+
+Yes, and you should when you talk to more than one API:
 
 ```typescript
-const controller = new AbortController();
-
-const promise = client.get('/users', {
-  signal: controller.signal,
-});
-
-// Cancelar
-controller.abort();
+export const api = createClient({ baseURL: "https://api.example.com" });
+export const auth = createClient({ baseURL: "https://auth.example.com" });
 ```
 
-## ¿Puedo tener múltiples instancias del cliente?
+Each keeps its own headers, interceptors and retry policy. In React, nested
+`ApiProvider`s give a subtree a different client.
 
-Sí, puedes crear tantas instancias como necesites:
+## Are retries on by default?
 
-```typescript
-const apiClient = createClient({ baseURL: 'https://api.example.com' });
-const authClient = createClient({ baseURL: 'https://auth.example.com' });
-```
+No. A client that silently repeats requests can charge a customer twice.
+[Configure them](/docs/core/api-reference/retry) when you have decided the
+policy.
+
+## Does the type parameter validate anything?
+
+No. `api.get<User>(…)` is a compile-time assertion, not a runtime check — if the
+API returns something else, TypeScript never finds out. For payloads you do not
+control, add [`@api-zero/zod`](/docs/zod) and have it verified for real.

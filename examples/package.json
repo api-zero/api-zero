@@ -18,6 +18,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.102.6",
     "@types/react": "^19.2.5",
     "typescript": "^5.9.3",
     "vitest": "^1.0.0"

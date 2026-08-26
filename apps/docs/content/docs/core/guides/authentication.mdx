@@ -1,155 +1,80 @@
 ---
-title: "Autenticación"
-description: "Patrones y mejores prácticas para manejar autenticación con api-zero."
+title: Authentication
+description: Attaching credentials, and refreshing them without looping.
 ---
 
-# Autenticación
+## Bearer tokens
 
-api-zero ofrece múltiples formas de manejar autenticación en tus aplicaciones.
+Set the token once on the client. Every later request carries it.
 
-## Bearer Token
+<include>../../../../../../examples/src/auth-bearer.ts</include>
 
-### Método Simple
+This is the simplest correct approach and it is usually the right one. Reach for
+an interceptor only when the token is not known when the client is created, or
+changes between requests.
 
-```typescript
-const client = createClient({
-  baseURL: 'https://api.example.com',
-});
+<Callout type="warn">
+  On the server, a module-level client is shared by every request the process
+  handles. Calling `setAuthToken` on it leaks one user's credentials into another
+  user's request. In SSR, create a client per request, or pass the header per
+  call.
+</Callout>
 
-// Establecer token después del login
-client.setAuthToken('your-jwt-token');
-```
+## Reading the token per request
 
-### Con Request Interceptor
+<include>../../../../../../examples/src/interceptor-request.ts</include>
 
-```typescript
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-  return config;
-});
-```
+Mutate `context.headers` and return the context. A request interceptor runs
+before every attempt, so a token read here is always current — including on a
+retry.
 
-## Basic Auth
+## Basic auth
 
-```typescript
-client.setBasicAuth('username', 'password');
-```
+`setBasicAuth(user, pass)` base64-encodes the pair into the `Authorization`
+header. It is transport-level auth with no expiry, so there is nothing to
+refresh.
 
-## Refresh Token Automático
+## Refreshing an expired token
 
-```typescript
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void;
-  reject: (reason?: any) => void;
-}> = [];
+The interesting case: turning a `401` into a success by fixing the cause and
+replaying the request.
 
-const processQueue = (error: any = null) => {
-  failedQueue.forEach(({ resolve, reject }) => {
-    if (error) {
-      reject(error);
-    } else {
-      resolve();
-    }
-  });
-  failedQueue = [];
-};
+<include>../../../../../../examples/src/auth-refresh.ts</include>
 
-client.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+Three details separate this from a version that breaks in production:
 
-    if (error.isUnauthorized() && !originalRequest._retry) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then(() => {
-            return client.request(
-              originalRequest.url,
-              originalRequest.method,
-              originalRequest.body,
-              originalRequest
-            );
-          })
-          .catch((err) => Promise.reject(err));
-      }
+1. **One refresh at a time.** Ten concurrent requests that all hit a `401` must
+   not trigger ten refreshes. The shared promise makes the rest wait for the
+   first, which is also what stops a refresh endpoint from rate-limiting you.
+2. **The refresh call is excluded.** If refreshing itself answers `401`, a
+   handler that retries everything calls itself until the stack gives up.
+3. **The replay is tagged.** `metadata` travels with the request context, so the
+   retried request is recognisable and cannot re-enter the handler. Without a
+   marker, a replay that fails again loops forever.
 
-      originalRequest._retry = true;
-      isRefreshing = true;
+<Callout type="info">
+  Retries and this are different mechanisms. The retry policy repeats a request
+  unchanged, so it deliberately never retries a `401` — repeating a request with
+  the same expired token produces the same `401`. Refreshing changes the request
+  first, which is why it belongs in an interceptor.
+</Callout>
 
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        const { data } = await client.post('/auth/refresh', { refreshToken });
-        
-        localStorage.setItem('authToken', data.accessToken);
-        processQueue();
+## Signing out
 
-        return client.request(
-          originalRequest.url,
-          originalRequest.method,
-          originalRequest.body,
-          originalRequest
-        );
-      } catch (refreshError) {
-        processQueue(refreshError);
-        localStorage.clear();
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
+`clearAuth()` removes the header. Anything already in flight keeps the old
+token: it was attached when the request was built.
 
-    return Promise.reject(error);
-  }
-);
-```
-
-## Ejemplo Completo con React
-
-```typescript
-import { createClient } from '@api-zero/core';
-import { ApiProvider } from '@api-zero/react';
-
-const apiClient = createClient({
-  baseURL: 'https://api.example.com',
-});
-
-// Setup interceptor
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-  return config;
-});
-
-function App() {
-  return (
-    <ApiProvider config={apiClient.getConfig()}>
-      <YourApp />
-    </ApiProvider>
-  );
-}
-```
-
-## Ver También
+## See also
 
 <Cards>
-  <Card 
-    title="Interceptores" 
-    href="/docs/api/core/interceptors"
-    description="Documentación completa de interceptores"
+  <Card
+    title="Interceptors"
+    href="/docs/core/api-reference/interceptors"
+    description="The full interceptor contract"
+  />
+  <Card
+    title="ApiClient"
+    href="/docs/core/api-reference/client"
+    description="setAuthToken, setBasicAuth and clearAuth"
   />
 </Cards>

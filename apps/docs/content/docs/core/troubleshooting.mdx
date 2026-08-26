@@ -1,126 +1,105 @@
 ---
-title: "Troubleshooting"
-description: "Soluciones a problemas comunes con api-zero."
+title: Troubleshooting
+description: Common failures and what actually causes them.
 ---
 
-# Troubleshooting
+## `useApi must be used within an ApiProvider`
 
-## useApi must be used within an ApiProvider
+`useApi()` was called from a component with no `ApiProvider` above it.
 
-**Error:**
+It throws rather than returning `undefined`, because a silent `undefined` would
+fail later at the call site with nothing pointing back to the real cause.
+
+Wrap the tree — see [ApiProvider](/docs/react/api-reference/provider). In Next.js
+App Router, remember the provider is a client component and only covers the
+subtree it wraps.
+
+## CORS errors
+
 ```
-Error: useApi must be used within an ApiProvider
-```
-
-**Causa:** Estás usando el hook `useApi`, `useRequest` o `useMutation` fuera del árbol de un `ApiProvider`.
-
-**Solución:** Envuelve tu aplicación con el Provider en el nivel superior:
-
-```tsx
-import { ApiProvider } from '@api-zero/react';
-
-<ApiProvider config={{ baseURL: 'https://api.example.com' }}>
-  <App />
-</ApiProvider>
+Access to fetch at 'https://api.example.com' has been blocked by CORS policy
 ```
 
-## CORS Errors
+This is the browser refusing the response, not api-zero failing. **No client-side
+setting can turn it off** — it is enforced by the browser on behalf of the
+server.
 
-**Error:**
-```
-Access to fetch at 'https://api.example.com' from origin 'http://localhost:3000' has been blocked by CORS policy
-```
+Fix it on the server (`Access-Control-Allow-Origin`), or proxy the API through
+your own origin in development.
 
-**Causa:** El servidor de destino no incluye las cabeceras CORS adecuadas para tu origen.
-
-**Soluciones:**
-1. Configura cabeceras CORS en el servidor (`Access-Control-Allow-Origin`).
-2. Usa un proxy reverso o rewrite en desarrollo.
-3. Si necesitas enviar cookies/credenciales entre dominios, configura `credentials: 'include'`:
+If the API needs cookies across origins, `credentials: "include"` is required on
+your side *and* `Access-Control-Allow-Credentials` on theirs. Note that with
+credentials, the server may not answer `Access-Control-Allow-Origin: *` — it must
+name your origin exactly.
 
 ```typescript
-const client = createClient({
-  baseURL: 'https://api.example.com',
-  credentials: 'include',
+const api = createClient({
+  baseURL: "https://api.example.com",
+  credentials: "include",
 });
 ```
 
-## Timeout Errors
+## Requests time out
 
-**Error:** Peticiones que tardan demasiado y se cancelan por timeout.
+The default is 30 seconds. Raise it per request rather than globally when only
+one endpoint is slow:
 
-**Solución:** Ajusta el timeout global o específico por petición (en milisegundos):
+<include>../../../../../examples/src/timeouts.ts</include>
 
-```typescript
-// Global (por defecto 30.000 ms)
-const client = createClient({
-  timeout: 45000,
-});
+Check `error.isTimeout` to tell a timeout apart from `error.isAborted`, which
+means your own code cancelled it. A component that unmounts mid-request produces
+the second, not the first — and it is not a bug.
 
-// Por petición específica
-await client.get('/slow-export', {
-  timeout: 60000, // 60 segundos
-});
-```
+## `error.isNetworkError === true`
 
-## Errores de Red en Producción
+The request never reached a response: DNS, connectivity, a refused connection, or
+CORS preflight rejection. The status is `0` because there is nothing to report.
 
-**Error:** `error.isNetworkError === true`
+Log the resolved URL from an interceptor before assuming the server is down —
+a wrong `baseURL` produces exactly this.
 
-**Debugging y diagnóstico:**
-1. Verifica la URL base (`baseURL`) y el endpoint solicitado.
-2. Comprueba que el servidor esté activo y accesible desde el cliente.
-3. Usa interceptores para depuración centralizada:
+<include>../../../../../examples/src/interceptor-logging.ts</include>
 
-```typescript
-client.interceptors.request.use((context) => {
-  console.log('Dispatching request:', context.method, context.url);
-  return context;
-});
+## A request is not being retried
 
-client.interceptors.response.use(
-  (responseContext) => {
-    console.log('Received response:', responseContext.status, responseContext.data);
-    return responseContext;
-  },
-  (error) => {
-    console.error('Request failed:', error.status, error.message);
-    throw error;
-  }
-);
-```
+Most often, because **retries are off by default**. Configure them first.
 
-## Peticiones que no reintentan
+With retries on, a request is still skipped when:
 
-**Causa:** Por defecto, api-zero reintenta de forma segura métodos idempotentes (`GET`, `PUT`, `DELETE`) ante errores transitorios (5xx, 429, timeout, network error). Si una petición `POST` falla, no se reintentará automáticamente para evitar duplicaciones a menos que se configure explícitamente.
+- The method is not idempotent. `POST` and `PATCH` never retry automatically —
+  set `retryUnsafeMethods: true` only if the endpoint is genuinely safe to
+  repeat.
+- The error is not retryable. A `400` or `404` will fail identically next time.
+- The request was cancelled. Aborts are never retried.
 
-**Solución:**
+See [Retries](/docs/core/api-reference/retry).
 
-```typescript
-// Para reintentar métodos no idempotentes como POST
-const client = createClient({
-  retry: {
-    attempts: 3,
-    delay: 1000,
-    backoff: 'exponential',
-    retryUnsafeMethods: true, // Habilita reintentos en POST/PATCH
-  },
-});
-```
+## Progress callbacks never fire
 
-## Progress Events para Subidas y Descargas
+`fetch` cannot report upload progress, so api-zero switches to `XhrTransport`
+when `onUploadProgress` or `onDownloadProgress` is present.
 
-**Causa:** La API Fetch nativa del navegador no expone eventos de progreso de upload granulares.
+XHR exists only in browsers. In Node or on an Edge runtime there is nothing to
+switch to, so keep progress callbacks on the client side.
 
-**Solución:** api-zero activa automáticamente su transporte `XhrTransport` en cuanto detecta `onUploadProgress` o `onDownloadProgress`:
+Check `event.lengthComputable` before dividing: without a `Content-Length` the
+total is unknown and the percentage is meaningless.
 
-```typescript
-await client.post('/upload', formData, {
-  onUploadProgress: (progress) => {
-    if (progress.lengthComputable) {
-      const percent = Math.round((progress.loaded / progress.total) * 100);
-      console.log(`Subiendo: ${percent}%`);
-    }
-  },
-});
-```
+<include>../../../../../examples/src/upload-progress.ts</include>
+
+## Query parameters arrive wrong
+
+Two usual causes:
+
+- **Arrays.** There is no standard encoding. Match your backend with
+  `paramsSerializer.arrayFormat`.
+- **Objects and dates.** They are stringified, so a nested object becomes the
+  literal `[object Object]`. Flatten them and format dates yourself.
+
+See [Query parameters](/docs/core/api-reference/params).
+
+## `Content-Type` is missing on a `FormData` upload
+
+That is deliberate. A multipart body needs a boundary parameter that only the
+platform can generate, so the header is removed and the browser sets it. Setting
+it yourself produces a request the server cannot parse.
