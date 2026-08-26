@@ -1,0 +1,78 @@
+---
+title: Typed responses
+description: One schema produces both the validation and the type.
+---
+
+`api.get<User>("/users/1")` is a promise you make to yourself. Nothing checks
+it. If the API renames a field, drops one, or returns `null` where you expected
+a string, TypeScript stays quiet and your code fails somewhere else entirely —
+usually in a component, with a message that says nothing about the API.
+
+A schema closes that gap, because the validation and the type come from the same
+declaration and cannot disagree.
+
+<include>../../../../../../examples/src/zod-typed-response.ts</include>
+
+Two things happen at once. `createdAt` arrives as a string and reaches you as a
+`Date`, because the schema said so. And `user` is typed from that same schema —
+no interface to keep in sync, no cast.
+
+## Where validation runs
+
+The schema becomes a response transform, so it runs **after** the body is parsed
+and **before** the response interceptors. An interceptor therefore sees
+already-validated, already-transformed data — not a raw payload it would have to
+re-check.
+
+<Callout type="info">
+  Validation failures are never retried. A payload that failed the schema fails
+  identically on the next attempt, so repeating it only delays the error.
+</Callout>
+
+## Transforming, not just checking
+
+Zod transforms make the boundary the place where wire formats become domain
+types:
+
+```typescript
+const orderSchema = z.object({
+  total: z.string().transform((v) => Number.parseFloat(v)),
+  placedAt: z.string().transform((v) => new Date(v)),
+  status: z.enum(["pending", "shipped", "delivered"]),
+});
+```
+
+The string-encoded decimal and the ISO date stop existing past this line. Doing
+it here rather than in each component is the difference between one conversion
+and twenty.
+
+## Arrays and pagination
+
+```typescript
+const page = await api.get(
+  "/users",
+  z.object({
+    items: z.array(userSchema),
+    total: z.number(),
+  }),
+);
+```
+
+An array schema validates every element. For a large list that is real work —
+worth it at a boundary you do not control, and worth measuring if the list has
+thousands of rows.
+
+## See also
+
+<Cards>
+  <Card
+    title="Validated bodies"
+    href="/docs/zod/guides/validated-bodies"
+    description="Checking what you send, before it is sent"
+  />
+  <Card
+    title="ZodApiClient"
+    href="/docs/zod/api-reference/zod-api-client"
+    description="Every schema-aware verb"
+  />
+</Cards>

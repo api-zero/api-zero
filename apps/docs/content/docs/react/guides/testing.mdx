@@ -1,0 +1,77 @@
+---
+title: Testing components
+description: Real requests, fake network.
+---
+
+Components that call an API are usually tested by mocking the module that makes
+the request, which tests that your mock returns what you told it to.
+
+Replacing the transport instead leaves the whole client in place — base URL
+resolution, headers, interceptors, error normalization, retries — and swaps only
+the network.
+
+<include>../../../../../../examples/src/react-testing.tsx</include>
+
+## In a test
+
+```tsx
+render(
+  <TestProvider data={{ id: 1, name: "Alice" }}>
+    <UserProfile id={1} />
+  </TestProvider>,
+);
+
+expect(await screen.findByText("Alice")).toBeInTheDocument();
+```
+
+No `vi.mock`, no patched globals, nothing to clean up between tests. The provider
+goes out of scope with the component tree.
+
+## Testing the failure states
+
+Error states are where components break, and they are the hardest to reach with
+module mocks. With a transport they are one object:
+
+```tsx
+const notFound: Transport = {
+  async send() {
+    return { status: 404, statusText: "Not Found", headers: {}, data: null };
+  },
+};
+```
+
+That exercises the real error pipeline, so the component receives a genuine
+`ApiError` with `isNotFound()` working — not a hand-built stub that happens to
+have the right shape.
+
+<Callout type="info">
+  This is the same technique the core package uses on itself. Its suite has no
+  network access and no patched globals, which is why it runs in milliseconds
+  and does not flake.
+</Callout>
+
+## With TanStack Query
+
+Wrap in both providers and disable retries, or a failing test waits out the
+backoff before reporting.
+
+```tsx
+const client = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+```
+
+## See also
+
+<Cards>
+  <Card
+    title="Testing with transports"
+    href="/docs/core/guides/testing-with-transports"
+    description="The same technique outside React"
+  />
+  <Card
+    title="Transport"
+    href="/docs/core/api-reference/transport"
+    description="The interface you are implementing"
+  />
+</Cards>

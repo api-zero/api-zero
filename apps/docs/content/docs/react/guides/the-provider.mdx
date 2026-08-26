@@ -1,0 +1,72 @@
+---
+title: The provider
+description: One client for the tree, and when to use more than one.
+---
+
+`ApiProvider` publishes an `ApiClient` to React context. Every component below
+it shares the same base URL, headers, auth, interceptors and retry policy —
+which is the whole reason this package exists.
+
+## Create the client outside the tree
+
+<include>../../../../../../examples/src/react-provider.tsx</include>
+
+Creating it at module scope makes its lifetime explicit and its identity stable.
+Nothing about a re-render can replace it, and a token set in one component is
+visible to every other.
+
+## Passing `config` instead
+
+```tsx
+<ApiProvider config={{ baseURL: "https://api.example.com", timeout: 10_000 }}>
+  <App />
+</ApiProvider>
+```
+
+Convenient, and it carries a trap worth understanding. An object literal in JSX
+is a **new object on every render**. A naive provider would build a new client
+each time, discarding any token set on the previous one — a bug that shows up as
+"the user is randomly logged out".
+
+`ApiProvider` guards against it by comparing the config's contents rather than
+its identity: `baseURL`, `timeout`, `credentials`, `transport` and each header.
+
+<Callout type="warn">
+  That comparison is shallow. It cannot see through a changed `retry` object or
+  a changed transform function, so a config that varies in those will not
+  produce a new client. When your configuration is dynamic, build the client
+  yourself and pass `client`.
+</Callout>
+
+## More than one API
+
+Providers nest. An inner one shadows the outer for its subtree, which is how you
+talk to a second service without giving up the first.
+
+```tsx
+<ApiProvider client={mainApi}>
+  <Dashboard />
+  <ApiProvider client={billingApi}>
+    <Invoices />
+  </ApiProvider>
+</ApiProvider>
+```
+
+Each client keeps its own headers and interceptors, so an auth token on one does
+not travel to the other — which is exactly what you want when the second service
+is a third party.
+
+## See also
+
+<Cards>
+  <Card
+    title="ApiProvider"
+    href="/docs/react/api-reference/api-provider"
+    description="Props and behaviour"
+  />
+  <Card
+    title="Server rendering"
+    href="/docs/react/guides/server-rendering"
+    description="Why a shared client is dangerous on a server"
+  />
+</Cards>

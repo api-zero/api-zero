@@ -1,0 +1,5 @@
+{
+  "title": "Guides",
+  "icon": "BookOpen",
+  "pages": ["typed-responses", "validated-bodies", "handling-validation-errors"]
+}

@@ -1,0 +1,79 @@
+---
+title: ZodValidationError
+description: An ApiError that carries the Zod issues.
+---
+
+Extends [`ApiError`](/docs/core/api-reference/api-error), so everything that
+already handles errors handles this one.
+
+<TypeTable
+  type={{
+    name: { type: '"ZodValidationError"' },
+    target: {
+      type: '"response" | "body"',
+      required: true,
+      description:
+        "Which side failed. Body means the request never left; response means the server sent something the contract does not describe.",
+    },
+    issues: {
+      type: "ZodIssue[]",
+      required: true,
+      description: "The original Zod issues, with paths and messages.",
+    },
+    zodError: {
+      type: "ZodError",
+      required: true,
+      description: "The full Zod error, for anything issues does not cover.",
+    },
+    status: {
+      type: "number",
+      description:
+        "The HTTP status that carried the bad payload, or 0 for a body failure.",
+    },
+    isValidationError: {
+      type: "boolean",
+      typeDescription: "Always true.",
+      description:
+        "Inherited from ApiError. This is what keeps validation failures out of the retry policy.",
+    },
+  }}
+/>
+
+## Methods
+
+<TypeTable
+  type={{
+    flatten: {
+      type: "() => { formErrors, fieldErrors }",
+      description:
+        "Zod's flattened shape — exactly what a form wants for field-level messages.",
+    },
+    format: {
+      type: "() => { _errors: string[] }",
+      description: "Zod's nested shape, for forms with nested objects.",
+    },
+  }}
+/>
+
+Everything inherited from `ApiError` also applies: `request`, `cause`,
+`attempt`, `toJSON()` and the `is*()` helpers.
+
+<Callout type="info">
+  `isRetryable()` returns `false` for a validation error. A payload that failed
+  the schema fails identically on the next attempt.
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="Handling validation errors"
+    href="/docs/zod/guides/handling-validation-errors"
+    description="Turning issues into something actionable"
+  />
+  <Card
+    title="ApiError"
+    href="/docs/core/api-reference/api-error"
+    description="The base class"
+  />
+</Cards>

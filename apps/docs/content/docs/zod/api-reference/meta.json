@@ -1,0 +1,5 @@
+{
+  "title": "API reference",
+  "icon": "Braces",
+  "pages": ["zod-api-client", "adapters", "zod-validation-error"]
+}

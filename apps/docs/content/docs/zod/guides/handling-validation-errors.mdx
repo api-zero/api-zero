@@ -1,0 +1,83 @@
+---
+title: Handling validation errors
+description: Turning Zod issues into something actionable.
+---
+
+<include>../../../../../../examples/src/zod-error.ts</include>
+
+`ZodValidationError` extends `ApiError`, so it flows through the same catch
+blocks, the same interceptors and the same `instanceof ApiError` checks as every
+other failure. Code that already handles errors does not need a new branch to
+avoid crashing on this one.
+
+## Which side failed
+
+`target` says `"response"` or `"body"`, and they call for opposite responses.
+
+<Accordions>
+  <Accordion title='target: "body" — your bug'>
+    The request was malformed before it was sent. Nothing reached the server.
+    Surface the issues to whoever built the payload: a form, a caller, a script.
+    This is recoverable in the UI.
+  </Accordion>
+  <Accordion title='target: "response" — their change, or your schema'>
+    The server sent something the contract does not describe. Either the API
+    changed or the schema is wrong. This is not recoverable in the UI — report
+    it, and show the user a generic failure rather than a field-level message
+    about a payload they never saw.
+  </Accordion>
+</Accordions>
+
+## Form errors
+
+`flatten()` comes from Zod and produces exactly the shape a form wants:
+
+```typescript
+catch (error) {
+  if (error instanceof ZodValidationError && error.target === "body") {
+    const { fieldErrors } = error.flatten();
+    setErrors(fieldErrors); // { email: ["Invalid email"] }
+  }
+}
+```
+
+`format()` gives the nested variant, for forms with nested objects.
+
+## Reporting the response case
+
+A response that fails its schema is a contract break, and it is worth a log entry
+with the issues attached — that is the record that tells you when the API changed
+and which field moved.
+
+```typescript
+api.client.interceptors.response.use(undefined, (error) => {
+  if (error instanceof ZodValidationError && error.target === "response") {
+    logger.error("contract broken", {
+      url: error.request?.url,
+      issues: error.issues,
+    });
+  }
+  throw error;
+});
+```
+
+<Callout type="warn">
+  Do not swallow these. A schema mismatch that is caught and ignored puts you
+  back where you started: the data is wrong, nothing says so, and the failure
+  surfaces somewhere unrelated.
+</Callout>
+
+## See also
+
+<Cards>
+  <Card
+    title="ZodValidationError"
+    href="/docs/zod/api-reference/zod-validation-error"
+    description="Every property"
+  />
+  <Card
+    title="Handling errors"
+    href="/docs/core/guides/errors"
+    description="The ApiError it extends"
+  />
+</Cards>

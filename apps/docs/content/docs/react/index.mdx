@@ -3,6 +3,8 @@ title: React
 description: One configured client, available anywhere in the tree.
 ---
 
+import { Boxes, Database, FlaskConical, RefreshCw, Server } from 'lucide-react';
+
 ## What this package is for
 
 Every project ends up with the same hand-written `api.ts`: a client wrapper, a
@@ -40,10 +42,45 @@ explicit and immune to re-render identity changes.
 Every component now shares that client, its headers, its interceptors and its
 retry policy. No wrapper module, no token plumbing.
 
+## Guides
+
+<Cards>
+  <Card
+    icon={<Boxes className="text-violet-500" />}
+    title="The provider"
+    href="/docs/react/guides/the-provider"
+    description="One client for the tree, and when to use more than one"
+  />
+  <Card
+    icon={<Database className="text-red-500" />}
+    title="TanStack Query"
+    href="/docs/react/guides/tanstack-query"
+    description="The intended setup, and where retries should live"
+  />
+  <Card
+    icon={<RefreshCw className="text-sky-500" />}
+    title="SWR"
+    href="/docs/react/guides/swr"
+    description="The same pairing, and its cancellation caveat"
+  />
+  <Card
+    icon={<Server className="text-emerald-500" />}
+    title="Server rendering"
+    href="/docs/react/guides/server-rendering"
+    description="Why a shared client leaks tokens between requests"
+  />
+  <Card
+    icon={<FlaskConical className="text-amber-500" />}
+    title="Testing"
+    href="/docs/react/guides/testing"
+    description="Real requests, fake network, nothing to clean up"
+  />
+</Cards>
+
 ## API
 
 | Export | Purpose |
 | ------ | ------- |
-| `ApiProvider` | Publishes an `ApiClient` to the tree, from a `client` or a `config`. |
-| `useApi()` | Returns the provided client. Throws outside a provider. |
+| [`ApiProvider`](/docs/react/api-reference/api-provider) | Publishes an `ApiClient` to the tree, from a `client` or a `config`. |
+| [`useApi()`](/docs/react/api-reference/use-api-hook) | Returns the provided client. Throws outside a provider. |
 | `ApiContext` | The underlying context, for advanced composition. |

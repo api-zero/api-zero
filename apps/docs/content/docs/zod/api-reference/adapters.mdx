@@ -6,7 +6,7 @@ description: Use Zod schemas with a plain ApiClient.
 The adapters turn a schema into plain `RequestOptions`. Use them when you want
 schema validation on a client you already have, without wrapping it.
 
-<include>../../../../../examples/src/zod-adapters.ts</include>
+<include>../../../../../../examples/src/zod-adapters.ts</include>
 
 Because they return ordinary options, they spread alongside everything else:
 `timeout`, `signal`, `params`, `retry`. Nothing is special-cased.
@@ -40,7 +40,7 @@ Combines both into one options object. `ZodApiClient` is built on it.
 
 ## Adapters or `ZodApiClient`?
 
-| | Adapters | [`ZodApiClient`](/docs/zod/client) |
+| | Adapters | [`ZodApiClient`](/docs/zod/api-reference/zod-api-client) |
 | --- | --- | --- |
 | Client | Your existing `ApiClient` | A wrapper around one |
 | Return type | Pass the generic yourself | Inferred from the schema |
@@ -56,7 +56,7 @@ your code gets its client.
 <Cards>
   <Card
     title="ZodApiClient"
-    href="/docs/zod/client"
+    href="/docs/zod/api-reference/zod-api-client"
     description="Schema-aware verbs with inference"
   />
   <Card

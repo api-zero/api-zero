@@ -1,0 +1,72 @@
+---
+title: Validated bodies
+description: Catching a bad payload before it leaves the process.
+---
+
+Response validation tells you the server sent something unexpected. Body
+validation tells you *you* did — and it does so before the request is sent, so
+there is no round trip and nothing half-written on the other side.
+
+<include>../../../../../../examples/src/zod-validated-body.ts</include>
+
+`post`, `put` and `patch` accept either a bare response schema or an object with
+`response` and `body`.
+
+## Failing before the network
+
+An invalid body throws a `ZodValidationError` with `target: "body"` and never
+reaches the transport. The distinction matters when you are debugging: a `400`
+means the server rejected you, while a body validation error means the request
+was wrong before it left.
+
+## Sharing schemas with a form
+
+The same schema can validate the form and the request, which removes the usual
+drift between what the UI accepts and what the API demands.
+
+```typescript
+export const createUser = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+});
+
+export type CreateUser = z.infer<typeof createUser>;
+```
+
+The form validates on submit, the client validates on send, and both fail the
+same way with the same messages.
+
+<Callout type="info">
+  Belt and braces is the point. The form protects the user experience; the
+  client protects the API from code paths that never go through the form —
+  a retry, a script, a background job.
+</Callout>
+
+## Transformed bodies
+
+A body transform runs before the request is built, so the value that goes over
+the wire is the transformed one:
+
+```typescript
+const body = z.object({
+  amount: z.number().transform((v) => v.toFixed(2)),
+});
+```
+
+The caller passes a number, the API receives the string it expects, and neither
+side has to know about the other's format.
+
+## See also
+
+<Cards>
+  <Card
+    title="Handling validation errors"
+    href="/docs/zod/guides/handling-validation-errors"
+    description="Turning issues into something a user can act on"
+  />
+  <Card
+    title="Adapters"
+    href="/docs/zod/api-reference/adapters"
+    description="Using schemas with a plain client"
+  />
+</Cards>

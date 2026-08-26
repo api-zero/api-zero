@@ -4,6 +4,8 @@ description: Runtime-validated contracts with inferred types.
 icon: ShieldCheck
 ---
 
+import { Braces, FileCheck, Puzzle, Send, TriangleAlert } from 'lucide-react';
+
 `api.get<User>("/users/1")` is a promise you make to yourself. Nothing checks it.
 If the API renames a field, drops one, or returns `null` where you expected a
 string, TypeScript stays quiet and your code fails somewhere else entirely —
@@ -46,18 +48,43 @@ form errors.
   fail identically on the next attempt — retrying only delays the error.
 </Callout>
 
-## What to reach for
+## Guides
 
 <Cards>
   <Card
-    title="ZodApiClient"
-    href="/docs/zod/client"
-    description="createZodClient and withZod: schema-aware verbs with inference"
+    icon={<FileCheck className="text-emerald-500" />}
+    title="Typed responses"
+    href="/docs/zod/guides/typed-responses"
+    description="One schema produces both the check and the type"
   />
   <Card
+    icon={<Send className="text-sky-500" />}
+    title="Validated bodies"
+    href="/docs/zod/guides/validated-bodies"
+    description="Catching a bad payload before it leaves the process"
+  />
+  <Card
+    icon={<TriangleAlert className="text-amber-500" />}
+    title="Handling validation errors"
+    href="/docs/zod/guides/handling-validation-errors"
+    description="Turning issues into something a user can act on"
+  />
+</Cards>
+
+## API
+
+<Cards>
+  <Card
+    icon={<Braces className="text-violet-500" />}
+    title="ZodApiClient"
+    href="/docs/zod/api-reference/zod-api-client"
+    description="Schema-aware verbs with full inference"
+  />
+  <Card
+    icon={<Puzzle className="text-blue-500" />}
     title="Adapters"
-    href="/docs/zod/adapters"
-    description="zodResponse and zodBody, for a plain ApiClient"
+    href="/docs/zod/api-reference/adapters"
+    description="Schemas on a plain ApiClient"
   />
 </Cards>
 

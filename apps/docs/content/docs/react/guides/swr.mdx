@@ -1,0 +1,79 @@
+---
+title: SWR
+description: The same pairing, with SWR instead.
+---
+
+SWR fills the same role as TanStack Query: cache, revalidation and server-state
+lifecycle. api-zero sits underneath it exactly the same way.
+
+<include>../../../../../../examples/src/react-swr.ts</include>
+
+SWR passes the key to the fetcher, so when the key is the endpoint, api-zero
+*is* the fetcher.
+
+## Inside a component
+
+```tsx
+function UserProfile({ id }: { id: number }) {
+  const api = useApi();
+  const { data, error, isLoading } = useSWR(`/users/${id}`, (url: string) =>
+    api.get<User>(url),
+  );
+
+  if (isLoading) return <Spinner />;
+  if (error instanceof ApiError && error.isNotFound()) return <NotFound />;
+  return <h1>{data?.name}</h1>;
+}
+```
+
+## Cancellation
+
+<Callout type="warn">
+  SWR does not hand an `AbortSignal` to the fetcher the way TanStack Query does.
+  A superseded request keeps running until it completes — SWR simply ignores the
+  result.
+
+  For a search box or anything that fires per keystroke, hold your own
+  controller and abort it when the key changes, or use TanStack Query, which
+  gives you the signal for free.
+</Callout>
+
+```tsx
+const controllerRef = useRef<AbortController>(null);
+
+const { data } = useSWR(`/search?q=${query}`, (url: string) => {
+  controllerRef.current?.abort();
+  const controller = new AbortController();
+  controllerRef.current = controller;
+  return api.get<Result[]>(url, { signal: controller.signal });
+});
+```
+
+## A global fetcher
+
+Setting the fetcher on `SWRConfig` removes the per-call boilerplate, at the cost
+of the client being captured once rather than read from context.
+
+```tsx
+<SWRConfig value={{ fetcher: (url: string) => api.get(url) }}>
+  <App />
+</SWRConfig>
+```
+
+That is fine when the client is module-scoped, and wrong on a server, where the
+client must be per request.
+
+## See also
+
+<Cards>
+  <Card
+    title="TanStack Query"
+    href="/docs/react/guides/tanstack-query"
+    description="The same pairing, with cancellation included"
+  />
+  <Card
+    title="Server rendering"
+    href="/docs/react/guides/server-rendering"
+    description="Why a captured client is a problem there"
+  />
+</Cards>

@@ -1,0 +1,82 @@
+---
+title: TanStack Query
+description: The intended React setup.
+---
+
+TanStack Query owns the cache, deduplication, invalidation and the server-state
+lifecycle. api-zero owns the request, the errors and the contract. Neither
+reimplements the other, and pairing them is the setup this package is designed
+around — not a workaround.
+
+## The pairing
+
+<include>../../../../../../examples/src/react-tanstack.tsx</include>
+
+Three things are happening.
+
+<Steps>
+
+### `useApi()` gives you the configured client
+
+Base URL, auth, interceptors and retry policy are already applied. The query
+function does not build a request, it makes one.
+
+### The `signal` is forwarded
+
+TanStack supplies an `AbortSignal` and aborts it when the query is cancelled,
+unmounted or superseded by a newer one. Forwarding it is what makes the HTTP
+request actually stop.
+
+Without that forward, a cancelled query stops updating React but the request
+runs to completion — you pay for the response and throw it away. On a search
+box, that is one wasted request per keystroke.
+
+### Errors arrive as `ApiError`
+
+`error` in the query result is an `ApiError`, so `error.isNotFound()` and
+`error.status` work in the component without unwrapping anything.
+
+</Steps>
+
+## Retries: pick one
+
+Both libraries can retry, and running both means `3 × 3` attempts.
+
+<Callout type="warn">
+  Decide where retries live. If api-zero holds the policy — which is the point
+  of having a method-aware one — turn TanStack's off with `retry: false` on the
+  query. If TanStack holds it, leave api-zero's `retry` unset, which is already
+  the default.
+</Callout>
+
+api-zero's policy knows about idempotency, `Retry-After` and which errors are
+worth repeating. TanStack's does not, because it cannot see the HTTP layer.
+
+## Mutations
+
+```tsx
+const api = useApi();
+
+const mutation = useMutation({
+  mutationFn: (input: CreateUser) => api.post<User>("/users", input),
+  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+});
+```
+
+Note that `useMutation` here is TanStack's. api-zero deliberately ships no hook
+of that name — see [the package overview](/docs/react) for why.
+
+## See also
+
+<Cards>
+  <Card
+    title="useApi"
+    href="/docs/react/api-reference/use-api-hook"
+    description="Reaching the client from a component"
+  />
+  <Card
+    title="Cancellation"
+    href="/docs/core/guides/cancellation-and-timeouts"
+    description="What the forwarded signal does"
+  />
+</Cards>

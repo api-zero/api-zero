@@ -77,19 +77,21 @@ neutral preset is `hsl(0, 0%, 7.04%)` (~`#121212`) and reads far better.
       validates `<Card href>`, which the old one could not see. Verified it
       fails on both a broken markdown link and a broken Card href.
 
-## Phase 3 — Information architecture
+## Phase 3 — Information architecture ✅
 
 The current structure was translated, never questioned. `core` is dense while
 `react` and `zod` are three thin pages each, so the sidebar looks lopsided and
 the two smaller packages read as afterthoughts.
 
-- [ ] Redesign the tree: collapsible groups with sub-items, icons per section
-- [ ] Split core's dense reference pages so headings nest and the TOC has depth
-      instead of one flat column
-- [ ] Expand `react`: provider patterns, TanStack Query, SWR, SSR and per-request
-      clients, testing
-- [ ] Expand `zod`: contracts, error handling, form integration, migrating an
-      untyped client
+- [x] Three roots, each with Guides and API reference as collapsible groups. 11 groups, all with icons.
+- [x] config.mdx held ApiClientConfig, RequestOptions and RetryConfig at once;
+      each is its own page now. The retry page was half policy and half
+      reference and became one of each.
+- [x] Five guides: the provider, TanStack Query, SWR, server rendering and
+      testing. SSR and testing were undocumented and are the questions someone
+      evaluating the library actually asks.
+- [x] Three guides plus a ZodValidationError reference. Migration was dropped:
+      there is nothing to migrate from yet.
 - [x] Sidebar labels stay English, matching the content
 
 ## Phase 4 — Content richness, page by page

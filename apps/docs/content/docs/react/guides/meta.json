@@ -1,0 +1,11 @@
+{
+  "title": "Guides",
+  "icon": "BookOpen",
+  "pages": [
+    "the-provider",
+    "tanstack-query",
+    "swr",
+    "server-rendering",
+    "testing"
+  ]
+}

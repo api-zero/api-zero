@@ -1,0 +1,79 @@
+---
+title: Server rendering
+description: The shared-client trap, and how to avoid it.
+---
+
+api-zero works in Next.js, Remix and any other server-rendering setup — it uses
+native `fetch`. The care needed is not about api-zero, it is about what "shared"
+means on a server.
+
+## The trap
+
+In the browser, one client per application is correct: there is one user, and
+their token belongs on it.
+
+On a server, that same module-level client is shared by **every request the
+process handles**. Calling `setAuthToken` on it puts one user's credentials on
+a client that the next user's request will also use.
+
+<Callout type="warn">
+  This is a real data leak, not a style issue, and it is intermittent — it
+  surfaces only under concurrency, which is why it usually reaches production.
+  Any HTTP client with mutable per-instance state has this shape; it is worth
+  knowing rather than discovering.
+</Callout>
+
+## Build one per request
+
+<include>../../../../../../examples/src/react-per-request-client.ts</include>
+
+Each request gets its own client, so nothing crosses between them.
+
+## In the App Router
+
+Server components run per request, so create the client there and read the token
+from the request's own context:
+
+```tsx
+export default async function Page() {
+  const token = (await cookies()).get("session")?.value;
+  const api = createRequestClient(token);
+
+  const user = await api.get<User>("/me");
+  return <Profile user={user} />;
+}
+```
+
+`ApiProvider` is a client component and only covers the subtree it wraps. Server
+components do not read React context, so they need the client passed or created
+directly — they cannot call `useApi()`.
+
+## What is safe to share
+
+A module-level client is fine on a server as long as nothing request-scoped is
+set on it: a fixed base URL, a fixed timeout, a service-wide API key that is the
+same for every user.
+
+The rule is about mutable per-request state, not about instances.
+
+## Interceptors and shared state
+
+The same caution applies to anything an interceptor closes over. A module-level
+`let token` in a refresh interceptor is shared across requests just as a client
+is. Keep request-scoped values in `metadata`, which travels with the request
+context rather than living beside it.
+
+## See also
+
+<Cards>
+  <Card
+    title="The provider"
+    href="/docs/react/guides/the-provider"
+    description="Client identity in the browser"
+  />
+  <Card
+    title="Authentication"
+    href="/docs/core/guides/authentication"
+    description="Tokens and refresh"
+  />
+</Cards>

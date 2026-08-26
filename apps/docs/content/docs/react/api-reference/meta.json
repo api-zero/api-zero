@@ -1,0 +1,5 @@
+{
+  "title": "API reference",
+  "icon": "Braces",
+  "pages": ["api-provider", "use-api-hook"]
+}

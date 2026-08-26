@@ -22,11 +22,11 @@ const wrapped = withZod(createClient({ baseURL: "https://api.example.com" }));
 
 ## Reading
 
-<include>../../../../../examples/src/zod-typed-response.ts</include>
+<include>../../../../../../examples/src/zod-typed-response.ts</include>
 
 ## Writing
 
-<include>../../../../../examples/src/zod-validated-body.ts</include>
+<include>../../../../../../examples/src/zod-validated-body.ts</include>
 
 `post`, `put` and `patch` accept either a bare response schema or an object with
 `response` and `body`. When `body` is present the payload is validated **before
@@ -68,7 +68,7 @@ failure mode.
 <Cards>
   <Card
     title="Adapters"
-    href="/docs/zod/adapters"
+    href="/docs/zod/api-reference/adapters"
     description="Use schemas with a plain ApiClient instead"
   />
   <Card
