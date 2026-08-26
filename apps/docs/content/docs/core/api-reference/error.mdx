@@ -12,7 +12,7 @@ That uniformity is the point. Native `fetch` rejects with
 
 ## Catching it
 
-<include>../../../../../../examples/src/errors.ts#handling</include>
+<include>../../../../../../examples/src/error-handling.ts</include>
 
 Check `instanceof ApiError` before touching its properties. A bug inside your own
 `then` handler is still a plain `Error`, and swallowing it as if it were a
@@ -34,7 +34,7 @@ transport failure hides real defects.
 | `isAborted` | `boolean` | Cancelled through the caller's `AbortSignal`. |
 | `isValidationError` | `boolean` | The response arrived but failed validation. |
 
-<include>../../../../../../examples/src/errors.ts#context</include>
+<include>../../../../../../examples/src/error-context.ts</include>
 
 <Callout type="info">
   `isTimeout` and `isAborted` stay distinct. A server that was too slow and a

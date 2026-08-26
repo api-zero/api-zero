@@ -30,7 +30,7 @@ disturb the headers or the retry policy configured on the client.
   make per API, with a policy you chose.
 </Callout>
 
-<include>../../../../../../examples/src/client-config.ts#set-config</include>
+<include>../../../../../../examples/src/client-config.ts</include>
 
 ## `RequestOptions`
 
@@ -53,7 +53,7 @@ Everything above except `transport`, plus:
 `||`, so a deliberate zero is not mistaken for "unset" — a distinction many
 clients get wrong.
 
-<include>../../../../../../examples/src/cancellation.ts#timeout</include>
+<include>../../../../../../examples/src/timeouts.ts</include>
 
 ### `metadata`
 
@@ -63,7 +63,7 @@ or attach a correlation id without inventing a header.
 
 ## Query parameters
 
-<include>../../../../../../examples/src/quick-start.ts#params</include>
+<include>../../../../../../examples/src/query-params.ts</include>
 
 Arrays need a convention, and no standard picked one. `paramsSerializer`
 chooses:
@@ -89,7 +89,7 @@ that throws on a mismatch.
 
 ## Custom transports
 
-<include>../../../../../../examples/src/transports.ts#mock</include>
+<include>../../../../../../examples/src/custom-transport.ts</include>
 
 Setting `transport` bypasses the automatic Fetch/XHR selection completely.
 

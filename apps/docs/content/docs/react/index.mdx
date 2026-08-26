@@ -31,11 +31,11 @@ pnpm add @api-zero/react @api-zero/core
 you created yourself is the recommended form: it makes the instance's lifetime
 explicit and immune to re-render identity changes.
 
-<include>../../../../../examples/src/react-provider.tsx#provider</include>
+<include>../../../../../examples/src/react-provider.tsx</include>
 
 ## Reach it anywhere with `useApi`
 
-<include>../../../../../examples/src/react-provider.tsx#use-api</include>
+<include>../../../../../examples/src/react-use-api.tsx</include>
 
 Every component now shares that client, its headers, its interceptors and its
 retry policy. No wrapper module, no token plumbing.

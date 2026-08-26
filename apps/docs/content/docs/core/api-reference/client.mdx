@@ -11,7 +11,7 @@ configured.
 
 ## Creating a client
 
-<include>../../../../../../examples/src/quick-start.ts#create</include>
+<include>../../../../../../examples/src/create-client.ts</include>
 
 `createClient(config?)` is the recommended factory. `new ApiClient(config?)` is
 equivalent — the factory exists so call sites read as intent rather than
@@ -31,7 +31,7 @@ patch <TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(
 Every one returns `Promise<TResponse>` — the parsed body, not a `Response`
 wrapper. There is no `.data` to unwrap.
 
-<include>../../../../../../examples/src/quick-start.ts#verbs</include>
+<include>../../../../../../examples/src/http-verbs.ts</include>
 
 <Callout type="warn">
   `TResponse` defaults to `unknown`, not `any`. That is deliberate: `any`
@@ -43,11 +43,11 @@ wrapper. There is no `.data` to unwrap.
 
 ## The generic `request()`
 
-<include>../../../../../../examples/src/client-config.ts#request</include>
+<include>../../../../../../examples/src/generic-request.ts</include>
 
 ## Uploads and progress
 
-<include>../../../../../../examples/src/uploads.ts#upload</include>
+<include>../../../../../../examples/src/upload-progress.ts</include>
 
 `FormData` is detected and any `Content-Type` header is **removed** — the header
 is matched case-insensitively. This is intentional: a multipart body needs a
@@ -61,7 +61,7 @@ one.
 Requesting progress switches the request to `XhrTransport`, because `fetch`
 cannot report upload progress. Download progress works the same way:
 
-<include>../../../../../../examples/src/uploads.ts#download</include>
+<include>../../../../../../examples/src/download-progress.ts</include>
 
 <Callout type="warn">
   XHR exists only in browsers. Asking for progress in Node or on an Edge runtime
@@ -70,13 +70,13 @@ cannot report upload progress. Download progress works the same way:
 
 ## Configuration
 
-<include>../../../../../../examples/src/client-config.ts#set-config</include>
+<include>../../../../../../examples/src/client-config.ts</include>
 
 ## Headers and authentication
 
-<include>../../../../../../examples/src/auth.ts#headers</include>
+<include>../../../../../../examples/src/auth-headers.ts</include>
 
-<include>../../../../../../examples/src/auth.ts#bearer</include>
+<include>../../../../../../examples/src/auth-bearer.ts</include>
 
 `setAuthToken(token)` is shorthand for `Authorization: Bearer <token>`.
 `setBasicAuth(user, pass)` base64-encodes the pair. `clearAuth()` removes the
@@ -94,7 +94,7 @@ headers, attempt and metadata. Response handlers receive a `ResponseContext` wit
 parsed `data`, status, headers and timing; rejection handlers receive an
 `ApiError`.
 
-<include>../../../../../../examples/src/interceptors.ts#request</include>
+<include>../../../../../../examples/src/interceptor-request.ts</include>
 
 See [Interceptors](/docs/core/api-reference/interceptors) for the full contract.
 
