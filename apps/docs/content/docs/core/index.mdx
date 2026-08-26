@@ -4,7 +4,7 @@ description: A small Fetch-based HTTP client built around reliable transport and
 icon: CircleQuestionMark
 ---
 
-import { Braces, Rocket, Workflow, Wrench } from 'lucide-react';
+import { Braces, Component, Rocket, ShieldCheck, Workflow, Wrench } from 'lucide-react';
 
 Every project starts the same way. You add `fetch`, then you write a wrapper to
 hold the base URL. Then a place to stash the auth token. Then an interceptor for
@@ -54,16 +54,19 @@ Only `@api-zero/core` is required. The other two are opt-in.
 
 <Cards>
   <Card
+    icon={<Rocket className="text-violet-500" />}
     title="@api-zero/core"
     href="/docs/core/get-started/quickstart"
     description="Framework-agnostic client. Runs in browsers, Node 22+ and Edge runtimes."
   />
   <Card
+    icon={<Component className="text-cyan-500" />}
     title="@api-zero/react"
     href="/docs/react"
     description="ApiProvider and useApi. Pairs with TanStack Query or SWR."
   />
   <Card
+    icon={<ShieldCheck className="text-emerald-500" />}
     title="@api-zero/zod"
     href="/docs/zod"
     description="Runtime-validated contracts with inferred types."

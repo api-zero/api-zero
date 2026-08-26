@@ -3,13 +3,15 @@ title: Retries
 description: A policy you can defend, off until you choose it.
 ---
 
+import { CircleAlert, FlaskConical, Repeat } from 'lucide-react';
+
 **Retries are off by default.** A client that silently repeats requests is a
 client that can charge a customer twice, and most libraries either retry
 everything or nothing. Both are wrong.
 
 Turning them on is a decision you make per API, with a policy you chose.
 
-<include>../../../../../../examples/src/retry-config.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/retry-config.ts</include>
 
 Every option and its default is in
 [`RetryConfig`](/docs/core/api-reference/retry-config). This page is about the
@@ -86,7 +88,7 @@ and it only ever shortens a wait.
 
 ## Per request
 
-<include>../../../../../../examples/src/retry-per-request.ts</include>
+<include meta='title="reports.ts"'>../../../../../../examples/src/retry-per-request.ts</include>
 
 ## Watch them happen
 
@@ -107,16 +109,19 @@ grown to eight seconds.
 
 <Cards>
   <Card
+    icon={<Repeat className="text-orange-500" />}
     title="RetryConfig"
     href="/docs/core/api-reference/retry-config"
     description="Every option and its default"
   />
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="ApiError"
     href="/docs/core/api-reference/api-error"
     description="isRetryable() and the failure flags"
   />
   <Card
+    icon={<FlaskConical className="text-lime-500" />}
     title="Testing with transports"
     href="/docs/core/guides/testing-with-transports"
     description="Asserting that a retry happened"

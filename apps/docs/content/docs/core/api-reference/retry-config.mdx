@@ -3,11 +3,13 @@ title: RetryConfig
 description: Every retry option and what it defaults to.
 ---
 
+import { CircleAlert, RefreshCw } from 'lucide-react';
+
 Set on the client or on a single request. **Retries are off until you configure
 them** — see [the retries guide](/docs/core/guides/retries) for the policy
 behind these options.
 
-<include>../../../../../../examples/src/retry-config.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/retry-config.ts</include>
 
 <TypeTable
   type={{
@@ -100,11 +102,13 @@ behind these options.
 
 <Cards>
   <Card
+    icon={<RefreshCw className="text-orange-500" />}
     title="Retries"
     href="/docs/core/guides/retries"
     description="The policy these options configure"
   />
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="ApiError"
     href="/docs/core/api-reference/api-error"
     description="isRetryable() and the failure flags"

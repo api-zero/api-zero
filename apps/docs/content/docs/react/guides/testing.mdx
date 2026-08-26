@@ -3,6 +3,8 @@ title: Testing components
 description: Real requests, fake network.
 ---
 
+import { FlaskConical, Network } from 'lucide-react';
+
 Components that call an API are usually tested by mocking the module that makes
 the request, which tests that your mock returns what you told it to.
 
@@ -10,7 +12,7 @@ Replacing the transport instead leaves the whole client in place — base URL
 resolution, headers, interceptors, error normalization, retries — and swaps only
 the network.
 
-<include>../../../../../../examples/src/react-testing.tsx</include>
+<include meta='title="test/test-provider.tsx"'>../../../../../../examples/src/react-testing.tsx</include>
 
 ## In a test
 
@@ -65,11 +67,13 @@ const client = new QueryClient({
 
 <Cards>
   <Card
+    icon={<FlaskConical className="text-lime-500" />}
     title="Testing with transports"
     href="/docs/core/guides/testing-with-transports"
     description="The same technique outside React"
   />
   <Card
+    icon={<Network className="text-teal-500" />}
     title="Transport"
     href="/docs/core/api-reference/transport"
     description="The interface you are implementing"

@@ -32,10 +32,10 @@ your side *and* `Access-Control-Allow-Credentials` on theirs. Note that with
 credentials, the server may not answer `Access-Control-Allow-Origin: *` — it must
 name your origin exactly.
 
-```typescript
+```typescript title="lib/api.ts"
 const api = createClient({
   baseURL: "https://api.example.com",
-  credentials: "include",
+  credentials: "include", // [!code ++]
 });
 ```
 
@@ -44,7 +44,7 @@ const api = createClient({
 The default is 30 seconds. Raise it per request rather than globally when only
 one endpoint is slow:
 
-<include>../../../../../../examples/src/timeouts.ts</include>
+<include meta='title="reports.ts"'>../../../../../../examples/src/timeouts.ts</include>
 
 Check `error.isTimeout` to tell a timeout apart from `error.isAborted`, which
 means your own code cancelled it. A component that unmounts mid-request produces
@@ -58,7 +58,7 @@ CORS preflight rejection. The status is `0` because there is nothing to report.
 Log the resolved URL from an interceptor before assuming the server is down —
 a wrong `baseURL` produces exactly this.
 
-<include>../../../../../../examples/src/interceptor-logging.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-logging.ts</include>
 
 ## A request is not being retried
 
@@ -85,7 +85,7 @@ switch to, so keep progress callbacks on the client side.
 Check `event.lengthComputable` before dividing: without a `Content-Length` the
 total is unknown and the percentage is meaningless.
 
-<include>../../../../../../examples/src/upload-progress.ts</include>
+<include meta='title="upload.ts"'>../../../../../../examples/src/upload-progress.ts</include>
 
 ## Query parameters arrive wrong
 

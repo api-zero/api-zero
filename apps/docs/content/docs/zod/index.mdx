@@ -25,7 +25,7 @@ versions, and there is only ever one copy of each in your tree.
 
 ## The shape of it
 
-<include>../../../../../examples/src/zod-typed-response.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../examples/src/zod-typed-response.ts</include>
 
 Two things happen at once. `createdAt` arrives as a string and is handed to you
 as a `Date`, because the schema said so. And `user` is typed from that same
@@ -33,7 +33,7 @@ schema — no interface to keep in sync, no cast.
 
 ## When a payload does not match
 
-<include>../../../../../examples/src/zod-error.ts</include>
+<include meta='title="users.ts"'>../../../../../examples/src/zod-error.ts</include>
 
 `ZodValidationError` extends `ApiError`, so it flows through the same catch
 blocks, the same interceptors and the same `instanceof ApiError` checks as every

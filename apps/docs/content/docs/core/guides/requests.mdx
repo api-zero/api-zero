@@ -3,9 +3,11 @@ title: Making requests
 description: Verbs, query parameters, bodies and response types.
 ---
 
+import { SlidersHorizontal, TriangleAlert } from 'lucide-react';
+
 ## The verbs
 
-<include>../../../../../../examples/src/http-verbs.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/http-verbs.ts</include>
 
 Each returns the parsed body, not a wrapper. There is no `.data` to unwrap.
 
@@ -22,7 +24,7 @@ Each returns the parsed body, not a wrapper. There is no `.data` to unwrap.
 
 ## Query parameters
 
-<include>../../../../../../examples/src/query-params.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/query-params.ts</include>
 
 ### Arrays
 
@@ -103,17 +105,19 @@ than failing to parse, which is what a naive `res.json()` does.
 
 ## The generic `request()`
 
-<include>../../../../../../examples/src/generic-request.ts</include>
+<include meta='title="resources.ts"'>../../../../../../examples/src/generic-request.ts</include>
 
 ## See also
 
 <Cards>
   <Card
+    icon={<SlidersHorizontal className="text-blue-500" />}
     title="RequestOptions"
     href="/docs/core/api-reference/request-options"
     description="Every option a single call accepts"
   />
   <Card
+    icon={<TriangleAlert className="text-amber-500" />}
     title="Errors"
     href="/docs/core/guides/errors"
     description="What happens when a request fails"

@@ -3,6 +3,8 @@ title: RequestOptions
 description: Everything you can set for a single call.
 ---
 
+import { ArrowLeftRight, Settings2 } from 'lucide-react';
+
 The last argument of every verb. Each option overrides the client's value for
 this request only — setting `timeout` here does not disturb the headers or the
 retry policy configured on the client.
@@ -87,11 +89,13 @@ retry policy configured on the client.
 
 <Cards>
   <Card
+    icon={<Settings2 className="text-indigo-500" />}
     title="ApiClientConfig"
     href="/docs/core/api-reference/configuration"
     description="The same settings, for every request"
   />
   <Card
+    icon={<ArrowLeftRight className="text-sky-500" />}
     title="Requests"
     href="/docs/core/guides/requests"
     description="Using these options in practice"

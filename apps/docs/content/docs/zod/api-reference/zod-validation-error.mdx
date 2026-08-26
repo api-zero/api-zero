@@ -3,6 +3,8 @@ title: ZodValidationError
 description: An ApiError that carries the Zod issues.
 ---
 
+import { CircleAlert, TriangleAlert } from 'lucide-react';
+
 Extends [`ApiError`](/docs/core/api-reference/api-error), so everything that
 already handles errors handles this one.
 
@@ -67,11 +69,13 @@ Everything inherited from `ApiError` also applies: `request`, `cause`,
 
 <Cards>
   <Card
+    icon={<TriangleAlert className="text-amber-500" />}
     title="Handling validation errors"
     href="/docs/zod/guides/handling-validation-errors"
     description="Turning issues into something actionable"
   />
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="ApiError"
     href="/docs/core/api-reference/api-error"
     description="The base class"

@@ -3,6 +3,8 @@ title: Progress tracking
 description: Upload and download progress, and why they need XHR.
 ---
 
+import { Braces, Settings2 } from 'lucide-react';
+
 `fetch` cannot report upload progress. That is not an api-zero limitation — the
 Fetch standard has no mechanism for it. So when a request asks for progress,
 api-zero sends it through `XhrTransport` instead.
@@ -14,7 +16,7 @@ api-zero sends it through `XhrTransport` instead.
 
 ## Upload
 
-<include>../../../../../../examples/src/upload-progress.ts</include>
+<include meta='title="upload.ts"'>../../../../../../examples/src/upload-progress.ts</include>
 
 Check `lengthComputable` first. Without a `Content-Length` the total is unknown,
 and dividing by it produces `Infinity` or `NaN` — which is how progress bars end
@@ -25,7 +27,7 @@ the browser can generate the multipart boundary. Do not set it yourself.
 
 ## Download
 
-<include>../../../../../../examples/src/download-progress.ts</include>
+<include meta='title="download.ts"'>../../../../../../examples/src/download-progress.ts</include>
 
 `responseType: "blob"` matters for binary payloads: the default `"json"` would
 try to parse a PDF as JSON and fail.
@@ -38,17 +40,19 @@ indeterminate spinner rather than a percentage.
 
 Progress requests are ordinary requests, so an `AbortSignal` stops them:
 
-<include>../../../../../../examples/src/cancellation.ts</include>
+<include meta='title="search.ts"'>../../../../../../examples/src/cancellation.ts</include>
 
 ## See also
 
 <Cards>
   <Card
+    icon={<Braces className="text-violet-500" />}
     title="ApiClient"
     href="/docs/core/api-reference/api-client"
     description="Uploads and transport selection"
   />
   <Card
+    icon={<Settings2 className="text-indigo-500" />}
     title="Configuration"
     href="/docs/core/api-reference/configuration"
     description="responseType and the progress callbacks"

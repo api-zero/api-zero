@@ -4,6 +4,8 @@ description: The request lifecycle, the transport boundary and the retry policy.
 icon: Rocket
 ---
 
+import { CircleAlert, Filter, RefreshCw } from 'lucide-react';
+
 ## Three packages, split by dependency direction
 
 The split is not about size. It is about what each package forces you to
@@ -82,7 +84,7 @@ refreshes an expired token works because the 401 actually reaches it.
 `Transport` is a public interface with a single method. Swapping it replaces the
 entire network layer.
 
-<include>../../../../../../examples/src/custom-transport.ts</include>
+<include meta='title="api.test.ts"'>../../../../../../examples/src/custom-transport.ts</include>
 
 That makes tests deterministic without patching globals, and it is how api-zero
 tests itself.
@@ -106,22 +108,25 @@ Most clients either retry everything or retry nothing. Both are wrong.
 - **Cancellation during backoff** — aborting a request while it waits between
   attempts stops it immediately instead of sleeping out the delay.
 
-<include>../../../../../../examples/src/retry-config.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/retry-config.ts</include>
 
 ## Next steps
 
 <Cards>
   <Card
+    icon={<Filter className="text-purple-500" />}
     title="Interceptors"
     href="/docs/core/guides/interceptors"
     description="Enrich requests and recover from failures"
   />
   <Card
+    icon={<RefreshCw className="text-orange-500" />}
     title="Retries"
     href="/docs/core/guides/retries"
     description="Every option, and what it defaults to"
   />
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="Errors"
     href="/docs/core/api-reference/api-error"
     description="The ApiError surface"

@@ -3,10 +3,12 @@ title: SWR
 description: The same pairing, with SWR instead.
 ---
 
+import { Database, Server } from 'lucide-react';
+
 SWR fills the same role as TanStack Query: cache, revalidation and server-state
 lifecycle. api-zero sits underneath it exactly the same way.
 
-<include>../../../../../../examples/src/react-swr.ts</include>
+<include meta='title="hooks/use-user.ts"'>../../../../../../examples/src/react-swr.ts</include>
 
 SWR passes the key to the fetcher, so when the key is the endpoint, api-zero
 *is* the fetcher.
@@ -67,11 +69,13 @@ client must be per request.
 
 <Cards>
   <Card
+    icon={<Database className="text-red-500" />}
     title="TanStack Query"
     href="/docs/react/guides/tanstack-query"
     description="The same pairing, with cancellation included"
   />
   <Card
+    icon={<Server className="text-emerald-500" />}
     title="Server rendering"
     href="/docs/react/guides/server-rendering"
     description="Why a captured client is a problem there"

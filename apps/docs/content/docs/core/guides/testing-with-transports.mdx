@@ -3,6 +3,8 @@ title: Testing with transports
 description: Deterministic tests with no network and no global patching.
 ---
 
+import { Network, RefreshCw } from 'lucide-react';
+
 Most HTTP clients are tested by monkey-patching `globalThis.fetch` or by
 standing up a mock server. Both work, and both leak: a patched global survives
 into the next test if a cleanup is missed, and a mock server adds ports,
@@ -11,7 +13,7 @@ lifecycle and flakiness to a unit test.
 `Transport` is a public interface with one method, so replacing it replaces the
 whole network boundary — scoped to the client you replaced it on.
 
-<include>../../../../../../examples/src/testing-transport.ts</include>
+<include meta='title="api.test.ts"'>../../../../../../examples/src/testing-transport.ts</include>
 
 ## What you get to assert
 
@@ -83,11 +85,13 @@ const flaky: Transport = {
 
 <Cards>
   <Card
+    icon={<Network className="text-teal-500" />}
     title="Transport"
     href="/docs/core/api-reference/transport"
     description="The interface and its built-in implementations"
   />
   <Card
+    icon={<RefreshCw className="text-orange-500" />}
     title="Retries"
     href="/docs/core/guides/retries"
     description="The behaviour worth asserting"

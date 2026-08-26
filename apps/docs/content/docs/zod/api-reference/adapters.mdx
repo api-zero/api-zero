@@ -3,10 +3,12 @@ title: Adapters
 description: Use Zod schemas with a plain ApiClient.
 ---
 
+import { Braces, Settings2 } from 'lucide-react';
+
 The adapters turn a schema into plain `RequestOptions`. Use them when you want
 schema validation on a client you already have, without wrapping it.
 
-<include>../../../../../../examples/src/zod-adapters.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/zod-adapters.ts</include>
 
 Because they return ordinary options, they spread alongside everything else:
 `timeout`, `signal`, `params`, `retry`. Nothing is special-cased.
@@ -55,11 +57,13 @@ your code gets its client.
 
 <Cards>
   <Card
+    icon={<Braces className="text-violet-500" />}
     title="ZodApiClient"
     href="/docs/zod/api-reference/zod-api-client"
     description="Schema-aware verbs with inference"
   />
   <Card
+    icon={<Settings2 className="text-indigo-500" />}
     title="Configuration"
     href="/docs/core/api-reference/configuration"
     description="Where transforms sit in the lifecycle"

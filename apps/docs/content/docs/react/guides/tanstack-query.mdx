@@ -3,6 +3,8 @@ title: TanStack Query
 description: The intended React setup.
 ---
 
+import { Anchor, CircleStop } from 'lucide-react';
+
 TanStack Query owns the cache, deduplication, invalidation and the server-state
 lifecycle. api-zero owns the request, the errors and the contract. Neither
 reimplements the other, and pairing them is the setup this package is designed
@@ -10,7 +12,7 @@ around — not a workaround.
 
 ## The pairing
 
-<include>../../../../../../examples/src/react-tanstack.tsx</include>
+<include meta='title="hooks/use-user.ts"'>../../../../../../examples/src/react-tanstack.tsx</include>
 
 Three things are happening.
 
@@ -70,11 +72,13 @@ of that name — see [the package overview](/docs/react) for why.
 
 <Cards>
   <Card
+    icon={<Anchor className="text-cyan-500" />}
     title="useApi"
     href="/docs/react/api-reference/use-api-hook"
     description="Reaching the client from a component"
   />
   <Card
+    icon={<CircleStop className="text-rose-500" />}
     title="Cancellation"
     href="/docs/core/guides/cancellation-and-timeouts"
     description="What the forwarded signal does"

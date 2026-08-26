@@ -3,7 +3,9 @@ title: Handling validation errors
 description: Turning Zod issues into something actionable.
 ---
 
-<include>../../../../../../examples/src/zod-error.ts</include>
+import { CircleAlert, TriangleAlert } from 'lucide-react';
+
+<include meta='title="users.ts"'>../../../../../../examples/src/zod-error.ts</include>
 
 `ZodValidationError` extends `ApiError`, so it flows through the same catch
 blocks, the same interceptors and the same `instanceof ApiError` checks as every
@@ -71,11 +73,13 @@ api.client.interceptors.response.use(undefined, (error) => {
 
 <Cards>
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="ZodValidationError"
     href="/docs/zod/api-reference/zod-validation-error"
     description="Every property"
   />
   <Card
+    icon={<TriangleAlert className="text-amber-500" />}
     title="Handling errors"
     href="/docs/core/guides/errors"
     description="The ApiError it extends"

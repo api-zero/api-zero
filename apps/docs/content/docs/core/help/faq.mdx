@@ -3,7 +3,11 @@ title: FAQ
 description: Common questions about api-zero.
 ---
 
-## When should I use api-zero instead of plain `fetch`?
+## Choosing it
+
+<Accordions>
+
+<Accordion title="When should I use api-zero instead of plain fetch?">
 
 If you call one endpoint once, use `fetch`. You do not need a library.
 
@@ -11,60 +15,67 @@ Reach for api-zero when you notice yourself writing the same wrapper again: a
 base URL, a place to keep the auth token, a helper that throws on non-2xx, an
 interceptor for 401s. That file is what this replaces.
 
-## Does it compete with TanStack Query or SWR?
+</Accordion>
+
+<Accordion title="Does it compete with TanStack Query or SWR?">
 
 No, and it deliberately does not try. They own the cache, deduplication,
 invalidation and the server-state lifecycle. api-zero owns the request, the
 errors and the contract, and is designed to sit underneath them.
 
-```typescript
-useQuery({
-  queryKey: ["users"],
-  queryFn: ({ signal }) => api.get<User[]>("/users", { signal }),
-});
-```
+<include meta='title="hooks/use-user.ts"'>../../../../../../examples/src/react-tanstack.tsx</include>
 
-Forwarding `signal` is what makes their cancellation reach the real request.
-See [the React package](/docs/react).
+Forwarding `signal` is what makes their cancellation reach the real request. See
+[TanStack Query](/docs/react/guides/tanstack-query) or [SWR](/docs/react/guides/swr).
 
-## How does it compare to Axios?
+</Accordion>
+
+<Accordion title="How does it compare to Axios?">
 
 Axios is older, larger and works on browsers that predate `fetch`. If you need
 those browsers, use Axios.
 
-api-zero is smaller because it assumes a modern platform, and it differs in
-kind on two points: errors are normalized so a network failure and a 500 arrive
-the same way, and retries are a policy that refuses to repeat unsafe methods
-rather than a loop.
+api-zero is smaller because it assumes a modern platform, and it differs in kind
+on two points: errors are normalized so a network failure and a `500` arrive the
+same way, and retries are a policy that refuses to repeat unsafe methods rather
+than a loop.
 
-We do not publish a size comparison table. Ours is
-[measured in CI](/docs/core); numbers for other libraries are not ours to claim.
+We do not publish a size comparison table. Ours is [measured in CI](/docs/core);
+numbers for other libraries are not ours to claim.
 
-## Does it work with SSR?
+</Accordion>
 
-Yes, with one caveat that applies to any HTTP client. A module-level client is
-shared by every request the server handles, so anything request-scoped — an
-auth token above all — must not be set on it. On the server, create a client per
-request, or pass the token per call.
+</Accordions>
 
-## Does it work in Node?
+## Running it
+
+<Accordions>
+
+<Accordion title="Does it work in Node?">
 
 Node 22 and newer. It uses native `fetch`. Node 18 and 20 reached end of life
 and are not tested or supported.
 
 Edge runtimes work too, minus upload and download progress, which need XHR.
 
-## How do I cancel a request?
+</Accordion>
 
-<include>../../../../../../examples/src/cancellation.ts</include>
+<Accordion title="Does it work with server-side rendering?">
 
-The resulting error distinguishes your cancellation from a timeout.
+Yes, with one caveat that applies to any HTTP client: a module-level client is
+shared by every request the server handles, so anything request-scoped — an auth
+token above all — must not be set on it.
 
-## Can I have more than one client?
+[Server rendering](/docs/react/guides/server-rendering) covers why this leaks
+credentials between users and how to avoid it.
+
+</Accordion>
+
+<Accordion title="Can I have more than one client?">
 
 Yes, and you should when you talk to more than one API:
 
-```typescript
+```typescript title="lib/api.ts"
 export const api = createClient({ baseURL: "https://api.example.com" });
 export const auth = createClient({ baseURL: "https://auth.example.com" });
 ```
@@ -72,14 +83,39 @@ export const auth = createClient({ baseURL: "https://auth.example.com" });
 Each keeps its own headers, interceptors and retry policy. In React, nested
 `ApiProvider`s give a subtree a different client.
 
-## Are retries on by default?
+</Accordion>
+
+</Accordions>
+
+## Behaviour
+
+<Accordions>
+
+<Accordion title="Are retries on by default?">
 
 No. A client that silently repeats requests can charge a customer twice.
-[Configure them](/docs/core/guides/retries) when you have decided the
+[Configure them](/docs/core/api-reference/retry-config) once you have decided the
 policy.
 
-## Does the type parameter validate anything?
+</Accordion>
+
+<Accordion title="Does the type parameter validate anything?">
 
 No. `api.get<User>(…)` is a compile-time assertion, not a runtime check — if the
-API returns something else, TypeScript never finds out. For payloads you do not
-control, add [`@api-zero/zod`](/docs/zod) and have it verified for real.
+API returns something else, TypeScript never finds out.
+
+For payloads you do not control, add [`@api-zero/zod`](/docs/zod) and have it
+verified for real.
+
+</Accordion>
+
+<Accordion title="How do I cancel a request?">
+
+<include meta='title="search.ts"'>../../../../../../examples/src/cancellation.ts</include>
+
+The resulting error distinguishes your cancellation from a timeout. See
+[cancellation and timeouts](/docs/core/guides/cancellation-and-timeouts).
+
+</Accordion>
+
+</Accordions>

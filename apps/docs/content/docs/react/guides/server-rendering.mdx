@@ -3,6 +3,8 @@ title: Server rendering
 description: The shared-client trap, and how to avoid it.
 ---
 
+import { Boxes, KeyRound } from 'lucide-react';
+
 api-zero works in Next.js, Remix and any other server-rendering setup — it uses
 native `fetch`. The care needed is not about api-zero, it is about what "shared"
 means on a server.
@@ -25,7 +27,7 @@ a client that the next user's request will also use.
 
 ## Build one per request
 
-<include>../../../../../../examples/src/react-per-request-client.ts</include>
+<include meta='title="lib/api.server.ts"'>../../../../../../examples/src/react-per-request-client.ts</include>
 
 Each request gets its own client, so nothing crosses between them.
 
@@ -67,11 +69,13 @@ context rather than living beside it.
 
 <Cards>
   <Card
+    icon={<Boxes className="text-violet-500" />}
     title="The provider"
     href="/docs/react/guides/the-provider"
     description="Client identity in the browser"
   />
   <Card
+    icon={<KeyRound className="text-yellow-500" />}
     title="Authentication"
     href="/docs/core/guides/authentication"
     description="Tokens and refresh"

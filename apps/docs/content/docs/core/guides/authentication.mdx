@@ -3,11 +3,13 @@ title: Authentication
 description: Attaching credentials, and refreshing them without looping.
 ---
 
+import { Braces, Filter } from 'lucide-react';
+
 ## Bearer tokens
 
 Set the token once on the client. Every later request carries it.
 
-<include>../../../../../../examples/src/auth-bearer.ts</include>
+<include meta='title="lib/auth.ts"'>../../../../../../examples/src/auth-bearer.ts</include>
 
 This is the simplest correct approach and it is usually the right one. Reach for
 an interceptor only when the token is not known when the client is created, or
@@ -22,7 +24,7 @@ changes between requests.
 
 ## Reading the token per request
 
-<include>../../../../../../examples/src/interceptor-request.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-request.ts</include>
 
 Mutate `context.headers` and return the context. A request interceptor runs
 before every attempt, so a token read here is always current — including on a
@@ -39,7 +41,7 @@ refresh.
 The interesting case: turning a `401` into a success by fixing the cause and
 replaying the request.
 
-<include>../../../../../../examples/src/auth-refresh.ts</include>
+<include meta='title="lib/auth-refresh.ts"'>../../../../../../examples/src/auth-refresh.ts</include>
 
 Three details separate this from a version that breaks in production:
 
@@ -68,11 +70,13 @@ token: it was attached when the request was built.
 
 <Cards>
   <Card
+    icon={<Filter className="text-purple-500" />}
     title="Interceptors"
     href="/docs/core/guides/interceptors"
     description="The full interceptor contract"
   />
   <Card
+    icon={<Braces className="text-violet-500" />}
     title="ApiClient"
     href="/docs/core/api-reference/api-client"
     description="setAuthToken, setBasicAuth and clearAuth"

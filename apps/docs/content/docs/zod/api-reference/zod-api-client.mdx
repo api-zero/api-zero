@@ -3,6 +3,8 @@ title: ZodApiClient
 description: Schema-aware verbs with full type inference.
 ---
 
+import { Puzzle, Settings2 } from 'lucide-react';
+
 `ZodApiClient` wraps an `ApiClient` and adds verbs that take a schema. The return
 type is inferred from that schema, so there is no generic to pass and nothing to
 keep in sync.
@@ -22,11 +24,11 @@ const wrapped = withZod(createClient({ baseURL: "https://api.example.com" }));
 
 ## Reading
 
-<include>../../../../../../examples/src/zod-typed-response.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/zod-typed-response.ts</include>
 
 ## Writing
 
-<include>../../../../../../examples/src/zod-validated-body.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/zod-validated-body.ts</include>
 
 `post`, `put` and `patch` accept either a bare response schema or an object with
 `response` and `body`. When `body` is present the payload is validated **before
@@ -67,11 +69,13 @@ failure mode.
 
 <Cards>
   <Card
+    icon={<Puzzle className="text-blue-500" />}
     title="Adapters"
     href="/docs/zod/api-reference/adapters"
     description="Use schemas with a plain ApiClient instead"
   />
   <Card
+    icon={<Settings2 className="text-indigo-500" />}
     title="Configuration"
     href="/docs/core/api-reference/configuration"
     description="The options these verbs accept"

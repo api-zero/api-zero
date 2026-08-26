@@ -3,11 +3,13 @@ title: ApiClientConfig
 description: Everything you can set when you create a client.
 ---
 
+import { Network, Repeat, SlidersHorizontal } from 'lucide-react';
+
 Passed to `createClient`, and applied to every request the client makes.
 Anything here can be overridden for a single call through
 [`RequestOptions`](/docs/core/api-reference/request-options).
 
-<include>../../../../../../examples/src/create-client.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/create-client.ts</include>
 
 <TypeTable
   type={{
@@ -68,7 +70,7 @@ Anything here can be overridden for a single call through
 
 ## Changing it later
 
-<include>../../../../../../examples/src/client-config.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/client-config.ts</include>
 
 `setConfig` merges: keys you do not mention keep their value.
 
@@ -83,16 +85,19 @@ Anything here can be overridden for a single call through
 
 <Cards>
   <Card
+    icon={<SlidersHorizontal className="text-blue-500" />}
     title="RequestOptions"
     href="/docs/core/api-reference/request-options"
     description="The same settings, for a single call"
   />
   <Card
+    icon={<Repeat className="text-orange-500" />}
     title="RetryConfig"
     href="/docs/core/api-reference/retry-config"
     description="Every retry option and its default"
   />
   <Card
+    icon={<Network className="text-teal-500" />}
     title="Transport"
     href="/docs/core/api-reference/transport"
     description="Replacing the network layer"

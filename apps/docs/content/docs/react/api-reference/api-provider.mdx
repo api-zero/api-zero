@@ -3,6 +3,8 @@ title: ApiProvider
 description: Publishes a configured client to the React tree.
 ---
 
+import { Anchor } from 'lucide-react';
+
 `ApiProvider` puts one `ApiClient` in React context so every component below it
 shares the same base URL, headers, auth, interceptors and retry policy.
 
@@ -18,7 +20,7 @@ Pass `client` or `config`. If both are present, `client` wins.
 
 ## Recommended: pass an instance
 
-<include>../../../../../../examples/src/react-provider.tsx</include>
+<include meta='title="app/providers.tsx"'>../../../../../../examples/src/react-provider.tsx</include>
 
 Creating the client outside the component tree makes its lifetime explicit and
 its identity stable. Nothing about a re-render can replace it.
@@ -61,6 +63,7 @@ talk to a second API without giving up the first.
 
 <Cards>
   <Card
+    icon={<Anchor className="text-cyan-500" />}
     title="useApi"
     href="/docs/react/api-reference/use-api-hook"
     description="Read the provided client from any component"

@@ -4,6 +4,8 @@ description: Requirements, packages and the initial setup.
 icon: Wrench
 ---
 
+import { Rocket, Workflow } from 'lucide-react';
+
 ## Requirements
 
 - **Node.js 22 or newer.** api-zero uses native `fetch`. Node 18 and 20 reached
@@ -17,7 +19,7 @@ icon: Wrench
 
 Everything else is optional. Start here.
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
   <Tab value="npm">
 
     ```bash
@@ -52,7 +54,7 @@ Everything else is optional. Start here.
 
 `@api-zero/core` is a peer dependency, so install both.
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
   <Tab value="npm">
 
     ```bash
@@ -85,7 +87,7 @@ Everything else is optional. Start here.
 
 ## Zod contracts
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
   <Tab value="npm">
 
     ```bash
@@ -121,7 +123,7 @@ Everything else is optional. Start here.
 Export a single configured instance and import it everywhere. Creating a client
 per call throws away the headers, interceptors and retry policy you configured.
 
-<include>../../../../../../examples/src/create-client.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/create-client.ts</include>
 
 In React, hand that instance to `ApiProvider` instead — see
 [the React package](/docs/react).
@@ -136,11 +138,13 @@ In React, hand that instance to `ApiProvider` instead — see
 
 <Cards>
   <Card
+    icon={<Rocket className="text-violet-500" />}
     title="Getting started"
     href="/docs/core/get-started/quickstart"
     description="Your first request, and what happens when it fails"
   />
   <Card
+    icon={<Workflow className="text-emerald-500" />}
     title="Concepts"
     href="/docs/core/get-started/concepts"
     description="The request lifecycle and the retry policy"

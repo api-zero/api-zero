@@ -3,6 +3,8 @@ title: Typed responses
 description: One schema produces both the validation and the type.
 ---
 
+import { Braces, Send } from 'lucide-react';
+
 `api.get<User>("/users/1")` is a promise you make to yourself. Nothing checks
 it. If the API renames a field, drops one, or returns `null` where you expected
 a string, TypeScript stays quiet and your code fails somewhere else entirely —
@@ -11,7 +13,7 @@ usually in a component, with a message that says nothing about the API.
 A schema closes that gap, because the validation and the type come from the same
 declaration and cannot disagree.
 
-<include>../../../../../../examples/src/zod-typed-response.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/zod-typed-response.ts</include>
 
 Two things happen at once. `createdAt` arrives as a string and reaches you as a
 `Date`, because the schema said so. And `user` is typed from that same schema —
@@ -66,11 +68,13 @@ thousands of rows.
 
 <Cards>
   <Card
+    icon={<Send className="text-sky-500" />}
     title="Validated bodies"
     href="/docs/zod/guides/validated-bodies"
     description="Checking what you send, before it is sent"
   />
   <Card
+    icon={<Braces className="text-violet-500" />}
     title="ZodApiClient"
     href="/docs/zod/api-reference/zod-api-client"
     description="Every schema-aware verb"

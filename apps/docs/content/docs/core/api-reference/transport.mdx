@@ -3,6 +3,8 @@ title: Transport
 description: The network boundary, as a one-method interface.
 ---
 
+import { FlaskConical, Gauge, Globe, Settings2 } from 'lucide-react';
+
 A transport is everything between a resolved request and a parsed response.
 Because it is a single method, replacing it replaces the entire network layer —
 which is what makes tests deterministic without patching globals.
@@ -13,7 +15,7 @@ interface Transport {
 }
 ```
 
-<include>../../../../../../examples/src/custom-transport.ts</include>
+<include meta='title="api.test.ts"'>../../../../../../examples/src/custom-transport.ts</include>
 
 ## `TransportResponse`
 
@@ -42,8 +44,8 @@ interface Transport {
 ## The built-in transports
 
 <Cards>
-  <Card title="FetchTransport" description="Used everywhere. Browsers, Node 22+, Edge runtimes." />
-  <Card title="XhrTransport" description="Browsers only. Selected automatically when upload or download progress is requested." />
+  <Card icon={<Globe className="text-sky-500" />} title="FetchTransport" description="Used everywhere. Browsers, Node 22+, Edge runtimes." />
+  <Card icon={<Gauge className="text-fuchsia-500" />} title="XhrTransport" description="Browsers only. Selected automatically when upload or download progress is requested." />
 </Cards>
 
 Selection happens per request: a custom `transport` wins outright, otherwise
@@ -59,11 +61,13 @@ upload progress, which is the whole reason the XHR path exists.
 
 <Cards>
   <Card
+    icon={<FlaskConical className="text-lime-500" />}
     title="Testing with transports"
     href="/docs/core/guides/testing-with-transports"
     description="Deterministic tests with no network"
   />
   <Card
+    icon={<Settings2 className="text-indigo-500" />}
     title="ApiClientConfig"
     href="/docs/core/api-reference/configuration"
     description="Where transport is set"

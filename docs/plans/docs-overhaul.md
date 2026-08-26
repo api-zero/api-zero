@@ -94,19 +94,18 @@ the two smaller packages read as afterthoughts.
       there is nothing to migrate from yet.
 - [x] Sidebar labels stay English, matching the content
 
-## Phase 4 — Content richness, page by page
+## Phase 4 — Content richness ✅
 
 Applied to each page as it is revisited, not as a separate sweep.
 
-- [ ] `TypeTable` for every prop/config table — `ApiClientConfig`,
-      `RequestOptions`, `RetryConfig`, `ApiError`
-- [ ] `Accordion` for the FAQ
-- [ ] Two or more adjacent code blocks become `Tabs`
-- [ ] Code blocks carry a file name; `pnpm` is the default install tab
-- [ ] Diff highlighting where a snippet shows an addition
-- [ ] Cards get coloured icons
-- [ ] Callouts wherever a warning currently hides inside a paragraph
-- [ ] Mermaid diagrams where a sequence or a tree explains faster than prose
+- [x] 10 `TypeTable`s across the reference pages, replacing flat markdown grids.
+- [x] FAQ regrouped into three sections of accordions, plus accordions in the error guides.
+- [x] Only one place had two genuinely alternative blocks. In `transport.mdx` the interface and its implementation stayed sequential: they complement each other rather than competing, and tabs would hide half the explanation.
+- [x] 72 blocks carry a file name — the path the file would have in the reader's project, so the snippet also shows where it goes. pnpm is `defaultIndex={1}` on all three install tab groups.
+- [x] Wired and verified. Used once so far, on the CORS fix — it earns its place only where a line is genuinely being added to something existing.
+- [x] All 87. Assigned by destination rather than by page, so the same target always carries the same icon and colour.
+- [x] 30 callouts.
+- [x] Two, both in Concepts: the package graph and the request lifecycle.
 
 ## Phase 5 — Verification
 

@@ -3,6 +3,8 @@ title: ApiError
 description: What a failure carries, and how to branch on it.
 ---
 
+import { Braces, Filter, RefreshCw } from 'lucide-react';
+
 Everything that can go wrong arrives as an `ApiError`: HTTP status codes,
 network failures, timeouts, caller cancellation and validation failures alike.
 
@@ -12,7 +14,7 @@ That uniformity is the point. Native `fetch` rejects with
 
 ## Catching it
 
-<include>../../../../../../examples/src/error-handling.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/error-handling.ts</include>
 
 Check `instanceof ApiError` before touching its properties. A bug inside your own
 `then` handler is still a plain `Error`, and swallowing it as if it were a
@@ -34,7 +36,7 @@ transport failure hides real defects.
 | `isAborted` | `boolean` | Cancelled through the caller's `AbortSignal`. |
 | `isValidationError` | `boolean` | The response arrived but failed validation. |
 
-<include>../../../../../../examples/src/error-context.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/error-context.ts</include>
 
 <Callout type="info">
   `isTimeout` and `isAborted` stay distinct. A server that was too slow and a
@@ -93,16 +95,19 @@ throw ApiError.from("Upstream unavailable", {
 
 <Cards>
   <Card
+    icon={<Filter className="text-purple-500" />}
     title="Interceptors"
     href="/docs/core/guides/interceptors"
     description="Rejection handlers see every failure class"
   />
   <Card
+    icon={<RefreshCw className="text-orange-500" />}
     title="Retries"
     href="/docs/core/guides/retries"
     description="The policy isRetryable() reflects"
   />
   <Card
+    icon={<Braces className="text-violet-500" />}
     title="ApiClient"
     href="/docs/core/api-reference/api-client"
     description="The client that produces these errors"

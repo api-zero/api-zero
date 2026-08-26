@@ -3,13 +3,15 @@ title: useApi
 description: Returns the client provided by ApiProvider.
 ---
 
+import { Boxes } from 'lucide-react';
+
 `useApi()` returns the `ApiClient` published by the nearest
 [`ApiProvider`](/docs/react/api-reference/api-provider). It takes no arguments and
 holds no state of its own.
 
 ## Usage
 
-<include>../../../../../../examples/src/react-use-api.tsx</include>
+<include meta='title="components/sign-in-button.tsx"'>../../../../../../examples/src/react-use-api.tsx</include>
 
 The returned client is the same instance for every component under the provider,
 so `setAuthToken` in one component applies to requests made from all the others.
@@ -47,6 +49,7 @@ api-zero deliberately ships no `useQuery` equivalent — see
 
 <Cards>
   <Card
+    icon={<Boxes className="text-violet-500" />}
     title="ApiProvider"
     href="/docs/react/api-reference/api-provider"
     description="Publish a client to the tree"

@@ -3,6 +3,8 @@ title: ApiClient
 description: The client class, its verbs and its configuration methods.
 ---
 
+import { CircleAlert, Filter, RefreshCw, Settings2 } from 'lucide-react';
+
 `ApiClient` holds your base URL, headers, auth, interceptors and retry policy,
 and applies them to every request made through it.
 
@@ -11,7 +13,7 @@ configured.
 
 ## Creating a client
 
-<include>../../../../../../examples/src/create-client.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/create-client.ts</include>
 
 `createClient(config?)` is the recommended factory. `new ApiClient(config?)` is
 equivalent — the factory exists so call sites read as intent rather than
@@ -31,7 +33,7 @@ patch <TResponse = unknown, TBody = unknown, TParams = Record<string, unknown>>(
 Every one returns `Promise<TResponse>` — the parsed body, not a `Response`
 wrapper. There is no `.data` to unwrap.
 
-<include>../../../../../../examples/src/http-verbs.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/http-verbs.ts</include>
 
 <Callout type="warn">
   `TResponse` defaults to `unknown`, not `any`. That is deliberate: `any`
@@ -43,11 +45,11 @@ wrapper. There is no `.data` to unwrap.
 
 ## The generic `request()`
 
-<include>../../../../../../examples/src/generic-request.ts</include>
+<include meta='title="resources.ts"'>../../../../../../examples/src/generic-request.ts</include>
 
 ## Uploads and progress
 
-<include>../../../../../../examples/src/upload-progress.ts</include>
+<include meta='title="upload.ts"'>../../../../../../examples/src/upload-progress.ts</include>
 
 `FormData` is detected and any `Content-Type` header is **removed** — the header
 is matched case-insensitively. This is intentional: a multipart body needs a
@@ -61,7 +63,7 @@ one.
 Requesting progress switches the request to `XhrTransport`, because `fetch`
 cannot report upload progress. Download progress works the same way:
 
-<include>../../../../../../examples/src/download-progress.ts</include>
+<include meta='title="download.ts"'>../../../../../../examples/src/download-progress.ts</include>
 
 <Callout type="warn">
   XHR exists only in browsers. Asking for progress in Node or on an Edge runtime
@@ -70,13 +72,25 @@ cannot report upload progress. Download progress works the same way:
 
 ## Configuration
 
-<include>../../../../../../examples/src/client-config.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/client-config.ts</include>
 
 ## Headers and authentication
 
-<include>../../../../../../examples/src/auth-headers.ts</include>
+<Tabs items={['Authentication', 'Headers']}>
 
-<include>../../../../../../examples/src/auth-bearer.ts</include>
+  <Tab value="Authentication">
+
+    <include meta='title="lib/auth.ts"'>../../../../../../examples/src/auth-bearer.ts</include>
+
+  </Tab>
+
+  <Tab value="Headers">
+
+    <include meta='title="lib/api.ts"'>../../../../../../examples/src/auth-headers.ts</include>
+
+  </Tab>
+
+</Tabs>
 
 `setAuthToken(token)` is shorthand for `Authorization: Bearer <token>`.
 `setBasicAuth(user, pass)` base64-encodes the pair. `clearAuth()` removes the
@@ -94,7 +108,7 @@ headers, attempt and metadata. Response handlers receive a `ResponseContext` wit
 parsed `data`, status, headers and timing; rejection handlers receive an
 `ApiError`.
 
-<include>../../../../../../examples/src/interceptor-request.ts</include>
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-request.ts</include>
 
 See [Interceptors](/docs/core/guides/interceptors) for the full contract.
 
@@ -102,21 +116,25 @@ See [Interceptors](/docs/core/guides/interceptors) for the full contract.
 
 <Cards>
   <Card
+    icon={<Settings2 className="text-indigo-500" />}
     title="Configuration"
     href="/docs/core/api-reference/configuration"
     description="Every option on ApiClientConfig and RequestOptions"
   />
   <Card
+    icon={<Filter className="text-purple-500" />}
     title="Interceptors"
     href="/docs/core/guides/interceptors"
     description="Enrich requests and recover from failures"
   />
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="ApiError"
     href="/docs/core/api-reference/api-error"
     description="What a failure carries"
   />
   <Card
+    icon={<RefreshCw className="text-orange-500" />}
     title="Retries"
     href="/docs/core/guides/retries"
     description="Backoff, jitter and Retry-After"

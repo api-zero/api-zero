@@ -3,13 +3,15 @@ title: The provider
 description: One client for the tree, and when to use more than one.
 ---
 
+import { Boxes, Server } from 'lucide-react';
+
 `ApiProvider` publishes an `ApiClient` to React context. Every component below
 it shares the same base URL, headers, auth, interceptors and retry policy —
 which is the whole reason this package exists.
 
 ## Create the client outside the tree
 
-<include>../../../../../../examples/src/react-provider.tsx</include>
+<include meta='title="app/providers.tsx"'>../../../../../../examples/src/react-provider.tsx</include>
 
 Creating it at module scope makes its lifetime explicit and its identity stable.
 Nothing about a re-render can replace it, and a token set in one component is
@@ -60,11 +62,13 @@ is a third party.
 
 <Cards>
   <Card
+    icon={<Boxes className="text-violet-500" />}
     title="ApiProvider"
     href="/docs/react/api-reference/api-provider"
     description="Props and behaviour"
   />
   <Card
+    icon={<Server className="text-emerald-500" />}
     title="Server rendering"
     href="/docs/react/guides/server-rendering"
     description="Why a shared client is dangerous on a server"

@@ -3,6 +3,8 @@ title: Cancellation and timeouts
 description: Stopping a request, and telling the two apart.
 ---
 
+import { CircleAlert, SlidersHorizontal } from 'lucide-react';
+
 Both stop a request in flight, and they mean opposite things. A timeout is the
 server failing to answer in time. A cancellation is your own code deciding the
 answer is no longer wanted.
@@ -12,14 +14,14 @@ resulting error.
 
 ## Cancelling
 
-<include>../../../../../../examples/src/cancellation.ts</include>
+<include meta='title="search.ts"'>../../../../../../examples/src/cancellation.ts</include>
 
 A signal that is **already aborted** before the request starts is honoured
 immediately — no connection is opened.
 
 ## Timeouts
 
-<include>../../../../../../examples/src/timeouts.ts</include>
+<include meta='title="reports.ts"'>../../../../../../examples/src/timeouts.ts</include>
 
 The client default is 30 seconds. Raise it for the one slow endpoint rather than
 globally: a global raise means a genuinely hung request ties up a connection for
@@ -58,7 +60,7 @@ TanStack supplies an `AbortSignal` to every `queryFn` and aborts it when the
 query is cancelled, unmounted or superseded. Forwarding it is what makes the
 HTTP request actually stop.
 
-<include>../../../../../../examples/src/react-tanstack.tsx</include>
+<include meta='title="hooks/use-user.ts"'>../../../../../../examples/src/react-tanstack.tsx</include>
 
 Without that forward, a cancelled query stops updating React but the request
 keeps running to completion — you pay for the response and throw it away.
@@ -67,11 +69,13 @@ keeps running to completion — you pay for the response and throw it away.
 
 <Cards>
   <Card
+    icon={<CircleAlert className="text-red-500" />}
     title="ApiError"
     href="/docs/core/api-reference/api-error"
     description="isTimeout and isAborted"
   />
   <Card
+    icon={<SlidersHorizontal className="text-blue-500" />}
     title="RequestOptions"
     href="/docs/core/api-reference/request-options"
     description="signal and timeout"

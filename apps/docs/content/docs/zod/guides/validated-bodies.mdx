@@ -3,11 +3,13 @@ title: Validated bodies
 description: Catching a bad payload before it leaves the process.
 ---
 
+import { Puzzle, TriangleAlert } from 'lucide-react';
+
 Response validation tells you the server sent something unexpected. Body
 validation tells you *you* did — and it does so before the request is sent, so
 there is no round trip and nothing half-written on the other side.
 
-<include>../../../../../../examples/src/zod-validated-body.ts</include>
+<include meta='title="users.ts"'>../../../../../../examples/src/zod-validated-body.ts</include>
 
 `post`, `put` and `patch` accept either a bare response schema or an object with
 `response` and `body`.
@@ -60,11 +62,13 @@ side has to know about the other's format.
 
 <Cards>
   <Card
+    icon={<TriangleAlert className="text-amber-500" />}
     title="Handling validation errors"
     href="/docs/zod/guides/handling-validation-errors"
     description="Turning issues into something a user can act on"
   />
   <Card
+    icon={<Puzzle className="text-blue-500" />}
     title="Adapters"
     href="/docs/zod/api-reference/adapters"
     description="Using schemas with a plain client"
