@@ -1,5 +1,17 @@
 # @api-zero/zod
 
+## 0.1.3
+
+### Patch Changes
+
+- [`ec1ab6e`](https://github.com/api-zero/api-zero/commit/ec1ab6e92e42a119ec88e981abda7ae3fec4db8c) Thanks [@gorkadev](https://github.com/gorkadev)! - Allow asynchronous `transformRequest` and `transformResponse`.
+
+  The pipeline has always awaited transforms, but their public types did not admit
+  a `Promise` return. That made the documented adapter pattern
+  `{ ...zodResponse(schema) }` fail to typecheck against a plain `ApiClient`, and
+  forced `@api-zero/zod` to cast internally to compensate. The types now match the
+  behaviour, and those casts are gone.
+
 ## 0.1.2
 
 ## 0.1.1
