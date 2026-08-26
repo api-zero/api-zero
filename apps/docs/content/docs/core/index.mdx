@@ -1,157 +1,93 @@
 ---
-title: ¿Qué es api-zero?
-description: Conoce api-zero, el cliente HTTP ligero y moderno para TypeScript.
+title: What is api-zero?
+description: A small Fetch-based HTTP client built around reliable transport and runtime-validated contracts.
 icon: CircleQuestionMark
 ---
 
-import { Feather, Shield, Atom, Rocket } from 'lucide-react';
+Every project starts the same way. You add `fetch`, then you write a wrapper to
+hold the base URL. Then a place to stash the auth token. Then an interceptor for
+401s. Then `.get` and `.post` helpers so callers stop repeating themselves. That
+file is called `api.ts` or `useApi.ts`, it is subtly different in every project,
+and nobody ever tests it.
 
-**api-zero** es un cliente HTTP moderno, ligero y fuertemente tipado diseñado específicamente para el ecosistema de TypeScript y React.
+**api-zero is that file, written once and maintained for you.**
 
-Nació de la necesidad de tener una alternativa a Axios que fuera más ligera, y una alternativa a Fetch que fuera menos verbosa y más potente.
+## What it does
 
-## ¿Por qué api-zero?
+- **Transport you can rely on** — timeouts and cancellation that compose, retries
+  that refuse to repeat an unsafe request, and errors that tell you what
+  happened instead of `TypeError: Failed to fetch`.
+- **Contracts checked at runtime** — optional Zod integration so the shape you
+  typed is the shape you actually received.
+- **One configured client, everywhere** — auth, headers and interceptors defined
+  once and reachable from any module or component.
+
+## What it deliberately does not do
+
+api-zero is **not** a data-fetching library. It has no cache, no deduplication,
+no invalidation and no `useQuery` equivalent. Those belong to
+[TanStack Query](https://tanstack.com/query) or [SWR](https://swr.vercel.app),
+which solve them far better than a transport layer should try to.
+
+api-zero sits **underneath** them. Pairing the two is the intended setup, not a
+workaround — see [the React package](/docs/react).
+
+If you only ever call one endpoint, plain `fetch` is the right answer and you do
+not need this.
+
+## Size
+
+Measured from the published ESM bundles, gzipped. CI enforces a ceiling on each
+number so this table cannot quietly stop being true.
+
+| Package | Gzipped | Purpose |
+| ------- | ------: | ------- |
+| `@api-zero/core` | ~6.0 kB | Client, transport, errors, interceptors, retries |
+| `@api-zero/react` | ~0.7 kB | `ApiProvider` and `useApi` |
+| `@api-zero/zod` | ~1.2 kB | Schema-validated requests and responses |
+
+Only `@api-zero/core` is required. The other two are opt-in.
+
+## The three packages
 
 <Cards>
-  <Card title="Ultra Ligero" icon={<Feather />}>
-    Menos de 2KB gzipped. Sin dependencias innecesarias. Mantén tu bundle size bajo control.
-  </Card>
-  <Card title="TypeScript First" icon={<Shield />}>
-    Tipado estático de primera clase. Genéricos para requests y responses. Autocompletado inteligente.
-  </Card>
-  <Card title="React Ready" icon={<Atom />}>
-    Hooks personalizados (`useApi`) y Provider incluidos en el paquete `@api-zero/react`.
-  </Card>
-  <Card title="Moderno" icon={<Rocket />}>
-    API basada en Promesas, soporte para `AbortSignal`, interceptores asíncronos y más.
-  </Card>
+  <Card
+    title="@api-zero/core"
+    href="/docs/core/getting-started"
+    description="Framework-agnostic client. Runs in browsers, Node 22+ and Edge runtimes."
+  />
+  <Card
+    title="@api-zero/react"
+    href="/docs/react"
+    description="ApiProvider and useApi. Pairs with TanStack Query or SWR."
+  />
+  <Card
+    title="@api-zero/zod"
+    href="/docs/zod"
+    description="Runtime-validated contracts with inferred types."
+  />
 </Cards>
 
-## Comparativa Rápida
+They are split by dependency direction, not by size: `core` depends on nothing,
+`react` peer-depends on React, `zod` peer-depends on Zod. You install only what
+your runtime already has.
 
-| Característica | api-zero | Axios | Ky | Fetch |
-| :--- | :---: | :---: | :---: | :---: |
-| **Tamaño (Gzipped)** | **~2kB** | ~30kB | ~6kB | 0kB (Nativo) |
-| **Sintaxis** | Simple | Simple | Chainable | Verbosa |
-| **TypeScript** | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ |
-| **Interceptors** | ✅ | ✅ | Hooks | ❌ |
-| **Retries** | ✅ (Built-in) | ❌ (Plugin) | ✅ | ❌ |
-| **React Hooks** | ✅ | ❌ (External) | ❌ | ❌ |
-
-<Callout type="success">
-
-api-zero se divide en dos paquetes npm:
-
-### `@api-zero/core`
-
-El paquete core contiene toda la lógica del cliente HTTP:
-
-- **ApiClient**: La clase principal que maneja todas las peticiones HTTP
-- **createClient**: Factory function para crear instancias del cliente
-- **ApiError**: Clase de error personalizada con helpers útiles
-- **InterceptorManager**: Sistema de interceptores
-- **Sistema de reintentos**: Lógica de retry con backoff configurable
-- **Serialización de parámetros**: Manejo flexible de query parameters
-
-### `@api-zero/react`
-
-El paquete React proporciona la integración con el ecosistema React:
-
-- **ApiProvider**: Componente Provider para React Context
-- **useApi**: Hook para acceder al cliente desde cualquier componente
-- **React Context**: Gestión interna del estado del cliente
-
-</Callout>
-
-## Casos de uso principales
-
-### 1. Aplicaciones React con TanStack Query
-
-```typescript
-// Configura api-zero como tu cliente HTTP
-const client = createClient({
-  baseURL: 'https://api.example.com',
-  timeout: 5000,
-});
-
-// Úsalo con TanStack Query
-const { data } = useQuery({
-  queryKey: ['users'],
-  queryFn: () => client.get<User[]>('/users'),
-});
-```
-
-### 2. APIs con autenticación compleja
-
-```typescript
-// Configura interceptores para manejar tokens automáticamente
-client.interceptors.request.use((config) => {
-  const token = getAuthToken();
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-  return config;
-});
-```
-
-### 3. Upload de archivos con progreso
-
-```typescript
-// Sube archivos con feedback visual
-await client.post('/upload', formData, {
-  onUploadProgress: (progress) => {
-    const percent = (progress.loaded / progress.total) * 100;
-    updateProgressBar(percent);
-  },
-});
-```
-
-## Próximos pasos
-
-<Steps>
-
-### Instalar el paquete
-
-Comienza instalando api-zero en tu proyecto.
-
-```bash
-npm install @api-zero/core @api-zero/react
-```
-
-### Explorar los conceptos
-
-Lee sobre los conceptos clave para entender cómo funciona api-zero.
-
-### Crear tu primer cliente
-
-Sigue la guía rápida para crear tu primera petición HTTP.
-
-</Steps>
-
-## Recursos adicionales
+## Next steps
 
 <Cards>
-  <Card 
-    title="API Reference - Core" 
-    href="/docs/api/core/client"
-    description="Documentación completa de @api-zero/core"
+  <Card
+    title="Installation"
+    href="/docs/core/installation"
+    description="Requirements and package setup"
   />
-  <Card 
-    title="API Reference - React" 
-    href="/docs/api/react/provider"
-    description="Documentación completa de @api-zero/react"
+  <Card
+    title="Getting started"
+    href="/docs/core/getting-started"
+    description="Your first request, and what happens when it fails"
   />
-  <Card 
-    title="Guías" 
-    href="/docs/guides/authentication"
-    description="Guías avanzadas y patrones comunes"
-  />
-  <Card 
-    title="Ejemplos" 
-    href="/docs/examples"
-    description="Ejemplos completos y casos de uso reales"
+  <Card
+    title="Concepts"
+    href="/docs/core/concepts"
+    description="The request lifecycle and the retry policy"
   />
 </Cards>

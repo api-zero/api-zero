@@ -1,299 +1,95 @@
 ---
-title: "Guía Rápida"
-description: "Crea tu primera petición HTTP con api-zero en menos de 5 minutos."
+title: Getting started
+description: Your first request, and what happens when it fails.
 icon: SwatchBook
 ---
 
-Esta guía te llevará paso a paso desde la instalación hasta tu primera petición HTTP con api-zero.
+Every code block on this page is compiled against the published packages on
+every CI run. If an example stops matching the API, the build fails before the
+page can mislead you.
 
 <Steps>
 
-## Instala los paquetes
+## Create a client
 
-Primero, instala api-zero en tu proyecto:
+<include>../../../../../examples/src/quick-start.ts#create</include>
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
+Export this from a shared module. One instance carries your base URL, headers,
+auth and retry policy for the whole application.
 
-<Tab value="npm">
+## Make a request
 
-```bash
-npm install @api-zero/core @api-zero/react
-```
+<include>../../../../../examples/src/quick-start.ts#verbs</include>
 
-</Tab>
+The type parameter describes the response body. It is a static promise, not a
+runtime check — for payloads you do not control, add
+[`@api-zero/zod`](/docs/zod) and have it verified for real.
 
-<Tab value="pnpm">
+## Handle failure
 
-```bash
-pnpm add @api-zero/core @api-zero/react
-```
+<include>../../../../../examples/src/errors.ts#handling</include>
 
-</Tab>
-
-<Tab value="yarn">
-
-```bash
-yarn add @api-zero/core @api-zero/react
-```
-
-</Tab>
-
-<Tab value="bun">
-
-```bash
-bun add @api-zero/core @api-zero/react
-```
-
-</Tab>
-
-</Tabs>
-
-<Callout type="info">
-Si no usas React, solo necesitas instalar `@api-zero/core`.
-</Callout>
-
-## Crea un cliente standalone
-
-La forma más simple de usar api-zero es crear una instancia del cliente con `createClient`:
-
-```typescript title="api-client.ts"
-import { createClient } from '@api-zero/core';
-
-export const apiClient = createClient({
-  baseURL: 'https://jsonplaceholder.typicode.com',
-  timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-```
-
-<Callout type="success">
-Exporta el cliente desde un módulo compartido para reutilizarlo en toda tu aplicación.
-</Callout>
-
-## Haz tu primera petición
-
-Usa el cliente para hacer una petición GET con tipado TypeScript automático:
-
-```typescript title="users.ts"
-import { apiClient } from './api-client';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  username: string;
-}
-
-async function getUsers() {
-  try {
-    const users = await apiClient.get<User[]>('/users');
-    console.log('Usuarios:', users);
-    return users;
-  } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    throw error;
-  }
-}
-
-getUsers();
-```
-
-## Configura el Provider de React (opcional)
-
-Si usas React, envuelve tu aplicación con `ApiProvider`:
-
-```tsx title="App.tsx"
-import { ApiProvider } from '@api-zero/react';
-import { UserList } from './components/UserList';
-
-function App() {
-  return (
-    <ApiProvider
-      config={{
-        baseURL: 'https://jsonplaceholder.typicode.com',
-        timeout: 5000,
-      }}
-    >
-      <UserList />
-    </ApiProvider>
-  );
-}
-
-export default App;
-```
-
-## Usa los hooks en tus componentes
-
-Usa `useRequest` para peticiones declarativas con estado de carga y cancelación automática en desmontaje:
-
-```tsx title="components/UserList.tsx"
-import { useRequest } from '@api-zero/react';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-export function UserList() {
-  const { data: users, loading, error, refetch } = useRequest<User[]>('/users');
-
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <div>
-      <button onClick={() => refetch()}>Recargar</button>
-      <ul>
-        {users?.map((user) => (
-          <li key={user.id}>
-            {user.name} ({user.email})
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-```
-
-<Callout type="success">
-¡Felicidades! Has creado tu primera integración React con api-zero. 🎉
-</Callout>
+Everything that can go wrong arrives as an `ApiError`: HTTP status, network
+failure, timeout, caller cancellation and invalid JSON alike.
 
 </Steps>
 
-## Peticiones POST, PUT, PATCH, DELETE
+## Query parameters
 
-api-zero soporta todos los métodos HTTP con tipado estático completo:
+<include>../../../../../examples/src/quick-start.ts#params</include>
 
-### POST - Crear recurso
+Arrays can be serialized as `brackets`, `repeat` or `comma` through
+`paramsSerializer`, per client or per request.
 
-```typescript title="users.ts"
-interface CreateUserData {
-  name: string;
-  email: string;
-}
+## Authentication
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+Set it once on the client; every later request carries it.
 
-const newUser = await apiClient.post<User, CreateUserData>('/users', {
-  name: 'John Doe',
-  email: 'john@example.com',
-});
+<include>../../../../../examples/src/auth.ts#bearer</include>
 
-console.log('Usuario creado:', newUser);
-```
+Basic auth and arbitrary headers work the same way:
 
-### PUT - Actualizar recurso completo
+<include>../../../../../examples/src/auth.ts#headers</include>
 
-```typescript title="users.ts"
-const updatedUser = await apiClient.put<User>('/users/1', {
-  id: 1,
-  name: 'Jane Doe',
-  email: 'jane@example.com',
-});
-```
+## What an error carries
 
-### PATCH - Actualizar recurso parcial
+An `ApiError` is not just a message. It keeps the context you need to decide
+what to do next.
 
-```typescript title="users.ts"
-const patchedUser = await apiClient.patch<User>('/users/1', {
-  email: 'newemail@example.com',
-});
-```
+<include>../../../../../examples/src/errors.ts#context</include>
 
-### DELETE - Eliminar recurso
+`isTimeout` and `isAborted` stay distinct on purpose: a request the server was
+too slow to answer and a request your own code cancelled deserve different
+handling, and most clients collapse them into one.
 
-```typescript title="users.ts"
-await apiClient.delete('/users/1');
-console.log('Usuario eliminado');
-```
+## Cancellation
 
-## Query Parameters
+<include>../../../../../examples/src/cancellation.ts#abort</include>
 
-Pasa parámetros de query de forma estructurada:
+Timeouts compose with caller cancellation into a single signal, and the
+resulting error tells you which one fired.
 
-```typescript title="users.ts"
-const admins = await apiClient.get<User[]>('/users', {
-  params: {
-    role: 'admin',
-    status: 'active',
-  },
-  paramsSerializer: {
-    arrayFormat: 'brackets', // 'brackets' | 'repeat' | 'comma'
-  },
-});
-```
-
-## Headers y Autenticación
-
-```typescript title="users.ts"
-// Cabecera Bearer
-apiClient.setAuthToken('my-secret-jwt');
-
-// Basic Auth
-apiClient.setBasicAuth('username', 'password');
-
-// Limpiar autenticación
-apiClient.clearAuth();
-```
-
-## Manejo de Errores
-
-api-zero proporciona la clase `ApiError` con información enriquecida y helpers útiles:
-
-```typescript title="users.ts"
-import { ApiError } from '@api-zero/core';
-
-try {
-  await apiClient.get('/users/999999');
-} catch (error) {
-  if (error instanceof ApiError) {
-    if (error.isNotFound()) {
-      console.log('Usuario no encontrado (404)');
-    }
-    if (error.isUnauthorized()) {
-      console.log('No autorizado (401)');
-    }
-    if (error.isTimeout) {
-      console.log('Petición expiró por timeout');
-    }
-    if (error.isAborted) {
-      console.log('Petición cancelada por el usuario');
-    }
-    console.log('Status:', error.status);
-    console.log('Payload:', error.data);
-  }
-}
-```
-
-## Siguiente Nivel
+## Next steps
 
 <Cards>
   <Card
-    title="Interceptores"
-    href="/docs/core/api-reference/interceptors"
-    description="Transforma requests y responses con soporte de refresh token"
+    title="Concepts"
+    href="/docs/core/concepts"
+    description="The request lifecycle and the retry policy"
   />
   <Card
-    title="Sistema de Reintentos"
+    title="Retries"
     href="/docs/core/api-reference/retry"
-    description="Reintentos inteligentes con backoff, jitter y Retry-After"
+    description="Backoff, jitter and Retry-After"
   />
   <Card
-    title="Validación con Zod"
+    title="Zod contracts"
     href="/docs/zod"
-    description="Contratos de runtime con @api-zero/zod"
+    description="Validate payloads at runtime with inferred types"
   />
   <Card
-    title="Hooks de React"
+    title="React"
     href="/docs/react"
-    description="Guía completa de useRequest y useMutation"
+    description="One client for the whole tree, paired with TanStack Query"
   />
 </Cards>

@@ -1,227 +1,148 @@
 ---
-title: "Instalación"
-description: "Cómo instalar y configurar api-zero en tu proyecto."
+title: Installation
+description: Requirements, packages and the initial setup.
 icon: Wrench
 ---
 
-# Instalación
+## Requirements
 
-Empezar con **api-zero** es muy sencillo. Puedes instalar el paquete core para cualquier proyecto JavaScript/TypeScript, y añadir los paquetes opcionales de React o Zod según tus necesidades:
+- **Node.js 22 or newer.** api-zero uses native `fetch`. Node 18 and 20 reached
+  end of life and are not supported — see
+  [ADR-002](https://github.com/api-zero/api-zero/blob/main/docs/adr/002-supported-node-versions.md).
+- Modern browsers and Edge runtimes (Cloudflare Workers, Vercel Edge) work too.
+  Edge is Fetch-only: upload and download progress need XHR, which exists only
+  in browsers.
 
-## Prerrequisitos
+## Core
 
-- Node.js 22 o superior (`api-zero` usa `fetch` nativo).
-- Un gestor de paquetes (npm, pnpm, yarn, bun).
-
-## Instalación Básica (@api-zero/core)
-
-Para instalar el núcleo de la librería (cliente HTTP, interceptores, retry, transportes, tipos):
+Everything else is optional. Start here.
 
 <Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
   <Tab value="npm">
+
     ```bash
     npm install @api-zero/core
     ```
+
   </Tab>
   <Tab value="pnpm">
+
     ```bash
     pnpm add @api-zero/core
     ```
+
   </Tab>
   <Tab value="yarn">
+
     ```bash
     yarn add @api-zero/core
     ```
+
   </Tab>
   <Tab value="bun">
+
     ```bash
     bun add @api-zero/core
     ```
+
   </Tab>
 </Tabs>
 
-## Instalación para React (@api-zero/react)
+## React bindings
 
-Si estás usando React, instala el paquete de bindings para tener acceso a `ApiProvider`, `useApi`, `useRequest`, y `useMutation`:
+`@api-zero/core` is a peer dependency, so install both.
 
 <Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
   <Tab value="npm">
+
     ```bash
     npm install @api-zero/core @api-zero/react
     ```
+
   </Tab>
   <Tab value="pnpm">
+
     ```bash
     pnpm add @api-zero/core @api-zero/react
     ```
+
   </Tab>
   <Tab value="yarn">
+
     ```bash
     yarn add @api-zero/core @api-zero/react
     ```
+
   </Tab>
   <Tab value="bun">
+
     ```bash
     bun add @api-zero/core @api-zero/react
     ```
+
   </Tab>
 </Tabs>
 
-## Instalación para Zod (@api-zero/zod)
-
-Para validación en runtime con esquemas de Zod e inferencia de tipos estáticos:
+## Zod contracts
 
 <Tabs items={['npm', 'pnpm', 'yarn', 'bun']}>
   <Tab value="npm">
+
     ```bash
     npm install @api-zero/core @api-zero/zod zod
     ```
+
   </Tab>
   <Tab value="pnpm">
+
     ```bash
     pnpm add @api-zero/core @api-zero/zod zod
     ```
+
   </Tab>
   <Tab value="yarn">
+
     ```bash
     yarn add @api-zero/core @api-zero/zod zod
     ```
+
   </Tab>
   <Tab value="bun">
+
     ```bash
     bun add @api-zero/core @api-zero/zod zod
     ```
+
   </Tab>
 </Tabs>
 
-## Configuración Inicial
+## Create the client once
 
-### Uso Standalone (Sin React)
+Export a single configured instance and import it everywhere. Creating a client
+per call throws away the headers, interceptors and retry policy you configured.
 
-Puedes crear una instancia del cliente y exportarla para usarla en toda tu aplicación:
+<include>../../../../../examples/src/quick-start.ts#create</include>
 
-```typescript title="lib/api.ts"
-import { createClient } from '@api-zero/core';
+In React, hand that instance to `ApiProvider` instead — see
+[the React package](/docs/react).
 
-export const api = createClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.example.com',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-```
+<Callout type="info">
+  Both ESM and CommonJS are published, and the type declarations resolve under
+  `node16` module resolution, the strictest consumer setup. CI installs the
+  packed tarballs into a clean project on every commit to keep that true.
+</Callout>
 
-### Uso con React Provider
-
-Para aplicaciones React, envuelve tu árbol de componentes con `ApiProvider`:
-
-```tsx title="app/layout.tsx"
-import { ApiProvider } from '@api-zero/react';
-
-const apiConfig = {
-  baseURL: 'https://api.example.com',
-  timeout: 5000,
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ApiProvider config={apiConfig}>
-      {children}
-    </ApiProvider>
-  );
-}
-```
-
-Luego usa los hooks en tus componentes:
-
-```tsx title="UserList.tsx"
-import { useRequest } from '@api-zero/react';
-
-interface User {
-  id: number;
-  name: string;
-}
-
-export function UserList() {
-  const { data: users, loading, error } = useRequest<User[]>('/users');
-
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <ul>
-      {users?.map((u) => (
-        <li key={u.id}>{u.name}</li>
-      ))}
-    </ul>
-  );
-}
-```
-
-## Verificación de la Instalación
-
-Para verificar que api-zero se instaló correctamente, crea un archivo de prueba:
-
-```typescript title="test.ts"
-import { createClient } from '@api-zero/core';
-
-const client = createClient({
-  baseURL: 'https://jsonplaceholder.typicode.com',
-});
-
-async function test() {
-  try {
-    const data = await client.get('/users/1');
-    console.log('✅ api-zero funciona correctamente:', data);
-  } catch (error) {
-    console.error('❌ Error:', error);
-  }
-}
-
-test();
-```
-
-Ejecuta el archivo:
-
-```bash
-npx tsx test.ts
-```
-
-## Configuración de TypeScript
-
-api-zero está escrito en TypeScript y proporciona tipos completos out-of-the-box. Asegúrate de tener una configuración adecuada en tu `tsconfig.json`:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "jsx": "react-jsx"
-  }
-}
-```
-
-## Próximos Pasos
+## Next steps
 
 <Cards>
   <Card
-    title="Guía Rápida"
+    title="Getting started"
     href="/docs/core/getting-started"
-    description="Haz tu primera petición HTTP en menos de 5 minutos"
+    description="Your first request, and what happens when it fails"
   />
   <Card
-    title="Conceptos Clave"
+    title="Concepts"
     href="/docs/core/concepts"
-    description="Aprende sobre la arquitectura, interceptores y lifecycle"
-  />
-  <Card
-    title="Referencia de API"
-    href="/docs/core/api-reference/client"
-    description="Documentación completa de ApiClient y createClient"
+    description="The request lifecycle and the retry policy"
   />
 </Cards>
