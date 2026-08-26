@@ -1,11 +1,11 @@
 {
   "title": "React",
   "icon": "Component",
-  "description": "React hooks & components",
+  "description": "One configured client for the tree",
   "root": true,
   "pages": [
     "index",
-    "---Componentes---",
+    "---Components---",
     "api-reference/provider",
     "---Hooks---",
     "api-reference/use-api"

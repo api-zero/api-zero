@@ -1,7 +1,7 @@
 {
   "title": "Zod",
   "icon": "ShieldCheck",
-  "description": "Zod schema contracts & validation",
+  "description": "Runtime-validated contracts",
   "root": true,
-  "pages": ["index", "---Validación---", "adapters", "---Cliente---", "client"]
+  "pages": ["index", "---Validation---", "adapters", "---Client---", "client"]
 }

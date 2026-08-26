@@ -70,7 +70,7 @@ the two smaller packages read as afterthoughts.
       clients, testing
 - [ ] Expand `zod`: contracts, error handling, form integration, migrating an
       untyped client
-- [ ] Decide sidebar label language (see Open questions)
+- [x] Sidebar labels stay English, matching the content
 
 ## Phase 4 — Content richness, page by page
 
@@ -94,12 +94,11 @@ Applied to each page as it is revisited, not as a separate sweep.
 
 ---
 
-## Open questions
+## Resolved
 
-**Sidebar label language.** The request was for Spanish sidebar labels, but every
-page is English by the decision recorded in this session. A Spanish nav over
-English content is worse than either choice on its own. Needs an explicit answer
-before Phase 3.
+**Sidebar label language — English.** Raised because a Spanish nav over English
+content makes the reader switch language on every click. Three leftover Spanish
+group labels were found and fixed at the same time.
 
 ## Notes
 
