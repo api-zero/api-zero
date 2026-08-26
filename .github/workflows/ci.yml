@@ -67,3 +67,33 @@ jobs:
 
       - name: Install packed tarballs in a clean project
         run: pnpm smoke
+
+  changeset:
+    name: Changeset declared
+    # The release PR consumes changesets, so it must not be asked for one.
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # changeset status diffs against the base branch
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Require a changeset for published package changes
+        run: pnpm exec changeset status --since=origin/${{ github.base_ref }}
+
