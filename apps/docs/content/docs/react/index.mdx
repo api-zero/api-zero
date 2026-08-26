@@ -1,50 +1,49 @@
 ---
-title: "React Integration"
-description: "Bindings oficiales de React para api-zero: Provider, useRequest, useMutation y useApi."
-icon: Component
+title: React
+description: One configured client, available anywhere in the tree.
 ---
 
-# React Integration
+## What this package is for
 
-El paquete `@api-zero/react` proporciona una integración idiomática, declarativa y type-safe con React 18 y React 19.
+Every project ends up with the same hand-written `api.ts`: a client wrapper, a
+place to stash the auth token, an interceptor or two, and re-declared `.get` /
+`.post` helpers. That file is what `@api-zero/react` replaces.
 
-## Instalación
+## What it deliberately is not
+
+It is not a data-fetching library. There is no cache, no deduplication, no
+invalidation and no `useQuery` equivalent — those belong to
+[TanStack Query](https://tanstack.com/query) or [SWR](https://swr.vercel.app),
+which solve them far better than a transport layer should try to.
+
+api-zero is the transport and contract layer underneath them. Pairing the two is
+the intended setup, not a workaround.
+
+## Installation
 
 ```bash
-npm install @api-zero/core @api-zero/react
-# o
-pnpm add @api-zero/core @api-zero/react
+pnpm add @api-zero/react @api-zero/core
 ```
 
-## Características
+## Provide the client once
 
-- ⚛️ **Compatible con React 18 y 19**: Soporta concurrent features y StrictMode sin memory leaks.
-- 🛡️ **ApiProvider Estable**: Acepta configuración o una instancia existente de cliente, asegurando estabilidad referencial.
-- 📡 **`useRequest`**: Hook declarativo para data fetching con auto-abort en desmontaje o cambio de parámetros.
-- ⚡️ **`useMutation`**: Hook de mutaciones con soporte síncrono y asíncrono (`mutate` / `mutateAsync`), y callbacks de ciclo de vida (`onSuccess`, `onError`, `onSettled`).
-- 🎯 **Integración con Zod**: Totalmente interoperable con `@api-zero/zod` para validación e inferencia de tipos de esquemas.
+`ApiProvider` accepts either an existing `client` or a `config`. Passing a client
+you created yourself is the recommended form: it makes the instance's lifetime
+explicit and immune to re-render identity changes.
 
-## Resumen de APIs
+<include>../../../../../examples/src/react-provider.tsx#provider</include>
 
-<Cards>
-  <Card
-    title="ApiProvider"
-    href="/docs/react/api-reference/provider"
-    description="Context Provider para compartir clientes HTTP en el árbol de componentes"
-  />
-  <Card
-    title="useRequest"
-    href="/docs/react/api-reference/use-request"
-    description="Hook de consulta con loading, error, refetch y cancelación automática"
-  />
-  <Card
-    title="useMutation"
-    href="/docs/react/api-reference/use-mutation"
-    description="Hook para POST, PUT, PATCH, DELETE con callbacks de ciclo de vida"
-  />
-  <Card
-    title="useApi"
-    href="/docs/react/api-reference/use-api"
-    description="Hook para obtener acceso directo a la instancia de ApiClient"
-  />
-</Cards>
+## Reach it anywhere with `useApi`
+
+<include>../../../../../examples/src/react-provider.tsx#use-api</include>
+
+Every component now shares that client, its headers, its interceptors and its
+retry policy. No wrapper module, no token plumbing.
+
+## API
+
+| Export | Purpose |
+| ------ | ------- |
+| `ApiProvider` | Publishes an `ApiClient` to the tree, from a `client` or a `config`. |
+| `useApi()` | Returns the provided client. Throws outside a provider. |
+| `ApiContext` | The underlying context, for advanced composition. |
