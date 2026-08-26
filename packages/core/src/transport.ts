@@ -2,10 +2,15 @@ import type { RequestContext } from "./context";
 import { ApiError } from "./error";
 
 export interface TransportResponse<T = unknown> {
+  /** The native response, when there was one. Absent for a synthetic transport. */
   rawResponse?: Response;
+  /** HTTP status code. */
   status: number;
+  /** HTTP status text. */
   statusText: string;
+  /** Response headers, lowercased. */
   headers: Record<string, string>;
+  /** The parsed body, already read according to `responseType`. */
   data: T;
 }
 

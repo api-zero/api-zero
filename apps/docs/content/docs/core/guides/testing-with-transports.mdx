@@ -20,24 +20,7 @@ whole network boundary — scoped to the client you replaced it on.
 The transport receives the fully resolved `RequestContext`, so a test can check
 what would actually have gone over the wire:
 
-<TypeTable
-  type={{
-    method: { type: "HttpMethod" },
-    url: {
-      type: "string",
-      description: "Fully resolved, base URL and query string included.",
-    },
-    headers: {
-      type: "Record<string, string>",
-      description: "After interceptors, so an auth header is visible here.",
-    },
-    body: { type: "unknown", description: "After request transforms." },
-    attempt: {
-      type: "number",
-      description: "Which try this is — how you assert that a retry happened.",
-    },
-  }}
-/>
+<auto-type-table path="../../../../../../packages/core/src/context.ts" name="RequestContext" />
 
 ## Testing the failure paths
 

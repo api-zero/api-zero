@@ -5,19 +5,30 @@ import type { Transport } from "./transport";
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 export interface ApiClientConfig {
+  /** Prefix for every endpoint. Requests pass a path, not a full URL. */
   baseURL?: string;
+  /** Milliseconds before a request is aborted. `0` disables the timeout. */
   timeout?: number;
+  /** Sent with every request. Names are matched case-insensitively. */
   headers?: Record<string, string>;
+  /** Standard Fetch credentials mode. */
   credentials?: RequestCredentials;
+  /**
+   * Retry policy. Off by default: a client that silently repeats
+   * requests can charge a customer twice.
+   */
   retry?: RetryConfig | false;
+  /** Runs on the body before request interceptors. May be async. */
   transformRequest?:
     | ((data: any, headers?: Record<string, string>) => any | Promise<any>)
     | Array<
         (data: any, headers?: Record<string, string>) => any | Promise<any>
       >;
+  /** Runs on the parsed body before validation. May be async. */
   transformResponse?:
     | ((data: any) => any | Promise<any>)
     | Array<(data: any) => any | Promise<any>>;
+  /** How arrays become a query string: brackets, repeat or comma. */
   paramsSerializer?: ParamsSerializerConfig;
   /**
    * Optional custom or mocked transport adapter.
@@ -31,27 +42,47 @@ export interface RequestOptions<
   TBody = unknown,
   TParams = Record<string, unknown>,
 > {
+  /** Query parameters. `null` and `undefined` entries are dropped. */
   params?: TParams;
+  /** Merged over the client's headers for this request only. */
   headers?: Record<string, string>;
+  /** Milliseconds. `0` disables the timeout for this request. */
   timeout?: number;
+  /** Caller cancellation. Composed with the timeout into one signal. */
   signal?: AbortSignal;
+  /** Override the base URL for a single call. */
   baseURL?: string;
+  /** Standard Fetch credentials mode. */
   credentials?: RequestCredentials;
+  /** Override the retry policy, or `false` to opt this call out. */
   retry?: RetryConfig | false;
+  /** How to read the body. Binary payloads need `blob` or `arrayBuffer`. */
   responseType?: "json" | "text" | "blob" | "arrayBuffer";
+  /** Browser only. Switches the request to `XhrTransport`. */
   onUploadProgress?: (progress: ProgressEvent) => void;
+  /** Browser only. Switches the request to `XhrTransport`. */
   onDownloadProgress?: (progress: ProgressEvent) => void;
+  /** Reject a structurally valid but unacceptable body. */
   validateResponse?: (data: TResponse) => boolean | Promise<boolean>;
+  /** Called when validation rejects, before the error is thrown. */
   onValidationError?: (error: ApiError) => void;
+  /** Runs after the client's own request transforms. */
   transformRequest?:
     | ((data: TBody, headers?: Record<string, string>) => any | Promise<any>)
     | Array<
         (data: any, headers?: Record<string, string>) => any | Promise<any>
       >;
+  /** Runs after the client's own response transforms. */
   transformResponse?:
     | ((data: any) => TResponse | Promise<TResponse>)
     | Array<(data: any) => any | Promise<any>>;
+  /** Array encoding for this request. */
   paramsSerializer?: ParamsSerializerConfig;
+  /**
+   * Your own bucket. Nothing in the library reads it, and it travels
+   * with the request context — which is how an interceptor tags a
+   * replayed request.
+   */
   metadata?: Record<string, unknown>;
 }
 

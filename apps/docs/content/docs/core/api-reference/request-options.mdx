@@ -9,75 +9,7 @@ The last argument of every verb. Each option overrides the client's value for
 this request only — setting `timeout` here does not disturb the headers or the
 retry policy configured on the client.
 
-<TypeTable
-  type={{
-    params: {
-      type: "Record<string, unknown>",
-      description:
-        "Query parameters. null and undefined are dropped rather than serialized as empty.",
-    },
-    headers: {
-      type: "Record<string, string>",
-      description: "Merged over the client's headers for this request.",
-    },
-    timeout: {
-      type: "number",
-      default: "client value, or 30000",
-      description: "Milliseconds. 0 disables the timeout for this request.",
-    },
-    signal: {
-      type: "AbortSignal",
-      description:
-        "Caller cancellation. Composes with timeout; the resulting error tells you which fired.",
-    },
-    baseURL: {
-      type: "string",
-      description: "Override the base for one call, for a second host.",
-    },
-    credentials: { type: "RequestCredentials" },
-    retry: {
-      type: "RetryConfig | false",
-      typeDescriptionLink: "/docs/core/api-reference/retry-config",
-      description: "Override the policy, or pass false to opt this call out.",
-    },
-    responseType: {
-      type: '"json" | "text" | "blob" | "arrayBuffer"',
-      default: '"json"',
-      description:
-        "How to read the body. Binary payloads need blob or arrayBuffer — the default would try to parse a PDF as JSON.",
-    },
-    onUploadProgress: {
-      type: "(event: ProgressEvent) => void",
-      description:
-        "Browser only. Switches the request to XhrTransport, because fetch cannot report upload progress.",
-    },
-    onDownloadProgress: {
-      type: "(event: ProgressEvent) => void",
-      description: "Browser only. Also switches to XhrTransport.",
-    },
-    validateResponse: {
-      type: "(data) => boolean | Promise<boolean>",
-      description:
-        "Reject a structurally valid but unacceptable body. Returning false raises an ApiError with isValidationError set.",
-    },
-    onValidationError: {
-      type: "(error: ApiError) => void",
-      description: "Called when validation rejects, before the error is thrown.",
-    },
-    transformRequest: { type: "fn | fn[]", description: "Runs after the client's own." },
-    transformResponse: { type: "fn | fn[]", description: "Runs after the client's own." },
-    paramsSerializer: {
-      type: "ParamsSerializerConfig",
-      description: "Array encoding for this request.",
-    },
-    metadata: {
-      type: "Record<string, unknown>",
-      default: "{}",
-      description:
-        "Your own bucket. Nothing in the library reads it, and it travels with the request context — which is how an interceptor tags a replayed request.",
-    },
-  }}
-/>
+<auto-type-table path="../../../../../../packages/core/src/types.ts" name="RequestOptions" />
 
 <Callout type="info">
   `timeout: 0` really does disable the timeout. The value is resolved with `??`

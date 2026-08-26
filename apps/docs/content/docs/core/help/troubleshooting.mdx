@@ -3,33 +3,43 @@ title: Troubleshooting
 description: Common failures and what actually causes them.
 ---
 
-## `useApi must be used within an ApiProvider`
+import { CircleAlert, LifeBuoy, RefreshCw, TriangleAlert } from 'lucide-react';
+
+## Setup
+
+Failures that happen before a request is ever made.
+
+### `useApi must be used within an ApiProvider`
 
 `useApi()` was called from a component with no `ApiProvider` above it.
 
 It throws rather than returning `undefined`, because a silent `undefined` would
 fail later at the call site with nothing pointing back to the real cause.
 
-Wrap the tree — see [ApiProvider](/docs/react/api-reference/api-provider). In Next.js
-App Router, remember the provider is a client component and only covers the
-subtree it wraps.
+Wrap the tree — see [ApiProvider](/docs/react/api-reference/api-provider). In
+Next.js App Router, remember the provider is a client component and only covers
+the subtree it wraps: a server component cannot call `useApi()` at all.
 
-## CORS errors
+### CORS errors
 
 ```
 Access to fetch at 'https://api.example.com' has been blocked by CORS policy
 ```
 
-This is the browser refusing the response, not api-zero failing. **No client-side
-setting can turn it off** — it is enforced by the browser on behalf of the
-server.
+This is the browser refusing the response, not api-zero failing.
+
+<Callout type="warn">
+  **No client-side setting can turn CORS off.** It is enforced by the browser on
+  behalf of the server. Any answer that starts with "add this header to your
+  request" is wrong.
+</Callout>
 
 Fix it on the server (`Access-Control-Allow-Origin`), or proxy the API through
 your own origin in development.
 
 If the API needs cookies across origins, `credentials: "include"` is required on
 your side *and* `Access-Control-Allow-Credentials` on theirs. Note that with
-credentials, the server may not answer `Access-Control-Allow-Origin: *` — it must
+credentials the server may not answer `Access-Control-Allow-Origin: *` — it must
 name your origin exactly.
 
 ```typescript title="lib/api.ts"
@@ -39,10 +49,13 @@ const api = createClient({
 });
 ```
 
-## Requests time out
+## Requests that fail
 
-The default is 30 seconds. Raise it per request rather than globally when only
-one endpoint is slow:
+### The request times out
+
+The default is 30 seconds. Raise it for the one slow endpoint rather than
+globally: a global raise means a genuinely hung request ties up a connection for
+as long as you allowed.
 
 <include meta='title="reports.ts"'>../../../../../../examples/src/timeouts.ts</include>
 
@@ -50,56 +63,116 @@ Check `error.isTimeout` to tell a timeout apart from `error.isAborted`, which
 means your own code cancelled it. A component that unmounts mid-request produces
 the second, not the first — and it is not a bug.
 
-## `error.isNetworkError === true`
+### `error.isNetworkError === true`
 
-The request never reached a response: DNS, connectivity, a refused connection, or
-CORS preflight rejection. The status is `0` because there is nothing to report.
+The request never reached a response: DNS, connectivity, a refused connection,
+or a rejected CORS preflight. `status` is `0` because there is nothing to report.
 
-Log the resolved URL from an interceptor before assuming the server is down —
-a wrong `baseURL` produces exactly this.
+Log the resolved URL from an interceptor before assuming the server is down. A
+wrong `baseURL` produces exactly this, and it is by far the more common cause.
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-logging.ts</include>
 
-## A request is not being retried
+### A request is not being retried
 
-Most often, because **retries are off by default**. Configure them first.
+Most often because **retries are off by default**. Configure them first.
 
 With retries on, a request is still skipped when:
 
-- The method is not idempotent. `POST` and `PATCH` never retry automatically —
-  set `retryUnsafeMethods: true` only if the endpoint is genuinely safe to
-  repeat.
-- The error is not retryable. A `400` or `404` will fail identically next time.
-- The request was cancelled. Aborts are never retried.
+<Accordions>
+  <Accordion title="The method is not idempotent">
+    `POST` and `PATCH` never retry automatically, because a retried `POST` can
+    create the same resource twice. Set `retryUnsafeMethods: true` only if the
+    endpoint is genuinely safe to repeat.
+  </Accordion>
+  <Accordion title="The error is not retryable">
+    A `400` or a `404` describes your request. It will fail identically next
+    time, so repeating it only wastes time.
+  </Accordion>
+  <Accordion title="The request was cancelled">
+    Aborts are never retried. You asked for it to stop.
+  </Accordion>
+  <Accordion title="A custom retryCondition returned false">
+    Supplying one replaces the entire default test — including the method check.
+    See [RetryConfig](/docs/core/api-reference/retry-config).
+  </Accordion>
+</Accordions>
 
-See [Retries](/docs/core/guides/retries).
+## Requests that succeed but are wrong
 
-## Progress callbacks never fire
+These are the expensive ones: the status is `200`, nothing is logged, and the
+data is quietly incorrect.
+
+### Query parameters arrive wrong
+
+<Accordions>
+  <Accordion title="Arrays">
+    There is no standard encoding. Match your backend with
+    `paramsSerializer.arrayFormat` — `brackets`, `repeat` or `comma`. Guessing
+    produces a `200` with the wrong rows.
+  </Accordion>
+  <Accordion title="Objects and dates">
+    Both are stringified, so a nested object becomes the literal
+    `[object Object]` and a `Date` becomes its full `toString()` form. Flatten
+    objects and format dates yourself.
+  </Accordion>
+</Accordions>
+
+See [making requests](/docs/core/guides/requests).
+
+### `Content-Type` is missing on a `FormData` upload
+
+That is deliberate. A multipart body needs a boundary parameter that only the
+platform can generate, so the header is removed and the browser sets it.
+
+Setting it yourself produces a request the server cannot parse — and it fails
+with a confusing error about the body, not about the header.
+
+## Browser-only features
+
+### Progress callbacks never fire
 
 `fetch` cannot report upload progress, so api-zero switches to `XhrTransport`
 when `onUploadProgress` or `onDownloadProgress` is present.
 
 XHR exists only in browsers. In Node or on an Edge runtime there is nothing to
-switch to, so keep progress callbacks on the client side.
+switch to, so keep progress callbacks in client-side code.
 
-Check `event.lengthComputable` before dividing: without a `Content-Length` the
-total is unknown and the percentage is meaningless.
+### The percentage is stuck at zero, or full from the start
+
+Check `event.lengthComputable` before dividing. Without a `Content-Length` the
+total is unknown, and dividing by it produces `Infinity` or `NaN`.
 
 <include meta='title="upload.ts"'>../../../../../../examples/src/upload-progress.ts</include>
 
-## Query parameters arrive wrong
+Chunked or compressed responses often lack a `Content-Length` — show an
+indeterminate spinner rather than a percentage.
 
-Two usual causes:
+## Still stuck?
 
-- **Arrays.** There is no standard encoding. Match your backend with
-  `paramsSerializer.arrayFormat`.
-- **Objects and dates.** They are stringified, so a nested object becomes the
-  literal `[object Object]`. Flatten them and format dates yourself.
-
-See [Query parameters](/docs/core/guides/requests).
-
-## `Content-Type` is missing on a `FormData` upload
-
-That is deliberate. A multipart body needs a boundary parameter that only the
-platform can generate, so the header is removed and the browser sets it. Setting
-it yourself produces a request the server cannot parse.
+<Cards>
+  <Card
+    icon={<CircleAlert className="text-red-500" />}
+    title="ApiError"
+    href="/docs/core/api-reference/api-error"
+    description="Every flag that tells you what went wrong"
+  />
+  <Card
+    icon={<RefreshCw className="text-orange-500" />}
+    title="Retries"
+    href="/docs/core/guides/retries"
+    description="What retries, and what deliberately does not"
+  />
+  <Card
+    icon={<TriangleAlert className="text-amber-500" />}
+    title="Handling errors"
+    href="/docs/core/guides/errors"
+    description="Branching on failures without guessing"
+  />
+  <Card
+    icon={<LifeBuoy className="text-indigo-500" />}
+    title="FAQ"
+    href="/docs/core/help/faq"
+    description="Questions about choosing and running it"
+  />
+</Cards>

@@ -31,17 +31,11 @@ Each returns the parsed body, not a wrapper. There is no `.data` to unwrap.
 Arrays are the only genuinely ambiguous case: HTTP never standardised an
 encoding, so every backend framework picked differently.
 
-<TypeTable
-  type={{
-    brackets: {
-      type: '"brackets"',
-      default: "default",
-      description: "tag[]=a&tag[]=b — Rails, PHP, Laravel",
-    },
-    repeat: { type: '"repeat"', description: "tag=a&tag=b — Express, Go, Spring" },
-    comma: { type: '"comma"', description: "tag=a,b — some REST APIs" },
-  }}
-/>
+| `arrayFormat` | `{ tag: ["a", "b"] }` becomes | Used by |
+| ------------- | ----------------------------- | ------- |
+| `"brackets"` *(default)* | `tag[]=a&tag[]=b` | Rails, PHP, Laravel |
+| `"repeat"` | `tag=a&tag=b` | Express, Go, Spring |
+| `"comma"` | `tag=a,b` | Some REST APIs |
 
 ```typescript
 await api.get("/posts", {
@@ -91,14 +85,12 @@ generate the multipart boundary — see
 
 `responseType` decides how the body is read.
 
-<TypeTable
-  type={{
-    json: { type: '"json"', default: "default", description: "Parsed as JSON." },
-    text: { type: '"text"', description: "Returned as a string." },
-    blob: { type: '"blob"', description: "For binary payloads in the browser." },
-    arrayBuffer: { type: '"arrayBuffer"', description: "For binary payloads anywhere." },
-  }}
-/>
+| `responseType` | Body is read as |
+| -------------- | --------------- |
+| `"json"` *(default)* | Parsed JSON |
+| `"text"` | A string |
+| `"blob"` | A `Blob`, for binary payloads in the browser |
+| `"arrayBuffer"` | An `ArrayBuffer`, for binary payloads anywhere |
 
 An empty successful response — a `204`, most often — yields `undefined` rather
 than failing to parse, which is what a naive `res.json()` does.

@@ -19,27 +19,7 @@ interface Transport {
 
 ## `TransportResponse`
 
-<TypeTable
-  type={{
-    status: { type: "number", required: true, description: "HTTP status code." },
-    statusText: { type: "string", required: true },
-    headers: {
-      type: "Record<string, string>",
-      required: true,
-      description: "Response headers, lowercased.",
-    },
-    data: {
-      type: "unknown",
-      required: true,
-      description: "The parsed body, already read according to responseType.",
-    },
-    rawResponse: {
-      type: "Response",
-      description:
-        "The native response, when there was one. Absent for a synthetic transport.",
-    },
-  }}
-/>
+<auto-type-table path="../../../../../../packages/core/src/transport.ts" name="TransportResponse" />
 
 ## The built-in transports
 

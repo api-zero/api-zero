@@ -11,62 +11,7 @@ Anything here can be overridden for a single call through
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/create-client.ts</include>
 
-<TypeTable
-  type={{
-    baseURL: {
-      type: "string",
-      default: '""',
-      description: "Prefix for every endpoint. Requests pass a path, not a URL.",
-    },
-    timeout: {
-      type: "number",
-      default: "30000",
-      description:
-        "Milliseconds before the request is aborted. 0 disables the timeout entirely.",
-    },
-    headers: {
-      type: "Record<string, string>",
-      default: "{}",
-      description: "Sent with every request. Names are matched case-insensitively.",
-    },
-    credentials: {
-      type: "RequestCredentials",
-      description:
-        'Standard Fetch credentials mode: "omit", "same-origin" or "include".',
-    },
-    retry: {
-      type: "RetryConfig | false",
-      default: "false",
-      typeDescription: "Off unless configured.",
-      typeDescriptionLink: "/docs/core/api-reference/retry-config",
-      description:
-        "Retry policy. Deliberately disabled by default: a client that silently repeats requests can charge a customer twice.",
-    },
-    transformRequest: {
-      type: "fn | fn[]",
-      description:
-        "Runs on the body before request interceptors. May be async. Client-level transforms run before per-request ones.",
-    },
-    transformResponse: {
-      type: "fn | fn[]",
-      description:
-        "Runs on the parsed body before validation. May be async. This is where @api-zero/zod plugs in.",
-    },
-    paramsSerializer: {
-      type: "ParamsSerializerConfig",
-      description:
-        'How arrays become a query string: "brackets", "repeat" or "comma".',
-    },
-    transport: {
-      type: "Transport",
-      default: "auto",
-      typeDescription: "Replaces the network layer entirely.",
-      typeDescriptionLink: "/docs/core/api-reference/transport",
-      description:
-        "Bypasses the automatic Fetch/XHR selection. Mostly useful in tests.",
-    },
-  }}
-/>
+<auto-type-table path="../../../../../../packages/core/src/types.ts" name="ApiClientConfig" />
 
 ## Changing it later
 

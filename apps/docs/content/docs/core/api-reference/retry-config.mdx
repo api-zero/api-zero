@@ -11,66 +11,7 @@ behind these options.
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/retry-config.ts</include>
 
-<TypeTable
-  type={{
-    attempts: {
-      type: "number",
-      required: true,
-      description:
-        "Total attempts including the first. 1 or less disables retrying.",
-    },
-    delay: {
-      type: "number",
-      required: true,
-      description: "Base delay in milliseconds, before backoff is applied.",
-    },
-    maxDelay: {
-      type: "number",
-      default: "30000",
-      description: "Upper bound for any single wait, applied after backoff.",
-    },
-    backoff: {
-      type: '"exponential" | "linear" | fn',
-      default: '"exponential"',
-      description:
-        "exponential gives delay × 2^(attempt-1); linear gives delay × attempt. A function receives (attempt, error) and returns milliseconds.",
-    },
-    jitter: {
-      type: "boolean",
-      default: "true",
-      description:
-        "Multiplies the delay by a random factor between 0.5 and 1, so clients recovering from the same outage do not stampede in lockstep.",
-    },
-    respectRetryAfter: {
-      type: "boolean",
-      default: "true",
-      description:
-        "Obey a Retry-After header on 429 and 503. When present it wins outright and backoff is skipped. Both seconds and HTTP-date forms are parsed.",
-    },
-    retryMethods: {
-      type: "HttpMethod[]",
-      default: '["GET", "PUT", "DELETE"]',
-      description:
-        "Methods eligible for automatic retry. These are the idempotent ones.",
-    },
-    retryUnsafeMethods: {
-      type: "boolean",
-      default: "false",
-      description:
-        "Also allow POST and PATCH. Only for endpoints you know are safe to repeat.",
-    },
-    retryCondition: {
-      type: "(error: ApiError, attempt: number) => boolean",
-      description:
-        "Replaces the default eligibility test entirely — including the method check. See the warning below.",
-    },
-    onRetry: {
-      type: "(event: RetryEvent) => void",
-      description:
-        "Called before each wait, with the attempt, the error and the delay about to be taken.",
-    },
-  }}
-/>
+<auto-type-table path="../../../../../../packages/core/src/types.ts" name="RetryConfig" />
 
 <Callout type="warn">
   **`retryCondition` bypasses the method check.** It replaces the whole
@@ -81,22 +22,7 @@ behind these options.
 
 ## `RetryEvent`
 
-<TypeTable
-  type={{
-    attempt: { type: "number", description: "The attempt that just failed." },
-    maxAttempts: { type: "number", description: "The configured total." },
-    error: {
-      type: "ApiError",
-      typeDescriptionLink: "/docs/core/api-reference/api-error",
-      description: "The failure that triggered the retry.",
-    },
-    delay: {
-      type: "number",
-      description: "Milliseconds about to be waited, jitter included.",
-    },
-    request: { type: "RequestContext", description: "The request being retried." },
-  }}
-/>
+<auto-type-table path="../../../../../../packages/core/src/types.ts" name="RetryEvent" />
 
 ## See also
 
