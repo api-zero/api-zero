@@ -1,3 +1,6 @@
+import { HomeLayout } from "fumadocs-ui/layouts/home";
+import { baseOptions } from "@/lib/layout.shared";
+
 export default function Layout({ children }: LayoutProps<"/">) {
-  return <div className="flex min-h-screen flex-col">{children}</div>;
+  return <HomeLayout {...baseOptions()}>{children}</HomeLayout>;
 }

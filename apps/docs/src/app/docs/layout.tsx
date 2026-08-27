@@ -19,7 +19,6 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
     <DocsLayout
       tree={source.pageTree}
       {...baseOptions()}
-      githubUrl="https://github.com/api-zero/api-zero"
     >
       {children}
       {askAiEnabled && (

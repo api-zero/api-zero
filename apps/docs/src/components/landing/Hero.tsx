@@ -1,4 +1,5 @@
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
+import { HeroGrain, HeroSphere } from "./shaders";
 import { ArrowRight, Github } from "lucide-react";
 import Link from "next/link";
 
@@ -27,14 +28,17 @@ export function Hero() {
         anything.
       */}
       <div className="relative mx-auto max-w-5xl overflow-hidden rounded-2xl border border-fd-border bg-fd-card">
-        {/* The accent has to exist somewhere before the eye reaches a button. */}
+        <HeroGrain />
+        <HeroSphere />
+        {/* Keeps the text legible over the brightest part of the gradient. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-48 -left-24 h-[42rem] w-[52rem] blur-3xl"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, var(--brand-glow), transparent 70%)",
-          }}
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-fd-card via-fd-card/70 to-transparent"
+        />
+        {/* The decoration has to end before the code panel starts. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-fd-card to-transparent"
         />
 
         <div className="relative px-6 pt-16 pb-0 sm:px-12 sm:pt-20">
