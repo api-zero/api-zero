@@ -1,95 +1,60 @@
-"use client";
-
 import { ArrowRight, Github } from "lucide-react";
-import { motion } from "motion/react";
 import Link from "next/link";
-import AnimatedGridPattern from "@/components/ui/animated-grid-pattern";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export function Hero() {
   return (
-    <div className="relative min-h-screen flex items-center justify-center px-6 pt-20 overflow-hidden">
-      <AnimatedGridPattern
-        numSquares={30}
-        maxOpacity={0.1}
-        duration={3}
-        className={cn(
-          "mask-[radial-gradient(500px_circle_at_center,white,transparent)]",
-          "inset-x-0 h-full skew-y-12",
-        )}
-      />
-      <div className="relative z-10 text-center max-w-3xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Badge
-            variant="secondary"
-            className="rounded-full py-1 border-border text-primary"
-            asChild
-          >
-            <Link href="/docs">
-              v1.0.0 is now available <ArrowRight className="ml-1 size-4" />
-            </Link>
-          </Badge>
-        </motion.div>
+    <section className="relative flex flex-col items-center px-6 pt-28 pb-20 text-center sm:pt-36">
+      <Link
+        href="/docs/core/get-started/installation"
+        className="landing-enter group inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card px-3 py-1 text-fd-muted-foreground text-sm transition-colors hover:text-fd-foreground"
+      >
+        <span className="font-medium text-fd-primary">v0.1.5</span>
+        <span aria-hidden>·</span>
+        on npm, Node 22+ and Edge
+        <ArrowRight className="size-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+      </Link>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-6 text-4xl sm:text-5xl md:text-6xl lg:text-7xl md:leading-[1.2] font-semibold tracking-tighter"
-        >
-          The HTTP client you've been{" "}
-          <span className="text-gradient">waiting for</span>
-        </motion.h1>
+      <h1
+        className="landing-enter mt-8 max-w-3xl text-balance font-semibold text-4xl tracking-tight sm:text-5xl md:text-6xl"
+        style={{ transitionDelay: "60ms" }}
+      >
+        Stop writing the same{" "}
+        <code className="rounded-lg bg-fd-primary/10 px-2 py-1 font-mono text-fd-primary text-[0.85em]">
+          api.ts
+        </code>{" "}
+        in every project
+      </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mt-6 md:text-lg text-foreground/80"
-        >
-          Fetch is too basic. Axios is too heavy.{" "}
-          <span className="text-gradient font-medium">api-zero</span> is the
-          lightweight, type-safe alternative designed for modern React
-          applications.
-        </motion.p>
+      <p
+        className="landing-enter mt-6 max-w-xl text-balance text-fd-muted-foreground md:text-lg"
+        style={{ transitionDelay: "120ms" }}
+      >
+        A Fetch-based HTTP client built around reliable transport and
+        runtime-validated contracts. It sits underneath TanStack Query and SWR
+        rather than competing with them.
+      </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="mt-12 flex items-center justify-center gap-4"
+      <div
+        className="landing-enter mt-10 flex flex-wrap items-center justify-center gap-3"
+        style={{ transitionDelay: "180ms" }}
+      >
+        <Link
+          href="/docs/core/get-started/quickstart"
+          className="inline-flex h-11 items-center gap-2 rounded-full bg-fd-primary px-6 font-medium text-fd-primary-foreground text-sm transition-[transform,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"
         >
-          <Button
-            size="lg"
-            className="rounded-full text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
-            asChild
-          >
-            <Link href="/docs">
-              Get Started <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="rounded-full text-base shadow-none hover:text-primary hover:bg-primary/5"
-            asChild
-          >
-            <Link
-              href="https://github.com/api-zero/api-zero"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Github className="mr-2 h-5 w-5" /> GitHub
-            </Link>
-          </Button>
-        </motion.div>
+          Get started
+          <ArrowRight className="size-4" />
+        </Link>
+        <Link
+          href="https://github.com/api-zero/api-zero"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex h-11 items-center gap-2 rounded-full border border-fd-border px-6 font-medium text-sm transition-[transform,background-color] duration-150 ease-out hover:bg-fd-accent active:scale-[0.97]"
+        >
+          <Github className="size-4" />
+          GitHub
+        </Link>
       </div>
-    </div>
+    </section>
   );
 }

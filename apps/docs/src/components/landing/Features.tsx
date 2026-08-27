@@ -1,216 +1,87 @@
-"use client";
-
-import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
-import { Bug, Code2, Gauge, RefreshCw, Shield, Zap } from "lucide-react";
-import { useState } from "react";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  CircleAlert,
+  Component,
+  Network,
+  RefreshCw,
+  ShieldCheck,
+  Workflow,
+} from "lucide-react";
+import Link from "next/link";
+import { Reveal } from "./reveal";
 
-const features = [
+const FEATURES = [
   {
-    icon: Zap,
-    title: "Lightweight & Fast",
-    description:
-      "Built to be minimal and performant. No bloat, just what you need to make HTTP requests efficiently.",
-    code: `import { createClient } from '@api-zero/core';
-
-const api = createClient({
-  baseURL: 'https://api.example.com',
-  timeout: 5000,
-});
-
-// Simple and fast
-const users = await api.get<User[]>('/users');`,
-    lang: "typescript",
-  },
-  {
-    icon: Shield,
-    title: "Type-Safe by Default",
-    description:
-      "Full TypeScript support with generic types for requests, responses, and parameters. Catch errors at compile time.",
-    code: `interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface CreateUserBody {
-  name: string;
-  email: string;
-}
-
-// Type-safe request and response
-const newUser = await api.post<User, CreateUserBody>(
-  '/users',
-  { name: 'John', email: 'john@example.com' }
-);`,
-    lang: "typescript",
+    icon: CircleAlert,
+    color: "text-red-500",
+    title: "One error type",
+    body: "A DNS failure rejects and a 500 resolves — in native fetch. Here every failure arrives as an ApiError with the status, the resolved URL, the attempt and the original cause.",
+    href: "/docs/core/guides/errors",
   },
   {
     icon: RefreshCw,
-    title: "Smart Retry Logic",
-    description:
-      "Automatic retry with exponential backoff for failed requests. Configurable retry strategies out of the box.",
-    code: `const api = createClient({
-  baseURL: 'https://api.example.com',
-  retry: {
-    attempts: 3,
-    backoff: 'exponential',
-    delay: 1000,
-  },
-});
-
-// Automatically retries on failure
-const data = await api.get('/unstable-endpoint');`,
-    lang: "typescript",
+    color: "text-orange-500",
+    title: "Retries you can defend",
+    body: "Off until you configure them. Then: idempotent methods only, Retry-After honoured, exponential backoff with jitter, and cancellation that lands mid-wait.",
+    href: "/docs/core/guides/retries",
   },
   {
-    icon: Code2,
-    title: "Interceptors",
-    description:
-      "Powerful request and response interceptors to modify requests, add authentication, or handle responses globally.",
-    code: `api.interceptors.request.use((config) => {
-  // Add auth token to all requests
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = \`Bearer \${token}\`;
-  }
-  return config;
-});
-
-api.interceptors.response.use((response) => {
-  // Log all responses
-  console.log('Response:', response.status);
-  return response;
-});`,
-    lang: "typescript",
+    icon: Workflow,
+    color: "text-emerald-500",
+    title: "A documented lifecycle",
+    body: "Transforms, interceptors, transport, validation. Rejection handlers see every failure class, which is what makes a token-refresh interceptor possible at all.",
+    href: "/docs/core/get-started/concepts",
   },
   {
-    icon: Gauge,
-    title: "Progress Tracking",
-    description:
-      "Track upload and download progress with built-in callbacks. Perfect for file uploads and large downloads.",
-    code: `await api.post('/upload', formData, {
-  onUploadProgress: (progress) => {
-    const percentage = (progress.loaded / progress.total) * 100;
-    console.log(\`Upload: \${percentage}%\`);
-  },
-});
-
-await api.get('/large-file', {
-  onDownloadProgress: (progress) => {
-    const percentage = (progress.loaded / progress.total) * 100;
-    console.log(\`Download: \${percentage}%\`);
-  },
-});`,
-    lang: "typescript",
+    icon: Network,
+    color: "text-teal-500",
+    title: "Transport is a boundary",
+    body: "One interface with one method. Swap it and the whole network layer is replaced — which is how the test suite runs with no server and no patched globals.",
+    href: "/docs/core/guides/testing-with-transports",
   },
   {
-    icon: Bug,
-    title: "Better Error Handling",
-    description:
-      "Comprehensive error types with detailed context. Easily differentiate between network errors, timeouts, and HTTP errors.",
-    code: `try {
-  const data = await api.get('/users');
-} catch (error) {
-  if (error.isNetworkError) {
-    console.error('Network issue:', error.message);
-  } else if (error.isTimeout) {
-    console.error('Request timed out');
-  } else if (error.response?.status === 404) {
-    console.error('Resource not found');
-  }
-}`,
-    lang: "typescript",
+    icon: ShieldCheck,
+    color: "text-violet-500",
+    title: "Contracts, not assertions",
+    body: "api.get<User>() is a promise you make to yourself. Add @api-zero/zod and the schema produces both the check and the type, so they cannot disagree.",
+    href: "/docs/zod",
+  },
+  {
+    icon: Component,
+    color: "text-cyan-500",
+    title: "React without a wrapper",
+    body: "ApiProvider and useApi. No cache, no useQuery — those belong to TanStack Query and SWR, and pairing with them is the intended setup.",
+    href: "/docs/react",
   },
 ];
 
-import { motion } from "motion/react";
-
-// ... existing imports
-
 export function Features() {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
   return (
-    <section id="features" className="py-24 relative overflow-hidden">
-      <div className="container px-4 md:px-6 mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-4xl md:text-5xl md:leading-14 font-semibold tracking-[-0.03em] max-w-lg">
-            Powerful Features for{" "}
-            <span className="text-gradient">Modern Apps</span>
+    <section className="border-fd-border border-t px-6 py-24">
+      <div className="mx-auto max-w-5xl">
+        <Reveal>
+          <h2 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+            What you get for those five lines
           </h2>
-        </motion.div>
+        </Reveal>
 
-        <div className="mt-10 w-full mx-auto grid md:grid-cols-2 gap-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Accordion
-              defaultValue="item-0"
-              type="single"
-              className="w-full"
-              onValueChange={(value) => {
-                const index = Number.parseInt(value.split("-")[1], 10);
-                setSelectedIndex(index);
-              }}
-            >
-              {features.map(({ title, description, icon: Icon }, index) => (
-                <AccordionItem
-                  key={index}
-                  value={`item-${index}`}
-                  className="group/accordion-item data-[state=open]:border-b-2 data-[state=open]:border-primary"
-                >
-                  <AccordionTrigger className="text-lg [&>svg]:hidden group-first/accordion-item:pt-0">
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-primary/10 group-data-[state=open]/accordion-item:bg-primary/20 transition-colors">
-                        <Icon className="w-5 h-5 text-primary" />
-                      </div>
-                      {title}
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-[17px] leading-relaxed text-muted-foreground pl-[52px]">
-                    {description}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </motion.div>
-
-          {/* Code Block */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="hidden md:block w-full h-full"
-          >
-            <div className="sticky top-24 shadow-2xl shadow-primary/10 rounded-xl overflow-hidden border border-primary/20">
-              <DynamicCodeBlock
-                lang="ts"
-                codeblock={{ title: "api-client.ts" }}
-                code={features[selectedIndex].code}
-                options={{
-                  themes: {
-                    light: "catppuccin-latte",
-                    dark: "catppuccin-mocha",
-                  },
-                }}
-              />
-            </div>
-          </motion.div>
+        <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-fd-border bg-fd-border sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((feature, index) => (
+            <Reveal key={feature.href} delay={index * 40}>
+              <Link
+                href={feature.href}
+                className="group flex h-full flex-col bg-fd-card p-6 transition-colors duration-200 ease-out hover:bg-fd-accent"
+              >
+                <feature.icon className={`size-5 ${feature.color}`} />
+                <h3 className="mt-4 font-medium">{feature.title}</h3>
+                <p className="mt-2 text-fd-muted-foreground text-sm leading-relaxed">
+                  {feature.body}
+                </p>
+                <span className="mt-4 font-medium text-fd-primary text-sm opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100">
+                  Read more →
+                </span>
+              </Link>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>

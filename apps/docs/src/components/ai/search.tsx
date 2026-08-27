@@ -6,6 +6,7 @@ import {
   type UIMessage,
   type UIToolInvocation,
 } from "ai";
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import {
   Loader2,
   MessageCircleIcon,
@@ -29,7 +30,6 @@ import {
 import { flushSync } from "react-dom";
 import { cn } from "@/lib/utils";
 import { Markdown } from "../markdown";
-import { buttonVariants } from "../ui/button";
 
 export type ChatUIMessage = UIMessage<
   never,
@@ -75,7 +75,7 @@ export function AISearchPanelHeader({
         className={cn(
           buttonVariants({
             size: "icon-sm",
-            variant: "ghost",
+            color: "ghost",
             className: "text-fd-muted-foreground rounded-full",
           }),
         )}
@@ -100,7 +100,7 @@ export function AISearchInputActions() {
           type="button"
           className={cn(
             buttonVariants({
-              variant: "secondary",
+              color: "secondary",
               size: "sm",
               className: "rounded-full gap-1.5",
             }),
@@ -115,7 +115,7 @@ export function AISearchInputActions() {
         type="button"
         className={cn(
           buttonVariants({
-            variant: "secondary",
+            color: "secondary",
             size: "sm",
             className: "rounded-full",
           }),
@@ -191,7 +191,7 @@ export function AISearchInput(props: ComponentProps<"form">) {
           type="button"
           className={cn(
             buttonVariants({
-              variant: "secondary",
+              color: "secondary",
               className: "transition-all rounded-full mt-2 gap-2",
             }),
           )}
@@ -206,7 +206,7 @@ export function AISearchInput(props: ComponentProps<"form">) {
           type="submit"
           className={cn(
             buttonVariants({
-              variant: "default",
+              color: "primary",
               className: "transition-all rounded-full mt-2",
             }),
           )}

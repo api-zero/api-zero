@@ -1,80 +1,66 @@
-"use client";
+import Link from "next/link";
+import { Reveal } from "./reveal";
 
-import { motion } from "motion/react";
+const STATS = [
+  {
+    value: "6.0 kB",
+    label: "@api-zero/core, gzipped",
+    body: "Measured from the published bundle on every CI run, with a budget that fails the build if it grows.",
+  },
+  {
+    value: "0.7 kB",
+    label: "@api-zero/react",
+    body: "A provider and a hook. Everything else is core, which you would install anyway.",
+  },
+  {
+    value: "0",
+    label: "runtime dependencies",
+    body: "Native fetch. Zod and React are peer dependencies of their own packages, never bundled.",
+  },
+  {
+    value: "44",
+    label: "compiled examples",
+    body: "Every snippet in these docs is a real file, type-checked against the published packages on every build.",
+  },
+];
 
 export function Comparison() {
   return (
-    <section
-      id="comparison"
-      className="py-24 border-t relative overflow-hidden"
-    >
-      <div className="container px-4 md:px-6 mx-auto relative z-10">
-        {/* Stats Section - using stats-02 block structure */}
-        <div className="max-w-(--breakpoint-xl) mx-auto w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tighter">
-              Why choose <span className="text-gradient">api-zero</span>?
-            </h2>
-            <p className="mt-4 text-lg max-w-2xl text-muted-foreground">
-              The perfect balance between simplicity and power. All the features
-              you need without the bloat.
-            </p>
-          </motion.div>
+    <section className="border-fd-border border-t px-6 py-24">
+      <div className="mx-auto max-w-5xl">
+        <Reveal>
+          <h2 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+            Numbers we actually measure
+          </h2>
+          <p className="mt-4 max-w-2xl text-fd-muted-foreground">
+            We do not publish a comparison table against other libraries. Their
+            numbers are not ours to claim, and a table like that ages badly.
+            These are ours, and CI keeps them honest.
+          </p>
+        </Reveal>
 
-          <div className="mt-16 sm:mt-24 grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-10 gap-y-16 justify-center">
-            {[
-              {
-                value: "~2KB",
-                label: "Bundle Size",
-                description:
-                  "Gzipped. 15x smaller than Axios (~30KB), keeping your app lightning fast.",
-                highlight: true,
-              },
-              {
-                value: "100%",
-                label: "TypeScript",
-                description:
-                  "Full type safety with generic request/response types built-in.",
-                highlight: false,
-              },
-              {
-                value: "Zero",
-                label: "Dependencies",
-                description:
-                  "No external dependencies. Just modern JavaScript and native Fetch API.",
-                highlight: true,
-              },
-              {
-                value: "6+",
-                label: "Core Features",
-                description:
-                  "Retries, interceptors, progress tracking, and more out of the box.",
-                highlight: false,
-              },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
-                <span
-                  className={`text-5xl md:text-6xl tracking-tight font-semibold ${stat.highlight ? "text-primary" : "text-muted-foreground"}`}
-                >
-                  {stat.value}
-                </span>
-                <p className="mt-6 font-medium text-xl">{stat.label}</p>
-                <p className="mt-2 text-muted-foreground">{stat.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+        <dl className="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+          {STATS.map((stat, index) => (
+            <Reveal key={stat.label} delay={index * 40}>
+              <dt className="font-semibold text-4xl tracking-tight">
+                {stat.value}
+              </dt>
+              <dd className="mt-2 font-medium text-sm">{stat.label}</dd>
+              <dd className="mt-2 text-fd-muted-foreground text-sm leading-relaxed">
+                {stat.body}
+              </dd>
+            </Reveal>
+          ))}
+        </dl>
+
+        <Reveal delay={160} className="mt-12">
+          <Link
+            href="/docs/core"
+            className="font-medium text-fd-primary text-sm transition-opacity duration-200 ease-out hover:opacity-80"
+          >
+            How the three packages split →
+          </Link>
+        </Reveal>
       </div>
     </section>
   );

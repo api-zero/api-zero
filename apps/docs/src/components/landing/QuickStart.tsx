@@ -1,87 +1,59 @@
-"use client";
-
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
-import { ArrowRight, RouteIcon } from "lucide-react";
-import { motion } from "motion/react";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Reveal } from "./reveal";
+
+const MANAGERS = [
+  { name: "pnpm", command: "pnpm add @api-zero/core" },
+  { name: "npm", command: "npm install @api-zero/core" },
+  { name: "yarn", command: "yarn add @api-zero/core" },
+  { name: "bun", command: "bun add @api-zero/core" },
+];
 
 export function QuickStart() {
   return (
-    <section
-      id="quickstart"
-      className="py-24 border-t relative overflow-hidden"
-    >
-      <div className="container px-4 md:px-6 mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto"
-        >
-          <h2 className="text-4xl md:text-5xl font-semibold tracking-tighter">
-            Ready to make calls with{" "}
-            <span className="text-gradient">zero overhead</span>?
+    <section className="border-fd-border border-t px-6 py-24">
+      <div className="mx-auto max-w-2xl text-center">
+        <Reveal>
+          <h2 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+            One package to start
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Join the developers who are switching to a lighter, more modern HTTP
-            client. Get started in seconds.
+          <p className="mt-4 text-fd-muted-foreground">
+            <code className="text-fd-primary">@api-zero/core</code> is all you
+            need. React bindings and Zod contracts are separate packages you add
+            only if your project already has React or Zod.
           </p>
+        </Reveal>
 
-          <div className="flex flex-col items-center gap-6 mt-10">
-            <Tabs items={["npm", "pnpm", "yarn", "bun"]}>
-              <Tab value="npm">
-                <DynamicCodeBlock
-                  lang="bash"
-                  code="npm install @api-zero/core @api-zero/react"
-                />
+        <Reveal delay={60} className="mt-10 text-left">
+          <Tabs items={MANAGERS.map((m) => m.name)}>
+            {MANAGERS.map((manager) => (
+              <Tab key={manager.name} value={manager.name}>
+                <DynamicCodeBlock lang="bash" code={manager.command} />
               </Tab>
-              <Tab value="pnpm">
-                <DynamicCodeBlock
-                  lang="bash"
-                  code="pnpm add @api-zero/core @api-zero/react"
-                />
-              </Tab>
-              <Tab value="yarn">
-                <DynamicCodeBlock
-                  lang="bash"
-                  code="yarn add @api-zero/core @api-zero/react"
-                />
-              </Tab>
-              <Tab value="bun">
-                <DynamicCodeBlock
-                  lang="bash"
-                  code="bun add @api-zero/core @api-zero/react"
-                />
-              </Tab>
-            </Tabs>
+            ))}
+          </Tabs>
+        </Reveal>
 
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                size="lg"
-                className="rounded-full text-base shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all"
-                asChild
-              >
-                <Link href="/docs">
-                  Read the Docs <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="rounded-full text-base shadow-none hover:text-primary hover:bg-primary/5"
-                asChild
-              >
-                <Link href="/docs/getting-started">
-                  Quick Start Guide
-                  <RouteIcon className="mr-2 h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </motion.div>
+        <Reveal
+          delay={120}
+          className="mt-10 flex flex-wrap items-center justify-center gap-3"
+        >
+          <Link
+            href="/docs/core/get-started/quickstart"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-fd-primary px-6 font-medium text-fd-primary-foreground text-sm transition-[transform,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"
+          >
+            Your first request
+            <ArrowRight className="size-4" />
+          </Link>
+          <Link
+            href="/docs/core/get-started/concepts"
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-fd-border px-6 font-medium text-sm transition-[transform,background-color] duration-150 ease-out hover:bg-fd-accent active:scale-[0.97]"
+          >
+            How it works
+          </Link>
+        </Reveal>
       </div>
     </section>
   );
