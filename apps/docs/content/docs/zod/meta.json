@@ -3,5 +3,11 @@
   "icon": "ShieldCheck",
   "description": "Runtime-validated contracts",
   "root": true,
-  "pages": ["index", "guides", "api-reference"]
+  "pages": [
+    "index",
+    "---Guides---",
+    "...guides",
+    "---Reference---",
+    "...api-reference"
+  ]
 }

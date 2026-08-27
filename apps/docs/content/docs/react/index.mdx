@@ -1,46 +1,103 @@
 ---
 title: React
 description: One configured client, available anywhere in the tree.
+icon: Component
 ---
 
-import { Boxes, Database, FlaskConical, RefreshCw, Server } from 'lucide-react';
+import { Anchor, Boxes, Database, FlaskConical, RefreshCw, Server } from 'lucide-react';
 
-## What this package is for
+Every React project ends up with the same file: a client wrapper, a place to
+stash the auth token, an interceptor for 401s, and re-declared `.get` / `.post`
+helpers. It is called `api.ts` or `useApi.ts`, it is subtly different in every
+project, and nobody ever tests it.
 
-Every project ends up with the same hand-written `api.ts`: a client wrapper, a
-place to stash the auth token, an interceptor or two, and re-declared `.get` /
-`.post` helpers. That file is what `@api-zero/react` replaces.
+`@api-zero/react` is that file, written once.
 
-## What it deliberately is not
+## What it is not
 
-It is not a data-fetching library. There is no cache, no deduplication, no
-invalidation and no `useQuery` equivalent — those belong to
-[TanStack Query](https://tanstack.com/query) or [SWR](https://swr.vercel.app),
-which solve them far better than a transport layer should try to.
+<Callout type="warn">
+  **This is not a data-fetching library.** There is no cache, no deduplication,
+  no invalidation and no `useQuery` equivalent.
+</Callout>
 
-api-zero is the transport and contract layer underneath them. Pairing the two is
-the intended setup, not a workaround.
+Those belong to [TanStack Query](https://tanstack.com/query) or
+[SWR](https://swr.vercel.app), which solve them far better than a transport
+layer should try to. api-zero sits **underneath** them, and pairing the two is
+the intended setup rather than a workaround.
+
+The package used to ship `useRequest` and `useMutation`. They were removed
+before the first release — see
+[ADR-003](https://github.com/api-zero/api-zero/blob/main/docs/adr/003-scope-boundary-and-public-surface.md)
+for why, including the pagination bug that came from building a query library by
+accident.
 
 ## Installation
 
-```bash
-pnpm add @api-zero/react @api-zero/core
-```
+`@api-zero/core` is a peer dependency, so install both.
 
-## Provide the client once
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
 
-`ApiProvider` accepts either an existing `client` or a `config`. Passing a client
-you created yourself is the recommended form: it makes the instance's lifetime
-explicit and immune to re-render identity changes.
+  <Tab value="npm">
+
+    ```bash
+    npm install @api-zero/core @api-zero/react
+    ```
+
+  </Tab>
+
+  <Tab value="pnpm">
+
+    ```bash
+    pnpm add @api-zero/core @api-zero/react
+    ```
+
+  </Tab>
+
+  <Tab value="yarn">
+
+    ```bash
+    yarn add @api-zero/core @api-zero/react
+    ```
+
+  </Tab>
+
+  <Tab value="bun">
+
+    ```bash
+    bun add @api-zero/core @api-zero/react
+    ```
+
+  </Tab>
+
+</Tabs>
+
+React 18 and 19 are both supported.
+
+## Setup
+
+<Steps>
+
+### Create the client
+
+Outside the component tree, so its identity never changes across renders.
 
 <include meta='title="app/providers.tsx"'>../../../../../examples/src/react-provider.tsx</include>
 
-## Reach it anywhere with `useApi`
+### Reach it from any component
 
 <include meta='title="components/sign-in-button.tsx"'>../../../../../examples/src/react-use-api.tsx</include>
 
 Every component now shares that client, its headers, its interceptors and its
-retry policy. No wrapper module, no token plumbing.
+retry policy. Setting a token in one is visible to all of them.
+
+### Add a cache
+
+api-zero deliberately stops here. Pair it with TanStack Query or SWR, and
+forward the `signal` so cancellation reaches the real request.
+
+<include meta='title="hooks/use-user.ts"'>../../../../../examples/src/react-tanstack.tsx</include>
+
+</Steps>
 
 ## Guides
 
@@ -77,10 +134,21 @@ retry policy. No wrapper module, no token plumbing.
   />
 </Cards>
 
-## API
+## Reference
 
-| Export | Purpose |
-| ------ | ------- |
-| [`ApiProvider`](/docs/react/api-reference/api-provider) | Publishes an `ApiClient` to the tree, from a `client` or a `config`. |
-| [`useApi()`](/docs/react/api-reference/use-api-hook) | Returns the provided client. Throws outside a provider. |
-| `ApiContext` | The underlying context, for advanced composition. |
+<Cards>
+  <Card
+    icon={<Boxes className="text-violet-500" />}
+    title="ApiProvider"
+    href="/docs/react/api-reference/api-provider"
+    description="Publishes a client to the tree"
+  />
+  <Card
+    icon={<Anchor className="text-cyan-500" />}
+    title="useApi"
+    href="/docs/react/api-reference/use-api-hook"
+    description="Returns the provided client"
+  />
+</Cards>
+
+`ApiContext` is also exported, for composition beyond what `useApi` covers.

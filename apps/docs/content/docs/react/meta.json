@@ -3,5 +3,11 @@
   "icon": "Component",
   "description": "One configured client for the tree",
   "root": true,
-  "pages": ["index", "guides", "api-reference"]
+  "pages": [
+    "index",
+    "---Guides---",
+    "...guides",
+    "---Reference---",
+    "...api-reference"
+  ]
 }

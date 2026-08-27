@@ -7,46 +7,102 @@ icon: ShieldCheck
 import { Braces, FileCheck, Puzzle, Send, TriangleAlert } from 'lucide-react';
 
 `api.get<User>("/users/1")` is a promise you make to yourself. Nothing checks it.
+
 If the API renames a field, drops one, or returns `null` where you expected a
 string, TypeScript stays quiet and your code fails somewhere else entirely —
-usually in a component, usually with a message that says nothing about the API.
+usually in a component, with a message that says nothing about the API.
 
 `@api-zero/zod` closes that gap. The schema validates the payload **and**
 produces the type, so the two cannot disagree.
 
 ## Installation
 
-```bash
-pnpm add @api-zero/core @api-zero/zod zod
-```
-
 Both `@api-zero/core` and `zod` are peer dependencies: you keep control of the
 versions, and there is only ever one copy of each in your tree.
 
-## The shape of it
+<Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
+
+  <Tab value="npm">
+
+    ```bash
+    npm install @api-zero/core @api-zero/zod zod
+    ```
+
+  </Tab>
+
+  <Tab value="pnpm">
+
+    ```bash
+    pnpm add @api-zero/core @api-zero/zod zod
+    ```
+
+  </Tab>
+
+  <Tab value="yarn">
+
+    ```bash
+    yarn add @api-zero/core @api-zero/zod zod
+    ```
+
+  </Tab>
+
+  <Tab value="bun">
+
+    ```bash
+    bun add @api-zero/core @api-zero/zod zod
+    ```
+
+  </Tab>
+
+</Tabs>
+
+Zod 3 and 4 are both supported.
+
+## Setup
+
+<Steps>
+
+### Describe the payload once
 
 <include meta='title="lib/api.ts"'>../../../../../examples/src/zod-typed-response.ts</include>
 
-Two things happen at once. `createdAt` arrives as a string and is handed to you
-as a `Date`, because the schema said so. And `user` is typed from that same
-schema — no interface to keep in sync, no cast.
+Two things happen at once. `createdAt` arrives as a string and reaches you as a
+`Date`, because the schema said so. And `user` is typed from that same schema —
+no interface to keep in sync, no cast.
 
-## When a payload does not match
+### Validate what you send, too
+
+<include meta='title="users.ts"'>../../../../../examples/src/zod-validated-body.ts</include>
+
+An invalid body never reaches the network.
+
+### Handle the failure
 
 <include meta='title="users.ts"'>../../../../../examples/src/zod-error.ts</include>
 
 `ZodValidationError` extends `ApiError`, so it flows through the same catch
-blocks, the same interceptors and the same `instanceof ApiError` checks as every
-other failure. It adds `issues`, the original `zodError`, and `target` — which
-tells you whether the request body or the response was at fault.
+blocks, interceptors and `instanceof ApiError` checks as every other failure.
 
-`flatten()` and `format()` come from Zod and are useful for turning issues into
-form errors.
+</Steps>
 
-<Callout type="info">
-  Validation failures are never retried. A payload that failed the schema will
-  fail identically on the next attempt — retrying only delays the error.
-</Callout>
+## How it fits the lifecycle
+
+A schema is a transform, not a separate mechanism.
+
+<Accordions>
+  <Accordion title="A response schema runs after parsing, before interceptors">
+    So a response interceptor sees already-validated, already-transformed data —
+    not a raw payload it would have to re-check.
+  </Accordion>
+  <Accordion title="A body schema runs before the request is built">
+    So an invalid payload never reaches the transport, and the failure arrives
+    with `target: "body"` rather than as a `400` from the server.
+  </Accordion>
+  <Accordion title="Validation failures are never retried">
+    A payload that failed the schema fails identically on the next attempt.
+    `isRetryable()` returns `false`, so the retry policy skips it.
+  </Accordion>
+</Accordions>
 
 ## Guides
 
@@ -71,7 +127,7 @@ form errors.
   />
 </Cards>
 
-## API
+## Reference
 
 <Cards>
   <Card
@@ -88,7 +144,8 @@ form errors.
   />
 </Cards>
 
-There is one way to describe a contract and one way to run it. The package used
-to ship three overlapping ones — see
+There is one way to describe a contract and one way to run it. The package
+shipped three overlapping ones before its first release — see
 [ADR-003](https://github.com/api-zero/api-zero/blob/main/docs/adr/003-scope-boundary-and-public-surface.md)
-for why they were removed.
+for why two were removed, including a `params` schema that typed query
+parameters as validated while validating nothing.

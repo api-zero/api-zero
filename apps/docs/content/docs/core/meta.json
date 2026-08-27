@@ -3,5 +3,15 @@
   "icon": "Cpu",
   "description": "The framework-agnostic HTTP client",
   "root": true,
-  "pages": ["index", "get-started", "guides", "api-reference", "help"]
+  "pages": [
+    "index",
+    "---Get started---",
+    "...get-started",
+    "---Guides---",
+    "...guides",
+    "---Reference---",
+    "...api-reference",
+    "---Help---",
+    "...help"
+  ]
 }
