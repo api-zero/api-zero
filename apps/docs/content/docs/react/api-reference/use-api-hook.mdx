@@ -9,14 +9,16 @@ import { Boxes } from 'lucide-react';
 [`ApiProvider`](/docs/react/api-reference/api-provider). It takes no arguments and
 holds no state of its own.
 
-## Usage
+## Using it
+
+### Basic usage
 
 <include meta='title="components/sign-in-button.tsx"'>../../../../../../examples/src/react-use-api.tsx</include>
 
 The returned client is the same instance for every component under the provider,
 so `setAuthToken` in one component applies to requests made from all the others.
 
-## Outside a provider
+### Outside a provider
 
 ```tsx
 useApi(); // Error: useApi must be used within an ApiProvider
@@ -25,7 +27,7 @@ useApi(); // Error: useApi must be used within an ApiProvider
 It throws rather than returning `null`, because a silent `undefined` would fail
 later at the call site with no indication of the real cause.
 
-## Pairing with TanStack Query
+### Pairing with TanStack Query
 
 `useApi` gives you the client; TanStack Query owns the cache and the
 server-state lifecycle. Forward the `signal` it hands to `queryFn` so

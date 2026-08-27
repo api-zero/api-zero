@@ -12,7 +12,9 @@ blocks, the same interceptors and the same `instanceof ApiError` checks as every
 other failure. Code that already handles errors does not need a new branch to
 avoid crashing on this one.
 
-## Which side failed
+## Branching on the failure
+
+### Which side failed
 
 `target` says `"response"` or `"body"`, and they call for opposite responses.
 
@@ -30,7 +32,7 @@ avoid crashing on this one.
   </Accordion>
 </Accordions>
 
-## Form errors
+### Form errors
 
 <include meta='title="components/create-user-form.ts"'>../../../../../../examples/src/zod-form-errors.ts</include>
 
@@ -40,7 +42,9 @@ avoid crashing on this one.
 Note the `target === "body"` guard: without it, a *response* that breaks its
 contract would paint field errors on a form the user never filled in wrong.
 
-## Reporting the response case
+## Reporting
+
+### The response case
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/zod-contract-interceptor.ts</include>
 

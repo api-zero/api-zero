@@ -15,8 +15,14 @@ export interface ZodValidationErrorOptions<TData = unknown> {
 
 export class ZodValidationError<TData = unknown> extends ApiError<TData> {
   override readonly name = "ZodValidationError";
+  /** The Zod issues, each with the path that failed and why. */
   public readonly issues: ZodIssue[];
+  /** The full Zod error, for anything `issues` does not cover. */
   public readonly zodError: ZodError;
+  /**
+   * Which side failed. `body` means the request never left the process;
+   * `response` means the server sent something the contract does not describe.
+   */
   public readonly target: ValidationTarget;
 
   constructor(
@@ -52,14 +58,15 @@ export class ZodValidationError<TData = unknown> extends ApiError<TData> {
   }
 
   /**
-   * Flatten Zod error issues into formErrors and fieldErrors.
+   * Zod's flattened shape: `{ formErrors, fieldErrors }`. Exactly what a form
+   * wants for field-level messages.
    */
   flatten() {
     return this.zodError.flatten();
   }
 
   /**
-   * Format Zod error into a nested error representation.
+   * Zod's nested shape, for forms whose fields are nested objects.
    */
   format() {
     return this.zodError.format();

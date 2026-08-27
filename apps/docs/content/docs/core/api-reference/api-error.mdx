@@ -22,19 +22,7 @@ transport failure hides real defects.
 
 ## Properties
 
-| Property | Type | Meaning |
-| -------- | ---- | ------- |
-| `status` | `number` | HTTP status, or `0` when no response arrived. |
-| `statusText` | `string` | HTTP status text. |
-| `data` | `TData \| undefined` | Parsed error body, when the server sent one. |
-| `request` | `RequestContext \| undefined` | Method, resolved URL, headers, params, attempt. |
-| `response` | `Response \| undefined` | The native response, when there was one. |
-| `cause` | `Error \| undefined` | The original error, preserved. |
-| `attempt` | `number` | Which attempt produced this failure. `1` when retries are off. |
-| `isTimeout` | `boolean` | The request exceeded its timeout. |
-| `isNetworkError` | `boolean` | The request never reached a response. |
-| `isAborted` | `boolean` | Cancelled through the caller's `AbortSignal`. |
-| `isValidationError` | `boolean` | The response arrived but failed validation. |
+<auto-type-table path="../../../../../../packages/core/src/error.ts" name="ApiError" />
 
 <include meta='title="users.ts"'>../../../../../../examples/src/error-context.ts</include>
 

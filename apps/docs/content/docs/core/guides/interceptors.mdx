@@ -26,17 +26,7 @@ A request handler receives the full `RequestContext` and returns it.
 
 The context is the resolved request, not the options you passed:
 
-| Field | Meaning |
-| ----- | ------- |
-| `method` | The HTTP method. |
-| `endpoint` | The path as the caller wrote it, e.g. `/users`. |
-| `baseURL` | The base in effect for this request. |
-| `url` | **The fully resolved URL**, base and query string included. |
-| `body` | The body after request transforms. |
-| `params` | Query parameters, before serialization. |
-| `headers` | Normalized headers. Mutate these to add one. |
-| `attempt` | `1` on the first try, higher on a retry. |
-| `metadata` | Your own bucket. Nothing in the library reads it. |
+<auto-type-table path="../../../../../../packages/core/src/context.ts" name="RequestContext" />
 
 <Callout type="warn">
   `url` is already complete. Building `${context.baseURL}${context.url}` for a

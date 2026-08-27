@@ -6,53 +6,46 @@ description: An ApiError that carries the Zod issues.
 import { CircleAlert, TriangleAlert } from 'lucide-react';
 
 Extends [`ApiError`](/docs/core/api-reference/api-error), so everything that
-already handles errors handles this one.
+already handles errors handles this one — the same catch blocks, the same
+interceptors, the same `instanceof ApiError` checks.
 
-<TypeTable
-  type={{
-    target: {
-      type: '"response" | "body"',
-      required: true,
-      description:
-        "Which side failed. Body means the request never left; response means the server sent something the contract does not describe.",
-    },
-    issues: {
-      type: "ZodIssue[]",
-      required: true,
-      description: "The original Zod issues, with paths and messages.",
-    },
-    zodError: {
-      type: "ZodError",
-      required: true,
-      description: "The full Zod error, for anything issues does not cover.",
-    },
-    status: {
-      type: "number",
-      description:
-        "The HTTP status that carried the bad payload, or 0 for a body failure.",
-    },
-    isValidationError: {
-      type: "boolean",
-      typeDescription: "Always true.",
-      description:
-        "Inherited from ApiError. This is what keeps validation failures out of the retry policy.",
-    },
-  }}
-/>
+## What it adds
 
-## Methods
+<auto-type-table path="../../../../../../packages/zod/src/error.ts" name="ZodValidationError" />
 
-| Method | Returns |
-| ------ | ------- |
-| `flatten()` | `{ formErrors, fieldErrors }` — Zod's flattened shape, exactly what a form wants for field-level messages. |
-| `format()` | Zod's nested shape, for forms with nested objects. |
+### Which side failed
 
-Everything inherited from `ApiError` also applies: `request`, `cause`,
-`attempt`, `toJSON()` and the `is*()` helpers.
+`target` is the field to branch on, and the two values call for opposite
+responses.
+
+<Accordions>
+  <Accordion title='"body" — your bug, recoverable in the UI'>
+    The request was malformed before it was sent, so nothing reached the server.
+    Surface the issues to whoever built the payload: a form, a caller, a script.
+  </Accordion>
+  <Accordion title='"response" — their change, or your schema'>
+    The server sent something the contract does not describe. Not recoverable in
+    the UI — report it, and show the user a generic failure rather than a
+    field-level message about a payload they never saw.
+  </Accordion>
+</Accordions>
+
+## What it inherits
+
+Everything on [`ApiError`](/docs/core/api-reference/api-error): `request`,
+`cause`, `attempt`, `status`, `toJSON()` and the `is*()` helpers.
+
+Two are worth knowing about here:
+
+| Inherited | Value for a validation error |
+| --------- | ---------------------------- |
+| `isValidationError` | Always `true`. |
+| `status` | The HTTP status that carried the bad payload, or `0` when the body failed and no request was made. |
 
 <Callout type="info">
-  `isRetryable()` returns `false` for a validation error. A payload that failed
-  the schema fails identically on the next attempt.
+  `isRetryable()` returns `false`. A payload that failed the schema fails
+  identically on the next attempt, so the retry policy skips it rather than
+  spending three attempts to reach the same error.
 </Callout>
 
 ## See also

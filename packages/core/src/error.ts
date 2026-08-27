@@ -17,16 +17,27 @@ export interface ApiErrorOptions<TData = unknown> {
 
 export class ApiError<TData = unknown> extends Error {
   public override readonly name: string = "ApiError";
+  /** HTTP status, or `0` when no response arrived. */
   public readonly status: number;
+  /** HTTP status text. */
   public readonly statusText: string;
+  /** Parsed error body, when the server sent one. */
   public readonly data?: TData;
+  /** The request that failed: method, resolved URL, headers, params, attempt. */
   public readonly request?: RequestContext;
+  /** The native response, when there was one. */
   public readonly response?: Response;
+  /** The original error, preserved. */
   public override readonly cause?: Error;
+  /** The request exceeded its timeout. Distinct from `isAborted`. */
   public readonly isTimeout: boolean;
+  /** The request never produced a response: DNS, connectivity, refused. */
   public readonly isNetworkError: boolean;
+  /** Cancelled through the caller's `AbortSignal`, not by a timeout. */
   public readonly isAborted: boolean;
+  /** The response arrived but failed validation. Never retried. */
   public readonly isValidationError: boolean;
+  /** Which attempt produced this failure. `1` when retries are off. */
   public readonly attempt: number;
 
   constructor(

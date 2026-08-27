@@ -14,14 +14,18 @@ there is no round trip and nothing half-written on the other side.
 `post`, `put` and `patch` accept either a bare response schema or an object with
 `response` and `body`.
 
-## Failing before the network
+## How it behaves
+
+### Failing before the network
 
 An invalid body throws a `ZodValidationError` with `target: "body"` and never
 reaches the transport. The distinction matters when you are debugging: a `400`
 means the server rejected you, while a body validation error means the request
 was wrong before it left.
 
-## Sharing schemas with a form
+## In an application
+
+### Sharing schemas with a form
 
 The same schema can validate the form and the request, which removes the usual
 drift between what the UI accepts and what the API demands.
@@ -37,7 +41,7 @@ same way with the same messages.
   retry, a script, a background job.
 </Callout>
 
-## Transformed bodies
+### Transformed bodies
 
 A body transform runs before the request is built, so the value that goes over
 the wire is the transformed one:

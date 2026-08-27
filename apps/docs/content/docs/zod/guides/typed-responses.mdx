@@ -19,7 +19,9 @@ Two things happen at once. `createdAt` arrives as a string and reaches you as a
 `Date`, because the schema said so. And `user` is typed from that same schema —
 no interface to keep in sync, no cast.
 
-## Adding it to an existing call
+## Getting started
+
+### Adding it to an existing call
 
 The change is one import and one argument:
 
@@ -36,7 +38,7 @@ const user = await api.get("/users/1", userSchema); // [!code ++]
 
 The generic disappears because the schema supplies the type.
 
-## Where validation runs
+### Where validation runs
 
 The schema becomes a response transform, so it runs **after** the body is parsed
 and **before** the response interceptors. An interceptor therefore sees
@@ -48,7 +50,9 @@ re-check.
   identically on the next attempt, so repeating it only delays the error.
 </Callout>
 
-## Transforming, not just checking
+## Beyond checking
+
+### Transforming wire formats
 
 <include meta='title="lib/schemas.ts"'>../../../../../../examples/src/zod-transforms.ts</include>
 
@@ -56,7 +60,7 @@ The string-encoded decimal and the ISO date stop existing past this line. That
 is the point of a boundary: the wire format is the API's concern, not your
 components'.
 
-## Arrays and pagination
+### Arrays and pagination
 
 <include meta='title="users.ts"'>../../../../../../examples/src/zod-paginated.ts</include>
 

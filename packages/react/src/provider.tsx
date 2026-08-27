@@ -8,8 +8,18 @@ import { useMemo, useRef } from "react";
 import { ApiContext } from "./context";
 
 export interface ApiProviderProps {
+  /**
+   * An existing client. Preferred: its lifetime is explicit and its identity
+   * cannot change across renders. Wins if `config` is also given.
+   */
   client?: ApiClient;
+  /**
+   * Configuration to build a client from. Compared by contents rather than by
+   * identity, so an object literal does not rebuild the client on every render.
+   * The comparison is shallow.
+   */
   config?: ApiClientConfig;
+  /** The subtree that gains access to the client. */
   children: React.ReactNode;
 }
 

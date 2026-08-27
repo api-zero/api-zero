@@ -13,11 +13,13 @@ lifecycle. api-zero sits underneath it exactly the same way.
 SWR passes the key to the fetcher, so when the key is the endpoint, api-zero
 *is* the fetcher.
 
-## Inside a component
+## Using it
+
+### Inside a component
 
 <include meta='title="components/user-profile.tsx"'>../../../../../../examples/src/react-swr-component.tsx</include>
 
-## Cancellation
+### Cancellation
 
 <Callout type="warn">
   SWR does not hand an `AbortSignal` to the fetcher the way TanStack Query
@@ -33,7 +35,7 @@ request per character. Hold the controller yourself:
 If cancellation matters to you, [TanStack Query](/docs/react/guides/tanstack-query)
 gives you the signal for free.
 
-## A global fetcher
+### A global fetcher
 
 Setting the fetcher on `SWRConfig` removes the per-call boilerplate, at the cost
 of the client being captured once rather than read from context.
