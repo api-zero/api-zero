@@ -1,5 +1,14 @@
 # @api-zero/react
 
+## 0.1.5
+
+### Patch Changes
+
+- [`8e95f14`](https://github.com/api-zero/api-zero/commit/8e95f140a71c33f2e5c9c61bb73639c64eefa6d1) Thanks [@gorkadev](https://github.com/gorkadev)! - Document the public error and provider surfaces with JSDoc: every field of
+  `ApiError`, the `ApiProviderProps` props, and the `ZodValidationError` members.
+  Editors now show a description on hover where they showed a bare type, and the
+  generated API reference no longer has empty rows.
+
 ## 0.1.4
 
 ## 0.1.3
