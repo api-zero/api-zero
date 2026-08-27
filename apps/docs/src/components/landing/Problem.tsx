@@ -1,13 +1,5 @@
-"use client";
-
-import { useGSAP } from "@gsap/react";
-import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef } from "react";
+import { Code, Container, Eyebrow } from "./primitives";
 import { Reveal } from "./reveal";
-
-gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const BEFORE = `// Every project. Slightly different every time.
 let token: string | null = null;
@@ -36,51 +28,21 @@ export const api = createClient({
   timeout: 10_000,
 });`;
 
+/** The cases the handwritten version tends to miss. */
+const MISSED = [
+  ["Empty 204 bodies", "res.json() throws on a body that is not there."],
+  ["FormData boundaries", "Setting Content-Type by hand breaks the upload."],
+  ["Timeouts and cancellation", "Two signals that have to compose into one."],
+  ["Retrying a POST", "A policy that repeats one has already lost."],
+];
+
 export function Problem() {
-  const root = useRef<HTMLDivElement>(null);
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add(
-        "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
-        () => {
-          // The handwritten file recedes as the replacement arrives. Tying it to
-          // scroll rather than a timer lets the reader hold both on screen and
-          // compare them, which is the entire point of putting them side by side.
-          const tl = gsap.timeline({
-            defaults: { ease: "none" },
-            scrollTrigger: {
-              trigger: root.current,
-              start: "top 70%",
-              end: "bottom 75%",
-              scrub: 0.5,
-            },
-          });
-
-          tl.to("[data-before]", { opacity: 0.35, scale: 0.96 }, 0).fromTo(
-            "[data-after]",
-            { opacity: 0.4, scale: 0.97 },
-            { opacity: 1, scale: 1 },
-            0,
-          );
-
-          return () => tl.kill();
-        },
-      );
-      return () => mm.revert();
-    },
-    { scope: root },
-  );
-
   return (
-    <section ref={root} className="border-fd-border border-t px-6 py-28">
-      <div className="mx-auto max-w-5xl">
+    <section className="border-fd-border border-t py-28">
+      <Container>
         <Reveal>
-          <p className="font-medium font-mono text-fd-primary text-sm">
-            The problem
-          </p>
-          <h2 className="mt-3 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+          <Eyebrow>The problem</Eyebrow>
+          <h2 className="mt-4 max-w-3xl text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
             You have written this file before
           </h2>
           <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
@@ -93,27 +55,39 @@ export function Problem() {
         </Reveal>
 
         <div className="mt-14 grid gap-6 lg:grid-cols-2">
-          <div data-before className="origin-top-left">
+          <Reveal delay={40}>
             <p className="mb-3 font-medium text-fd-muted-foreground text-sm">
               What you write today
             </p>
-            <DynamicCodeBlock lang="ts" code={BEFORE} />
-          </div>
+            <Code code={BEFORE} />
+          </Reveal>
 
-          <div data-after className="flex origin-top-left flex-col">
+          <Reveal delay={80}>
             <p className="mb-3 font-medium text-fd-primary text-sm">
               What replaces it
             </p>
-            <DynamicCodeBlock lang="ts" code={AFTER} />
-            <p className="mt-6 rounded-xl border border-fd-primary/20 bg-fd-primary/5 p-5 text-fd-muted-foreground text-sm leading-relaxed">
-              Plus the parts the handwritten version usually gets wrong: empty{" "}
-              <code>204</code> bodies, <code>FormData</code> boundaries,
-              timeouts that compose with cancellation, and retries that refuse
-              to repeat a <code>POST</code>.
-            </p>
-          </div>
+            <Code code={AFTER} />
+          </Reveal>
         </div>
-      </div>
+
+        {/*
+          The cases the handwritten version tends to miss, as a list of named
+          cases rather than one paragraph. A reader scanning the page can find
+          the one that bit them last month.
+        */}
+        <Reveal delay={120} className="mt-6">
+          <div className="grid gap-px overflow-hidden rounded-2xl border border-fd-border bg-fd-border sm:grid-cols-2 lg:grid-cols-4">
+            {MISSED.map(([title, body]) => (
+              <div key={title} className="bg-fd-card p-6">
+                <p className="font-medium text-sm">{title}</p>
+                <p className="mt-2 text-fd-muted-foreground text-sm leading-relaxed">
+                  {body}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </Container>
     </section>
   );
 }

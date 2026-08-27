@@ -34,14 +34,22 @@ export function Counter({
         if (!node) return;
 
         const counter = { n: 0 };
-        const tween = gsap.to(counter, {
+        const tween: gsap.core.Tween = gsap.to(counter, {
           n: value,
           duration: 1.1,
           ease: "power2.out",
           onUpdate: () => {
             node.textContent = counter.n.toFixed(decimals) + suffix;
           },
-          scrollTrigger: { trigger: node, start: "top 85%", once: true },
+          // Replays whenever it comes back into view. `once` meant a reader
+          // who scrolled past and came back found a static number and no idea
+          // anything had happened.
+          scrollTrigger: {
+            trigger: node,
+            start: "top 85%",
+            onEnter: () => tween.restart(),
+            onEnterBack: () => tween.restart(),
+          },
         });
 
         return () => tween.kill();

@@ -64,9 +64,9 @@ export function HeroSphere() {
 
   return (
     <Dithering
-      className="absolute -right-28 -top-32 opacity-70 animate-fd-fade-in duration-1000"
-      width={480}
-      height={480}
+      className="absolute -top-24 right-[6%] opacity-80 animate-fd-fade-in duration-1000"
+      width={560}
+      height={560}
       colorBack="#00000000"
       colorFront={resolvedTheme === "dark" ? "#FF7A18" : "#E4560A"}
       shape="sphere"

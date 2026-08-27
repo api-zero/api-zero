@@ -198,3 +198,65 @@ body {
     transition-duration: 200ms;
   }
 }
+
+/*
+ * One slot in a rotating list. Each participant shares a duration and offsets
+ * itself by its index, which keeps the schedule in the markup instead of in a
+ * timer nothing can pause.
+ */
+@keyframes landing-cycle {
+  0%,
+  10% {
+    opacity: 1;
+  }
+  12.5%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.landing-cycle {
+  opacity: 0;
+  animation-name: landing-cycle;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No rotation. The first entry stands for the set. */
+  .landing-cycle {
+    animation: none;
+  }
+  .landing-cycle:first-of-type {
+    opacity: 1;
+  }
+}
+
+/*
+ * A slow wander for background washes. Long enough that nobody catches it
+ * looping, and only transforms, so it never touches layout.
+ */
+@keyframes landing-drift {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  50% {
+    translate: 6% -4%;
+    scale: 1.12;
+  }
+  100% {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+.landing-drift {
+  animation: landing-drift 24s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-drift {
+    animation: none;
+  }
+}

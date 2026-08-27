@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Counter } from "./Counter";
+import { Container, Eyebrow } from "./primitives";
 import { Reveal } from "./reveal";
 
 const STATS = [
@@ -33,13 +34,11 @@ const STATS = [
 
 export function Comparison() {
   return (
-    <section className="border-fd-border border-t px-6 py-24">
-      <div className="mx-auto max-w-5xl">
+    <section className="border-fd-border border-t py-28">
+      <Container>
         <Reveal>
-          <p className="font-medium font-mono text-fd-primary text-sm">
-            Measured, not claimed
-          </p>
-          <h2 className="mt-3 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+          <Eyebrow>Measured, not claimed</Eyebrow>
+          <h2 className="mt-4 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
             Numbers we actually measure
           </h2>
           <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
@@ -49,9 +48,13 @@ export function Comparison() {
           </p>
         </Reveal>
 
-        <dl className="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-fd-border bg-fd-border sm:grid-cols-2 lg:grid-cols-4">
           {STATS.map((stat, index) => (
-            <Reveal key={stat.label} delay={index * 40}>
+            <Reveal
+              key={stat.label}
+              delay={index * 40}
+              className="bg-fd-card p-8"
+            >
               <dt className="font-semibold text-5xl text-fd-primary tracking-tight">
                 <Counter
                   value={stat.value}
@@ -75,7 +78,7 @@ export function Comparison() {
             How the three packages split →
           </Link>
         </Reveal>
-      </div>
+      </Container>
     </section>
   );
 }

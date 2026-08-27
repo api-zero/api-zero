@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useRef } from "react";
+import { Container, Eyebrow } from "./primitives";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -12,7 +13,7 @@ const STAGES = ["Request", "Interceptors", "Transport", "Response", "Validate"];
 /** One pipeline node. The lit copy sits on top of the dim one and fades in. */
 function Node({ index, label }: { index: number; label: string }) {
   return (
-    <div className="relative shrink-0 rounded-xl border border-fd-border bg-fd-card px-4 py-3 font-medium text-sm sm:px-6 sm:py-4 sm:text-base">
+    <div className="relative shrink-0 rounded-2xl border border-fd-border bg-fd-card px-5 py-4 font-medium text-sm sm:px-8 sm:py-5 sm:text-lg">
       {/* Reserves the box; both visible copies are absolutely positioned. */}
       <span className="invisible">{label}</span>
       <span className="absolute inset-0 grid place-items-center text-fd-muted-foreground">
@@ -20,19 +21,19 @@ function Node({ index, label }: { index: number; label: string }) {
       </span>
       <span
         data-node={index}
-        className="absolute inset-0 grid place-items-center rounded-xl border border-fd-primary bg-fd-primary/10 text-fd-primary opacity-0 shadow-[0_0_24px_-4px_var(--color-fd-primary)]"
+        className="absolute inset-0 grid place-items-center rounded-2xl border border-fd-primary bg-fd-primary/10 text-fd-primary opacity-0 shadow-[0_0_40px_-6px_var(--color-fd-primary)]"
       >
         {label}
       </span>
       <span
         data-node-fail={index}
-        className="absolute inset-0 grid place-items-center rounded-xl border border-red-500 bg-red-500/10 text-red-400 opacity-0 shadow-[0_0_24px_-4px_var(--color-red-500)]"
+        className="absolute inset-0 grid place-items-center rounded-2xl border border-red-500 bg-red-500/10 text-red-400 opacity-0 shadow-[0_0_40px_-6px_var(--color-red-500)]"
       >
         {label}
       </span>
       <span
         data-node-ok={index}
-        className="absolute inset-0 grid place-items-center rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 opacity-0 shadow-[0_0_24px_-4px_var(--color-emerald-500)]"
+        className="absolute inset-0 grid place-items-center rounded-2xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 opacity-0 shadow-[0_0_40px_-6px_var(--color-emerald-500)]"
       >
         {label}
       </span>
@@ -42,11 +43,20 @@ function Node({ index, label }: { index: number; label: string }) {
 
 function Beam({ index }: { index: number }) {
   return (
-    <div className="h-px min-w-4 flex-1 bg-fd-border">
+    <div className="relative h-px min-w-6 flex-1 bg-fd-border">
       {/* scaleX rather than width: a width animation relayouts the whole row. */}
       <span
         data-beam={index}
         className="block h-full w-full origin-left scale-x-0 bg-fd-primary"
+      />
+      {/*
+        A bright head riding the end of the beam. The beam alone says the stage
+        is done; the head says something is moving through it, which is the
+        difference between a diagram and a request.
+      */}
+      <span
+        data-pulse={index}
+        className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-0 size-2.5 rounded-full bg-fd-primary opacity-0 shadow-[0_0_16px_2px_var(--color-fd-primary)]"
       />
     </div>
   );
@@ -103,6 +113,7 @@ export function Lifecycle() {
               opacity: 1,
             });
             gsap.set("[data-beam]", { scaleX: 1 });
+            gsap.set("[data-pulse]", { opacity: 0 });
             gsap.set("[data-status='ok']", { opacity: 1 });
             return;
           }
@@ -123,14 +134,64 @@ export function Lifecycle() {
           });
 
           tl.to("[data-call]", { opacity: 1, y: 0, duration: 0.6 })
+            .to("[data-glow]", { opacity: 0.1, duration: 0.6 }, "<")
             .to("[data-node='0']", { opacity: 1, duration: 0.4 })
             .to("[data-beam='0']", { scaleX: 1, duration: 0.5 })
+            .fromTo(
+              "[data-pulse='0']",
+              { opacity: 1, x: 0 },
+              // A function value, because `xPercent` would be 100% of the dot
+              // itself — ten pixels — rather than the length of the beam.
+              {
+                x: (_i, target) => target.parentElement.clientWidth,
+                duration: 0.5,
+              },
+              "<",
+            )
+            // The head is consumed by the stage it reaches.
+            .to("[data-pulse='0']", { opacity: 0, duration: 0.15 })
             .to("[data-node='1']", { opacity: 1, duration: 0.4 })
             .to("[data-beam='1']", { scaleX: 1, duration: 0.5 })
+            .fromTo(
+              "[data-pulse='1']",
+              { opacity: 1, x: 0 },
+              // A function value, because `xPercent` would be 100% of the dot
+              // itself — ten pixels — rather than the length of the beam.
+              {
+                x: (_i, target) => target.parentElement.clientWidth,
+                duration: 0.5,
+              },
+              "<",
+            )
+            // The head is consumed by the stage it reaches.
+            .to("[data-pulse='1']", { opacity: 0, duration: 0.15 })
             .to("[data-node='2']", { opacity: 1, duration: 0.4 })
             .to("[data-beam='2']", { scaleX: 1, duration: 0.5 })
+            .fromTo(
+              "[data-pulse='2']",
+              { opacity: 1, x: 0 },
+              // A function value, because `xPercent` would be 100% of the dot
+              // itself — ten pixels — rather than the length of the beam.
+              {
+                x: (_i, target) => target.parentElement.clientWidth,
+                duration: 0.5,
+              },
+              "<",
+            )
+            // The head is consumed by the stage it reaches.
+            .to("[data-pulse='2']", { opacity: 0, duration: 0.15 })
             .to("[data-node-fail='3']", { opacity: 1, duration: 0.4 })
             .to("[data-status='fail']", { opacity: 1, duration: 0.3 }, "<")
+            .to(
+              "[data-glow]",
+              {
+                opacity: 0.16,
+                background:
+                  "radial-gradient(circle, #ef4444 0%, transparent 65%)",
+                duration: 0.4,
+              },
+              "<",
+            )
 
             // The wait. Everything upstream dims, the failure stays lit: a
             // pipeline that goes dark here reads as "nothing is happening",
@@ -160,7 +221,30 @@ export function Lifecycle() {
             )
             .to("[data-node-ok='3']", { opacity: 1, duration: 0.4 })
             .to("[data-status='ok']", { opacity: 1, duration: 0.3 }, "<")
+            .to(
+              "[data-glow]",
+              {
+                opacity: 0.18,
+                background:
+                  "radial-gradient(circle, #10b981 0%, transparent 65%)",
+                duration: 0.4,
+              },
+              "<",
+            )
             .to("[data-beam='3']", { scaleX: 1, duration: 0.5 })
+            .fromTo(
+              "[data-pulse='3']",
+              { opacity: 1, x: 0 },
+              // A function value, because `xPercent` would be 100% of the dot
+              // itself — ten pixels — rather than the length of the beam.
+              {
+                x: (_i, target) => target.parentElement.clientWidth,
+                duration: 0.5,
+              },
+              "<",
+            )
+            // The head is consumed by the stage it reaches.
+            .to("[data-pulse='3']", { opacity: 0, duration: 0.15 })
             .to("[data-node='4']", { opacity: 1, duration: 0.4 })
             .to("[data-result]", { opacity: 1, y: 0, duration: 0.6 })
             // A beat of stillness at the end, so the last thing the reader
@@ -178,12 +262,25 @@ export function Lifecycle() {
 
   return (
     <section ref={root} className="border-fd-border border-t">
-      <div className="flex min-h-[70vh] items-center px-6 py-24 md:min-h-screen md:py-0">
-        <div className="mx-auto w-full max-w-5xl">
-          <p className="font-medium font-mono text-fd-primary text-sm">
-            The request lifecycle
-          </p>
-          <h2 className="mt-3 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+      <div className="relative flex min-h-[70vh] items-center overflow-hidden py-24 md:min-h-screen md:py-0">
+        {/*
+          A glow that swells as the request advances and turns with its outcome.
+          CSS rather than a fourth WebGL context: it is one radial gradient, and
+          the page already pays for three shaders.
+        */}
+        <div
+          aria-hidden
+          data-glow
+          className="pointer-events-none absolute top-1/2 left-1/2 size-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, var(--color-fd-primary) 0%, transparent 65%)",
+          }}
+        />
+
+        <Container className="relative">
+          <Eyebrow>The request lifecycle</Eyebrow>
+          <h2 className="mt-4 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
             One call, and everything underneath it
           </h2>
           <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
@@ -239,7 +336,7 @@ export function Lifecycle() {
           >
             User &#123; id: 1, name: "Ada" &#125;
           </div>
-        </div>
+        </Container>
       </div>
     </section>
   );
