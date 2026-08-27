@@ -1,4 +1,5 @@
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
+import { Parallax } from "./scroll";
 import { HeroGrain, HeroSphere } from "./shaders";
 import { ArrowRight, Github } from "lucide-react";
 import Link from "next/link";
@@ -28,8 +29,15 @@ export function Hero() {
         anything.
       */}
       <div className="relative mx-auto max-w-5xl overflow-hidden rounded-2xl border border-fd-border bg-fd-card">
-        <HeroGrain />
-        <HeroSphere />
+        {/*
+          The decoration drifts against the scroll while the text holds still,
+          which is what separates the two planes. Only the decoration moves:
+          parallaxing the copy makes it harder to read, not more alive.
+        */}
+        <Parallax className="pointer-events-none absolute inset-0" distance={-90}>
+          <HeroGrain />
+          <HeroSphere />
+        </Parallax>
         {/* Keeps the text legible over the brightest part of the gradient. */}
         <div
           aria-hidden

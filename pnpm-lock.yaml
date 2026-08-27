@@ -29,6 +29,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^4.0.86
         version: 4.0.86(react@19.2.0)(zod@3.25.76)
+      '@gsap/react':
+        specifier: ^2.1.2
+        version: 2.1.2(gsap@3.15.0)(react@19.2.0)
       '@openrouter/ai-sdk-provider':
         specifier: ^3.0.0
         version: 3.0.0(ai@7.0.83(zod@3.25.76))(zod@3.25.76)
@@ -1061,6 +1064,12 @@ packages:
 
   '@fumari/image-size@0.1.0':
     resolution: {integrity: sha512-x2o9u6P8uKUK15B8XgEoRhR3PgLoLSbQKK6FUCd14JzumEw+e8FXZPelij/dZ4VQVMp4r61VD3DcvSo3aEhLAA==}
+
+  '@gsap/react@2.1.2':
+    resolution: {integrity: sha512-JqliybO1837UcgH2hVOM4VO+38APk3ECNrsuSM4MuXp+rbf+/2IG2K1YJiqfTcXQHH7XlA0m3ykniFYstfq0Iw==}
+    peerDependencies:
+      gsap: ^3.12.5
+      react: '>=17'
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -5462,6 +5471,11 @@ snapshots:
       tailwindcss: 4.3.3
 
   '@fumari/image-size@0.1.0': {}
+
+  '@gsap/react@2.1.2(gsap@3.15.0)(react@19.2.0)':
+    dependencies:
+      gsap: 3.15.0
+      react: 19.2.0
 
   '@humanfs/core@0.19.1': {}
 
