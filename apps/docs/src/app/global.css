@@ -3,6 +3,30 @@
 @import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
 
+/*
+ * Brand accent.
+ *
+ * Fumadocs' preset leaves --color-fd-primary as near-white, which makes an
+ * entire site greyscale: nothing draws the eye and every surface reads the
+ * same. Picking an accent is the single change that gives the page an
+ * identity, and it has to be the same one in the landing and the docs or the
+ * two feel like different products.
+ *
+ * Orange, because almost every HTTP client and dev tool is blue or violet, and
+ * because it coexists with the icon palette already used across the reference.
+ */
+:root {
+  --color-fd-primary: hsl(20, 90%, 48%);
+  --color-fd-primary-foreground: hsl(0, 0%, 100%);
+  --brand-glow: hsl(20 90% 48% / 0.18);
+}
+
+.dark {
+  --color-fd-primary: hsl(26, 100%, 60%);
+  --color-fd-primary-foreground: hsl(24, 90%, 10%);
+  --brand-glow: hsl(26 100% 60% / 0.14);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /* Custom Animations */
@@ -28,47 +52,12 @@
   }
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes bounceSubtle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes progressBarGrow {
-  from {
-    width: 0;
-  }
-}
-
-@keyframes pulse-glow {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
   }
 }
 
@@ -81,46 +70,11 @@
   animation: scaleIn 0.6s ease-out forwards;
 }
 
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  background-size: 200% 100%;
-  animation: shimmer 3s infinite;
-}
-
-.animate-bounce-subtle {
-  animation: bounceSubtle 2s ease-in-out infinite;
-}
-
 .animate-fade-in {
   animation: fadeIn 0.6s ease-out forwards;
 }
 
 /* Animation Delays */
-.delay-100 {
-  animation-delay: 100ms;
-}
-
-.delay-200 {
-  animation-delay: 200ms;
-}
-
-.delay-300 {
-  animation-delay: 300ms;
-}
-
-.delay-400 {
-  animation-delay: 400ms;
-}
-
-.delay-500 {
-  animation-delay: 500ms;
-}
-
 /* Scroll Reveal Utility */
 .scroll-reveal {
   opacity: 0;

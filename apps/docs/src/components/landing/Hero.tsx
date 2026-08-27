@@ -1,59 +1,102 @@
+import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
 import { ArrowRight, Github } from "lucide-react";
 import Link from "next/link";
 
+const SAMPLE = `import { createClient, ApiError } from "@api-zero/core";
+
+export const api = createClient({
+  baseURL: "https://api.example.com",
+  timeout: 10_000,
+  retry: { attempts: 3, delay: 1_000, backoff: "exponential" },
+});
+
+try {
+  const user = await api.get<User>("/users/1");
+} catch (error) {
+  if (error instanceof ApiError && error.isNotFound()) {
+    // 404, a network failure and a timeout all arrive the same way
+  }
+}`;
+
 export function Hero() {
   return (
-    <section className="relative flex flex-col items-center px-6 pt-28 pb-20 text-center sm:pt-36">
-      <Link
-        href="/docs/core/get-started/installation"
-        className="landing-enter group inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card px-3 py-1 text-fd-muted-foreground text-sm transition-colors hover:text-fd-foreground"
-      >
-        <span className="font-medium text-fd-primary">v0.1.5</span>
-        <span aria-hidden>·</span>
-        on npm, Node 22+ and Edge
-        <ArrowRight className="size-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
-      </Link>
+    <section className="px-6 pt-8 pb-20">
+      {/*
+        A framed surface, slightly lifted off the page. Without it the hero is a
+        void: nothing establishes a plane, so nothing reads as being on top of
+        anything.
+      */}
+      <div className="relative mx-auto max-w-5xl overflow-hidden rounded-2xl border border-fd-border bg-fd-card">
+        {/* The accent has to exist somewhere before the eye reaches a button. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-48 -left-24 h-[42rem] w-[52rem] blur-3xl"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, var(--brand-glow), transparent 70%)",
+          }}
+        />
 
-      <h1
-        className="landing-enter mt-8 max-w-3xl text-balance font-semibold text-4xl tracking-tight sm:text-5xl md:text-6xl"
-        style={{ transitionDelay: "60ms" }}
-      >
-        Stop writing the same{" "}
-        <code className="rounded-lg bg-fd-primary/10 px-2 py-1 font-mono text-fd-primary text-[0.85em]">
-          api.ts
-        </code>{" "}
-        in every project
-      </h1>
+        <div className="relative px-6 pt-16 pb-0 sm:px-12 sm:pt-20">
+          <Link
+            href="/docs/core/get-started/installation"
+            className="landing-enter group inline-flex items-center gap-2 rounded-full border border-fd-primary/30 bg-fd-primary/10 px-3 py-1 font-medium text-fd-primary text-sm"
+          >
+            v0.1.5 · on npm
+            <ArrowRight className="size-3.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5" />
+          </Link>
 
-      <p
-        className="landing-enter mt-6 max-w-xl text-balance text-fd-muted-foreground md:text-lg"
-        style={{ transitionDelay: "120ms" }}
-      >
-        A Fetch-based HTTP client built around reliable transport and
-        runtime-validated contracts. It sits underneath TanStack Query and SWR
-        rather than competing with them.
-      </p>
+          <h1
+            className="landing-enter mt-7 max-w-3xl text-balance font-semibold text-4xl leading-[1.05] tracking-tight sm:text-6xl"
+            style={{ transitionDelay: "60ms" }}
+          >
+            Stop writing the same{" "}
+            <span className="text-fd-primary">api.ts</span> in every project
+          </h1>
 
-      <div
-        className="landing-enter mt-10 flex flex-wrap items-center justify-center gap-3"
-        style={{ transitionDelay: "180ms" }}
-      >
-        <Link
-          href="/docs/core/get-started/quickstart"
-          className="inline-flex h-11 items-center gap-2 rounded-full bg-fd-primary px-6 font-medium text-fd-primary-foreground text-sm transition-[transform,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"
-        >
-          Get started
-          <ArrowRight className="size-4" />
-        </Link>
-        <Link
-          href="https://github.com/api-zero/api-zero"
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex h-11 items-center gap-2 rounded-full border border-fd-border px-6 font-medium text-sm transition-[transform,background-color] duration-150 ease-out hover:bg-fd-accent active:scale-[0.97]"
-        >
-          <Github className="size-4" />
-          GitHub
-        </Link>
+          <p
+            className="landing-enter mt-6 max-w-xl text-balance text-fd-muted-foreground md:text-lg"
+            style={{ transitionDelay: "120ms" }}
+          >
+            A Fetch-based HTTP client built around reliable transport and
+            runtime-validated contracts. It sits underneath TanStack Query and
+            SWR rather than competing with them.
+          </p>
+
+          <div
+            className="landing-enter mt-9 flex flex-wrap items-center gap-3"
+            style={{ transitionDelay: "180ms" }}
+          >
+            <Link
+              href="/docs/core/get-started/quickstart"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-fd-primary px-6 font-medium text-fd-primary-foreground text-sm transition-[transform,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"
+            >
+              Get started
+              <ArrowRight className="size-4" />
+            </Link>
+            <Link
+              href="https://github.com/api-zero/api-zero"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-fd-border bg-fd-background px-6 font-medium text-sm transition-[transform,background-color] duration-150 ease-out hover:bg-fd-accent active:scale-[0.97]"
+            >
+              <Github className="size-4" />
+              GitHub
+            </Link>
+          </div>
+
+          {/*
+            The product itself, bleeding off the bottom edge. A library's
+            product is its code, and a landing with nothing to look at gives
+            the eye nowhere to rest.
+          */}
+          <div
+            className="landing-enter -mb-px mt-14 max-h-72 overflow-hidden rounded-t-xl border border-fd-border border-b-0 [&_*]:!rounded-b-none [&_pre]:!border-b-0"
+            style={{ transitionDelay: "240ms" }}
+          >
+            <DynamicCodeBlock lang="ts" code={SAMPLE} />
+          </div>
+        </div>
       </div>
     </section>
   );

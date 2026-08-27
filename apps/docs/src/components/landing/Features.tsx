@@ -69,7 +69,7 @@ export function Features() {
             <Reveal key={feature.href} delay={index * 40}>
               <Link
                 href={feature.href}
-                className="group flex h-full flex-col bg-fd-card p-6 transition-colors duration-200 ease-out hover:bg-fd-accent"
+                className="group relative flex h-full flex-col bg-fd-card p-6 transition-colors duration-200 ease-out hover:bg-fd-accent after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-fd-primary after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-100"
               >
                 <feature.icon className={`size-5 ${feature.color}`} />
                 <h3 className="mt-4 font-medium">{feature.title}</h3>

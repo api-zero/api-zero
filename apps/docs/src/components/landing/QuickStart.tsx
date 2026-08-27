@@ -14,7 +14,7 @@ const MANAGERS = [
 export function QuickStart() {
   return (
     <section className="border-fd-border border-t px-6 py-24">
-      <div className="mx-auto max-w-2xl text-center">
+      <div className="mx-auto max-w-5xl">
         <Reveal>
           <h2 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
             One package to start
@@ -26,7 +26,7 @@ export function QuickStart() {
           </p>
         </Reveal>
 
-        <Reveal delay={60} className="mt-10 text-left">
+        <Reveal delay={60} className="mt-10 max-w-xl">
           <Tabs items={MANAGERS.map((m) => m.name)}>
             {MANAGERS.map((manager) => (
               <Tab key={manager.name} value={manager.name}>
@@ -36,10 +36,7 @@ export function QuickStart() {
           </Tabs>
         </Reveal>
 
-        <Reveal
-          delay={120}
-          className="mt-10 flex flex-wrap items-center justify-center gap-3"
-        >
+        <Reveal delay={120} className="mt-10 flex flex-wrap items-center gap-3">
           <Link
             href="/docs/core/get-started/quickstart"
             className="inline-flex h-11 items-center gap-2 rounded-full bg-fd-primary px-6 font-medium text-fd-primary-foreground text-sm transition-[transform,opacity] duration-150 ease-out hover:opacity-90 active:scale-[0.97]"

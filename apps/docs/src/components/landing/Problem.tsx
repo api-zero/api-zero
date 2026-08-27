@@ -2,27 +2,24 @@ import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
 import { Reveal } from "./reveal";
 
 const BEFORE = `// Every project. Slightly different every time.
-const BASE = process.env.API_URL;
 let token: string | null = null;
 
 async function request(path: string, init?: RequestInit) {
-  const res = await fetch(BASE + path, {
+  const res = await fetch(API_URL + path, {
     ...init,
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: \`Bearer \${token}\` } : {}),
+      ...(token && { Authorization: \`Bearer \${token}\` }),
       ...init?.headers,
     },
   });
 
-  if (!res.ok) throw new Error(res.statusText); // loses the body
-  if (res.status === 204) return undefined;     // remembered this time
+  // loses the response body
+  if (!res.ok) throw new Error(res.statusText);
+  // remembered this time
+  if (res.status === 204) return undefined;
   return res.json();
-}
-
-export const get = (p: string) => request(p);
-export const post = (p: string, body: unknown) =>
-  request(p, { method: "POST", body: JSON.stringify(body) });`;
+}`;
 
 const AFTER = `import { createClient } from "@api-zero/core";
 
@@ -56,12 +53,12 @@ export function Problem() {
             <DynamicCodeBlock lang="ts" code={BEFORE} />
           </Reveal>
 
-          <Reveal delay={80}>
+          <Reveal delay={80} className="flex flex-col">
             <p className="mb-3 font-medium text-fd-primary text-sm">
               What replaces it
             </p>
             <DynamicCodeBlock lang="ts" code={AFTER} />
-            <p className="mt-4 text-fd-muted-foreground text-sm">
+            <p className="mt-6 rounded-lg border border-fd-primary/20 bg-fd-primary/5 p-4 text-fd-muted-foreground text-sm leading-relaxed">
               Plus the parts the handwritten version usually gets wrong: empty{" "}
               <code>204</code> bodies, <code>FormData</code> boundaries,
               timeouts that compose with cancellation, and retries that refuse

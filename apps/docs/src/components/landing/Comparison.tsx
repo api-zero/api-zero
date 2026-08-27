@@ -42,7 +42,7 @@ export function Comparison() {
         <dl className="mt-12 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
           {STATS.map((stat, index) => (
             <Reveal key={stat.label} delay={index * 40}>
-              <dt className="font-semibold text-4xl tracking-tight">
+              <dt className="font-semibold text-5xl text-fd-primary tracking-tight">
                 {stat.value}
               </dt>
               <dd className="mt-2 font-medium text-sm">{stat.label}</dd>
