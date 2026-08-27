@@ -6,28 +6,30 @@ icon: SwatchBook
 
 import { Component, RefreshCw, ShieldCheck, Workflow } from 'lucide-react';
 
-Every code block on this page is compiled against the published packages on
-every CI run. If an example stops matching the API, the build fails before the
-page can mislead you.
+<Callout type="info">
+  Every code block on this page is compiled against the published packages on
+  every CI run. If an example stops matching the API, the build fails before the
+  page can mislead you.
+</Callout>
+
+## Your first request
 
 <Steps>
 
-## Create a client
+### Create a client
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/create-client.ts</include>
 
 Export this from a shared module. One instance carries your base URL, headers,
 auth and retry policy for the whole application.
 
-## Make a request
+### Make a request
 
 <include meta='title="users.ts"'>../../../../../../examples/src/http-verbs.ts</include>
 
-The type parameter describes the response body. It is a static promise, not a
-runtime check — for payloads you do not control, add
-[`@api-zero/zod`](/docs/zod) and have it verified for real.
+Each verb returns the parsed body. There is no `.data` to unwrap.
 
-## Handle failure
+### Handle failure
 
 <include meta='title="users.ts"'>../../../../../../examples/src/error-handling.ts</include>
 
@@ -36,41 +38,66 @@ failure, timeout, caller cancellation and invalid JSON alike.
 
 </Steps>
 
-## Query parameters
+## Shaping the request
+
+### Query parameters
 
 <include meta='title="users.ts"'>../../../../../../examples/src/query-params.ts</include>
 
 Arrays can be serialized as `brackets`, `repeat` or `comma` through
-`paramsSerializer`, per client or per request.
+`paramsSerializer`, per client or per request — match whatever your backend
+parses.
 
-## Authentication
+### Authentication
 
 Set it once on the client; every later request carries it.
 
-<include meta='title="lib/auth.ts"'>../../../../../../examples/src/auth-bearer.ts</include>
+<Tabs items={['Authentication', 'Headers']}>
 
-Arbitrary headers work the same way, and header names are matched
-case-insensitively:
+  <Tab value="Authentication">
 
-<include meta='title="lib/api.ts"'>../../../../../../examples/src/auth-headers.ts</include>
+    <include meta='title="lib/auth.ts"'>../../../../../../examples/src/auth-bearer.ts</include>
 
-## What an error carries
+  </Tab>
+
+  <Tab value="Headers">
+
+    <include meta='title="lib/api.ts"'>../../../../../../examples/src/auth-headers.ts</include>
+
+  </Tab>
+
+</Tabs>
+
+Header names are matched case-insensitively, so `Authorization` and
+`authorization` are the same header.
+
+### Cancellation
+
+<include meta='title="search.ts"'>../../../../../../examples/src/cancellation.ts</include>
+
+Timeouts compose with caller cancellation into a single signal, and the
+resulting error tells you which one fired.
+
+## When it goes wrong
+
+### What an error carries
 
 An `ApiError` is not just a message. It keeps the context you need to decide
 what to do next.
 
 <include meta='title="users.ts"'>../../../../../../examples/src/error-context.ts</include>
 
-`isTimeout` and `isAborted` stay distinct on purpose: a request the server was
+### Timeout or cancellation?
+
+`isTimeout` and `isAborted` stay distinct on purpose. A request the server was
 too slow to answer and a request your own code cancelled deserve different
 handling, and most clients collapse them into one.
 
-## Cancellation
-
-<include meta='title="search.ts"'>../../../../../../examples/src/cancellation.ts</include>
-
-Timeouts compose with caller cancellation into a single signal, and the
-resulting error tells you which one fired.
+<Callout type="warn">
+  Reporting cancellations as errors is how a dashboard fills with noise nobody
+  can act on. A component that unmounts mid-request produces `isAborted`, and
+  that is routine.
+</Callout>
 
 ## Next steps
 

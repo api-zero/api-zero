@@ -5,7 +5,9 @@ description: Attaching credentials, and refreshing them without looping.
 
 import { Braces, Filter } from 'lucide-react';
 
-## Bearer tokens
+## Attaching credentials
+
+### Bearer tokens
 
 Set the token once on the client. Every later request carries it.
 
@@ -22,7 +24,7 @@ changes between requests.
   call.
 </Callout>
 
-## Reading the token per request
+### Reading the token per request
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-request.ts</include>
 
@@ -30,13 +32,15 @@ Mutate `context.headers` and return the context. A request interceptor runs
 before every attempt, so a token read here is always current — including on a
 retry.
 
-## Basic auth
+### Basic auth
 
 `setBasicAuth(user, pass)` base64-encodes the pair into the `Authorization`
 header. It is transport-level auth with no expiry, so there is nothing to
 refresh.
 
-## Refreshing an expired token
+## Keeping them valid
+
+### Refreshing an expired token
 
 The interesting case: turning a `401` into a success by fixing the cause and
 replaying the request.
@@ -61,7 +65,7 @@ Three details separate this from a version that breaks in production:
   first, which is why it belongs in an interceptor.
 </Callout>
 
-## Signing out
+### Signing out
 
 `clearAuth()` removes the header. Anything already in flight keeps the old
 token: it was attached when the request was built.

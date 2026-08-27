@@ -83,7 +83,7 @@ before the interceptor chain runs**, so a rejection handler sees HTTP failures,
 network failures, timeouts and validation failures alike. A handler that
 refreshes an expired token works because the 401 actually reaches it.
 
-## Transport is a boundary, not an implementation detail
+### Transport is a boundary, not an implementation detail
 
 `Transport` is a public interface with a single method. Swapping it replaces the
 entire network layer.

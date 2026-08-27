@@ -16,7 +16,9 @@ client.interceptors.response // InterceptorManager<ResponseContext, ApiError>
 `use(fulfilled?, rejected?)` returns a numeric id. `eject(id)` removes one,
 `clear()` removes all.
 
-## Request interceptors
+## The two chains
+
+### Request interceptors
 
 A request handler receives the full `RequestContext` and returns it.
 
@@ -44,7 +46,7 @@ The context is the resolved request, not the options you passed:
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-logging.ts</include>
 
-## Response interceptors
+### Response interceptors
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/interceptor-response.ts</include>
 
@@ -57,7 +59,9 @@ class**: HTTP status, network failure, timeout, cancellation and validation
 alike. Errors are normalized before the chain runs, which is what makes the next
 pattern possible at all.
 
-## Recovering: refreshing an expired token
+## In practice
+
+### Recovering: refreshing an expired token
 
 The canonical use for a rejection handler is turning a failure into a success by
 fixing the cause and replaying the request.
@@ -76,7 +80,7 @@ Three details are what separate this from a version that breaks in production:
 `metadata` exists for exactly this: request-scoped state that travels with the
 context and that no header has to carry.
 
-## Order and removal
+### Order and removal
 
 Handlers run in registration order. `use()` returns an id:
 

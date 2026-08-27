@@ -15,7 +15,9 @@ import { Rocket, Workflow } from 'lucide-react';
   Edge is Fetch-only: upload and download progress need XHR, which exists only
   in browsers.
 
-## Core
+## The packages
+
+### Core
 
 Everything else is optional. Start here.
 
@@ -50,7 +52,7 @@ Everything else is optional. Start here.
   </Tab>
 </Tabs>
 
-## React bindings
+### React bindings
 
 `@api-zero/core` is a peer dependency, so install both.
 
@@ -85,7 +87,7 @@ Everything else is optional. Start here.
   </Tab>
 </Tabs>
 
-## Zod contracts
+### Zod contracts
 
 <Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
   <Tab value="npm">
@@ -118,7 +120,9 @@ Everything else is optional. Start here.
   </Tab>
 </Tabs>
 
-## Create the client once
+## Setting it up
+
+### Create the client once
 
 Export a single configured instance and import it everywhere. Creating a client
 per call throws away the headers, interceptors and retry policy you configured.

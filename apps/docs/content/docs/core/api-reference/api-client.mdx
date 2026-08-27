@@ -19,7 +19,9 @@ configured.
 equivalent — the factory exists so call sites read as intent rather than
 construction.
 
-## HTTP verbs
+## Making requests
+
+### HTTP verbs
 
 ```typescript
 get   <TResponse = unknown, TParams = Record<string, unknown>>(endpoint, options?)
@@ -43,11 +45,11 @@ wrapper. There is no `.data` to unwrap.
   [checked at runtime](/docs/zod).
 </Callout>
 
-## The generic `request()`
+### The generic `request()`
 
 <include meta='title="resources.ts"'>../../../../../../examples/src/generic-request.ts</include>
 
-## Uploads and progress
+### Uploads and progress
 
 <include meta='title="upload.ts"'>../../../../../../examples/src/upload-progress.ts</include>
 
@@ -70,11 +72,13 @@ cannot report upload progress. Download progress works the same way:
   cannot work — keep progress callbacks on the client side.
 </Callout>
 
-## Configuration
+## Configuring the client
+
+### Changing configuration
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/client-config.ts</include>
 
-## Headers and authentication
+### Headers and authentication
 
 <Tabs items={['Authentication', 'Headers']}>
 
@@ -96,7 +100,7 @@ cannot report upload progress. Download progress works the same way:
 `setBasicAuth(user, pass)` base64-encodes the pair. `clearAuth()` removes the
 header.
 
-## Interceptors
+### Interceptors
 
 ```typescript
 client.interceptors.request  // InterceptorManager<RequestContext, unknown>

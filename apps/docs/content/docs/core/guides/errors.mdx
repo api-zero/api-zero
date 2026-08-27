@@ -21,7 +21,7 @@ Check `instanceof ApiError` before touching its properties. A bug inside your
 own `then` handler is still a plain `Error`, and swallowing it as a transport
 failure hides real defects.
 
-## Deciding what happened
+### Deciding what happened
 
 <include meta='title="users.ts"'>../../../../../../examples/src/error-context.ts</include>
 
@@ -59,7 +59,9 @@ codes.
   </Accordion>
 </Accordions>
 
-## Logging
+## Reporting
+
+### Logging
 
 `toJSON()` returns a flat object with the message, status, flags, attempt and
 the resolved URL and method — without the native `Response`, which does not
@@ -72,7 +74,7 @@ logger.error("request failed", error.toJSON());
 Logging `error.message` alone throws away the context that makes an incident
 diagnosable: which URL, which attempt, which underlying cause.
 
-## Centralising it
+### Centralising it
 
 A response interceptor sees every failure before the caller does, which is where
 cross-cutting concerns belong — telemetry, a toast, a redirect.

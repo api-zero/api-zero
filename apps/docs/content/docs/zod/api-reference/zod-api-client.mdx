@@ -22,11 +22,13 @@ const api = createZodClient({ baseURL: "https://api.example.com" });
 const wrapped = withZod(createClient({ baseURL: "https://api.example.com" }));
 ```
 
-## Reading
+## Using it
+
+### Reading
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/zod-typed-response.ts</include>
 
-## Writing
+### Writing
 
 <include meta='title="users.ts"'>../../../../../../examples/src/zod-validated-body.ts</include>
 
@@ -35,7 +37,7 @@ const wrapped = withZod(createClient({ baseURL: "https://api.example.com" }));
 the request leaves the process** — an invalid body never reaches the network, and
 the failure arrives as a `ZodValidationError` with `target: "body"`.
 
-## Configuration goes through `.client`
+### Configuration goes through `.client`
 
 <Callout type="info">
   `ZodApiClient` deliberately does not mirror the configuration API. Use the

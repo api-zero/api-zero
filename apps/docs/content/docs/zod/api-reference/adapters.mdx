@@ -13,7 +13,9 @@ schema validation on a client you already have, without wrapping it.
 Because they return ordinary options, they spread alongside everything else:
 `timeout`, `signal`, `params`, `retry`. Nothing is special-cased.
 
-## `zodResponse(schema)`
+## The adapters
+
+### `zodResponse(schema)`
 
 Returns `{ transformResponse }`. The response is parsed with `safeParseAsync`,
 so async refinements and transforms work. On failure it throws a
@@ -23,13 +25,13 @@ Since it is a response transform, it runs **after** the body is parsed and
 **before** validation and the response interceptors — so an interceptor sees the
 already-validated, already-transformed data.
 
-## `zodBody(schema)`
+### `zodBody(schema)`
 
 Returns `{ transformRequest }`. The body is validated before the request is
 built, so an invalid payload never reaches the network and fails with
 `target: "body"`.
 
-## `zodContract({ response, body })`
+### `zodContract({ response, body })`
 
 Combines both into one options object. `ZodApiClient` is built on it.
 

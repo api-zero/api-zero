@@ -18,14 +18,16 @@ shares the same base URL, headers, auth, interceptors and retry policy.
 
 Pass `client` or `config`. If both are present, `client` wins.
 
-## Recommended: pass an instance
+## Providing a client
+
+### Recommended: pass an instance
 
 <include meta='title="app/providers.tsx"'>../../../../../../examples/src/react-provider.tsx</include>
 
 Creating the client outside the component tree makes its lifetime explicit and
 its identity stable. Nothing about a re-render can replace it.
 
-## Passing `config` instead
+### Passing `config` instead
 
 ```tsx
 <ApiProvider config={{ baseURL: "https://api.example.com", timeout: 10_000 }}>
@@ -45,7 +47,7 @@ That comparison is shallow, so it cannot see through a changed `retry` object or
 a changed transform function. When your configuration is dynamic, build the
 client yourself and pass `client`.
 
-## Nesting
+### Nesting
 
 Providers nest. An inner one shadows the outer for its subtree, which is how you
 talk to a second API without giving up the first.

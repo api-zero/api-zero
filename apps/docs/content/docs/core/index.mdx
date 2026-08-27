@@ -24,7 +24,7 @@ and nobody ever tests it.
 - **One configured client, everywhere** — auth, headers and interceptors defined
   once and reachable from any module or component.
 
-## What it deliberately does not do
+### What it deliberately does not do
 
 api-zero is **not** a data-fetching library. It has no cache, no deduplication,
 no invalidation and no `useQuery` equivalent. Those belong to
@@ -37,7 +37,9 @@ workaround — see [the React package](/docs/react).
 If you only ever call one endpoint, plain `fetch` is the right answer and you do
 not need this.
 
-## Size
+## The packages
+
+### Size
 
 Measured from the published ESM bundles, gzipped. CI enforces a ceiling on each
 number so this table cannot quietly stop being true.
@@ -50,7 +52,7 @@ number so this table cannot quietly stop being true.
 
 Only `@api-zero/core` is required. The other two are opt-in.
 
-## The three packages
+### How they split
 
 <Cards>
   <Card

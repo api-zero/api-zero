@@ -12,14 +12,16 @@ answer is no longer wanted.
 api-zero composes them into one signal and keeps them distinguishable in the
 resulting error.
 
-## Cancelling
+## Stopping a request
+
+### Cancelling
 
 <include meta='title="search.ts"'>../../../../../../examples/src/cancellation.ts</include>
 
 A signal that is **already aborted** before the request starts is honoured
 immediately — no connection is opened.
 
-## Timeouts
+### Timeouts
 
 <include meta='title="reports.ts"'>../../../../../../examples/src/timeouts.ts</include>
 
@@ -33,7 +35,7 @@ as long as you allowed.
   wrong, which is why they cannot express "no timeout" at all.
 </Callout>
 
-## Telling them apart
+### Telling them apart
 
 ```typescript
 if (error.isTimeout) {
@@ -48,13 +50,15 @@ if (error.isAborted) {
 Reporting cancellations as errors is how a dashboard fills with noise that
 nobody can act on.
 
-## Cancelling during a retry
+## In practice
+
+### Cancelling during a retry
 
 Aborting while the client waits between attempts stops it immediately. The sleep
 is signal-aware, so it does not run the delay out before noticing — which
 matters when the backoff has grown to eight seconds.
 
-## With TanStack Query
+### With TanStack Query
 
 TanStack supplies an `AbortSignal` to every `queryFn` and aborts it when the
 query is cancelled, unmounted or superseded. Forwarding it is what makes the
