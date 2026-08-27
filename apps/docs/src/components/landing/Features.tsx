@@ -77,9 +77,12 @@ export function Features() {
           const el = track.current;
           if (!el) return;
 
-          // Measured, not guessed: the distance is however much of the track
-          // hangs off the right edge, so adding a card cannot break the timing.
-          const distance = () => el.scrollWidth - el.clientWidth;
+          // Measured against the viewport, not against the element. The track
+          // is `w-max`, so it is exactly as wide as its content and never
+          // overflows itself: scrollWidth and clientWidth are equal, and
+          // measuring those gives zero — a pin with no length and no movement.
+          const distance = () =>
+            Math.max(0, el.scrollWidth - document.documentElement.clientWidth);
 
           const tween = gsap.to(el, {
             x: () => -distance(),
