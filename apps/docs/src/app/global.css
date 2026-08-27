@@ -192,7 +192,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .landing-reveal,
   .landing-enter {
-    transform: none !important;
+    /* Same specificity as the base rule, declared later, so it wins on order
+       and needs no !important. */
+    transform: none;
     transition-duration: 200ms;
   }
 }

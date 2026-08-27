@@ -9,16 +9,14 @@
  * Usage: node shoot.mjs <url> <out.png> [scrollY] [width] [height]
  */
 import { spawn } from "node:child_process";
-import { writeFileSync } from "node:fs";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const [url, out, scrollY = "0", width = "1440", height = "900"] =
   process.argv.slice(2);
 
-const CHROME =
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const PORT = 9333;
 
 const chrome = spawn(CHROME, [
@@ -33,6 +31,9 @@ const chrome = spawn(CHROME, [
   "--enable-unsafe-swiftshader",
   "--use-gl=angle",
   "--use-angle=swiftshader",
+  // Real Chrome autoplays muted video without a gesture; headless does not.
+  // Without this the page screenshots as if its videos were broken.
+  "--autoplay-policy=no-user-gesture-required",
 ]);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

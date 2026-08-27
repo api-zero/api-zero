@@ -1,24 +1,31 @@
+"use client";
+
 import Link from "next/link";
+import { Counter } from "./Counter";
 import { Reveal } from "./reveal";
 
 const STATS = [
   {
-    value: "6.0 kB",
+    value: 6.0,
+    decimals: 1,
+    suffix: " kB",
     label: "@api-zero/core, gzipped",
     body: "Measured from the published bundle on every CI run, with a budget that fails the build if it grows.",
   },
   {
-    value: "0.7 kB",
+    value: 0.7,
+    decimals: 1,
+    suffix: " kB",
     label: "@api-zero/react",
     body: "A provider and a hook. Everything else is core, which you would install anyway.",
   },
   {
-    value: "0",
+    value: 0,
     label: "runtime dependencies",
     body: "Native fetch. Zod and React are peer dependencies of their own packages, never bundled.",
   },
   {
-    value: "44",
+    value: 44,
     label: "compiled examples",
     body: "Every snippet in these docs is a real file, type-checked against the published packages on every build.",
   },
@@ -29,10 +36,13 @@ export function Comparison() {
     <section className="border-fd-border border-t px-6 py-24">
       <div className="mx-auto max-w-5xl">
         <Reveal>
-          <h2 className="text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+          <p className="font-medium font-mono text-fd-primary text-sm">
+            Measured, not claimed
+          </p>
+          <h2 className="mt-3 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
             Numbers we actually measure
           </h2>
-          <p className="mt-4 max-w-2xl text-fd-muted-foreground">
+          <p className="mt-4 max-w-2xl text-fd-muted-foreground leading-relaxed">
             We do not publish a comparison table against other libraries. Their
             numbers are not ours to claim, and a table like that ages badly.
             These are ours, and CI keeps them honest.
@@ -43,7 +53,11 @@ export function Comparison() {
           {STATS.map((stat, index) => (
             <Reveal key={stat.label} delay={index * 40}>
               <dt className="font-semibold text-5xl text-fd-primary tracking-tight">
-                {stat.value}
+                <Counter
+                  value={stat.value}
+                  decimals={stat.decimals}
+                  suffix={stat.suffix}
+                />
               </dt>
               <dd className="mt-2 font-medium text-sm">{stat.label}</dd>
               <dd className="mt-2 text-fd-muted-foreground text-sm leading-relaxed">

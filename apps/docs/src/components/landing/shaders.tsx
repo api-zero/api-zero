@@ -1,7 +1,7 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 /**
@@ -73,6 +73,37 @@ export function HeroSphere() {
       type="4x4"
       speed={0.4}
       minPixelRatio={1}
+    />
+  );
+}
+
+/**
+ * The grain again, at the foot of the page.
+ *
+ * Bookending the landing with the same material is what makes it read as one
+ * surface rather than a stack of unrelated bands.
+ */
+export function CtaGrain() {
+  const { resolvedTheme } = useTheme();
+  const ready = useDelayedMount(600);
+  if (!ready) return null;
+
+  return (
+    <GrainGradient
+      className="absolute inset-0 animate-fd-fade-in duration-1000"
+      colors={
+        resolvedTheme === "dark"
+          ? ["#FF8A2B", "#7A2A00", "#1A0A0000"]
+          : ["#FFC48A", "#FF7A18", "#7A2A0018"]
+      }
+      colorBack="#00000000"
+      softness={1}
+      intensity={0.6}
+      noise={0.45}
+      speed={0.4}
+      shape="wave"
+      minPixelRatio={1}
+      maxPixelCount={1920 * 1080}
     />
   );
 }

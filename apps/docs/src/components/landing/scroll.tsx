@@ -52,35 +52,3 @@ export function Parallax({
 
   return <div ref={ref} className={cn(className)} {...props} />;
 }
-
-/**
- * Brings a group of siblings in one after another as the group enters view.
- *
- * The stagger is what makes a grid read as a list rather than as a single block
- * that blinks into place. Children opt in with `data-stagger`.
- */
-export function Stagger({ className, ...props }: ComponentProps<"div">) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useGSAP(
-    () => {
-      const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from("[data-stagger]", {
-          opacity: 0,
-          y: 24,
-          duration: 0.5,
-          // Long enough to read as a sequence, short enough that the last card
-          // is not still arriving after the reader has looked away.
-          stagger: 0.07,
-          ease: "power3.out",
-          scrollTrigger: { trigger: ref.current, start: "top 80%", once: true },
-        });
-      });
-      return () => mm.revert();
-    },
-    { scope: ref },
-  );
-
-  return <div ref={ref} className={cn(className)} {...props} />;
-}

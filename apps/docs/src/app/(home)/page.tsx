@@ -1,4 +1,5 @@
 import { Comparison } from "@/components/landing/Comparison";
+import { Failures } from "@/components/landing/Failures";
 import { Features } from "@/components/landing/Features";
 import { Footer } from "@/components/landing/Footer";
 import { Hero } from "@/components/landing/Hero";
@@ -13,6 +14,7 @@ export default function HomePage() {
         <Hero />
         <Problem />
         <Lifecycle />
+        <Failures />
         <Features />
         <Comparison />
         <QuickStart />

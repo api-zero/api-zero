@@ -1,8 +1,8 @@
 import { DynamicCodeBlock } from "fumadocs-ui/components/dynamic-codeblock";
-import { Parallax } from "./scroll";
-import { HeroGrain, HeroSphere } from "./shaders";
 import { ArrowRight, Github } from "lucide-react";
 import Link from "next/link";
+import { Parallax } from "./scroll";
+import { HeroGrain, HeroSphere } from "./shaders";
 
 const SAMPLE = `import { createClient, ApiError } from "@api-zero/core";
 
@@ -34,7 +34,10 @@ export function Hero() {
           which is what separates the two planes. Only the decoration moves:
           parallaxing the copy makes it harder to read, not more alive.
         */}
-        <Parallax className="pointer-events-none absolute inset-0" distance={-90}>
+        <Parallax
+          className="pointer-events-none absolute inset-0"
+          distance={-90}
+        >
           <HeroGrain />
           <HeroSphere />
         </Parallax>
