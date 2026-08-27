@@ -3,13 +3,15 @@ title: The provider
 description: One client for the tree, and when to use more than one.
 ---
 
-import { Boxes, Server } from 'lucide-react';
+import { Anchor, Boxes, Server } from 'lucide-react';
 
 `ApiProvider` publishes an `ApiClient` to React context. Every component below
 it shares the same base URL, headers, auth, interceptors and retry policy —
 which is the whole reason this package exists.
 
-## Create the client outside the tree
+## Choosing how to provide it
+
+### Pass an instance
 
 <include meta='title="app/providers.tsx"'>../../../../../../examples/src/react-provider.tsx</include>
 
@@ -17,46 +19,67 @@ Creating it at module scope makes its lifetime explicit and its identity stable.
 Nothing about a re-render can replace it, and a token set in one component is
 visible to every other.
 
-## Passing `config` instead
+**This is the form to reach for by default.**
 
-```tsx
-<ApiProvider config={{ baseURL: "https://api.example.com", timeout: 10_000 }}>
-  <App />
-</ApiProvider>
-```
+### Pass a config
 
-Convenient, and it carries a trap worth understanding. An object literal in JSX
-is a **new object on every render**. A naive provider would build a new client
-each time, discarding any token set on the previous one — a bug that shows up as
-"the user is randomly logged out".
+<include meta='title="app/providers.tsx"'>../../../../../../examples/src/react-provider-config.tsx</include>
 
-`ApiProvider` guards against it by comparing the config's contents rather than
+Convenient, and it carries a trap. An object literal in JSX is a **new object on
+every render**. A naive provider would build a new client each time, discarding
+any token set on the previous one — a bug that surfaces as "the user is randomly
+logged out" and is miserable to track down.
+
+`ApiProvider` guards against it by comparing the config's *contents* rather than
 its identity: `baseURL`, `timeout`, `credentials`, `transport` and each header.
 
 <Callout type="warn">
   That comparison is shallow. It cannot see through a changed `retry` object or
-  a changed transform function, so a config that varies in those will not
-  produce a new client. When your configuration is dynamic, build the client
-  yourself and pass `client`.
+  a changed transform function, so a config varying in those will keep returning
+  the same client. When your configuration is dynamic, build the client yourself
+  and pass `client`.
+</Callout>
+
+### If you pass both
+
+`client` wins and `config` is ignored. That is deliberate: an explicit instance
+is a stronger statement of intent than a description of one.
+
+## Reaching it
+
+<include meta='title="components/sign-in-button.tsx"'>../../../../../../examples/src/react-use-api.tsx</include>
+
+`useApi()` throws outside a provider rather than returning `undefined`, because
+a silent `undefined` fails later at the call site with nothing pointing back to
+the real cause.
+
+<Callout type="info">
+  In the Next.js App Router, `ApiProvider` is a client component. It only covers
+  the subtree it wraps, and a server component cannot call `useApi()` at all —
+  see [server rendering](/docs/react/guides/server-rendering).
 </Callout>
 
 ## More than one API
 
-Providers nest. An inner one shadows the outer for its subtree, which is how you
-talk to a second service without giving up the first.
+### Nesting providers
 
-```tsx
-<ApiProvider client={mainApi}>
-  <Dashboard />
-  <ApiProvider client={billingApi}>
-    <Invoices />
-  </ApiProvider>
-</ApiProvider>
+<include meta='title="app/app.tsx"'>../../../../../../examples/src/react-provider-nested.tsx</include>
+
+An inner provider shadows the outer one for its subtree. Each client keeps its
+own headers and interceptors, so an auth token on one never travels to the
+other — which is exactly what you want when the second service is a third party.
+
+### When not to nest
+
+If both APIs are yours and share credentials, one client with a per-request
+`baseURL` override is simpler:
+
+```tsx title="hooks/use-invoice.ts"
+api.get<Invoice>("/invoices/1", { baseURL: "https://billing.example.com" });
 ```
 
-Each client keeps its own headers and interceptors, so an auth token on one does
-not travel to the other — which is exactly what you want when the second service
-is a third party.
+Nesting earns its cost when the clients genuinely differ — different auth,
+different retry policy, different interceptors.
 
 ## See also
 
@@ -66,6 +89,12 @@ is a third party.
     title="ApiProvider"
     href="/docs/react/api-reference/api-provider"
     description="Props and behaviour"
+  />
+  <Card
+    icon={<Anchor className="text-cyan-500" />}
+    title="useApi"
+    href="/docs/react/api-reference/use-api-hook"
+    description="Reading the client from a component"
   />
   <Card
     icon={<Server className="text-emerald-500" />}

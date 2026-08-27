@@ -80,17 +80,12 @@ worth repeating. TanStack's does not, because it cannot see the HTTP layer.
 
 ## Mutations
 
-```tsx
-const api = useApi();
-
-const mutation = useMutation({
-  mutationFn: (input: CreateUser) => api.post<User>("/users", input),
-  onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
-});
-```
+<include meta='title="hooks/use-create-user.ts"'>../../../../../../examples/src/react-tanstack-mutation.ts</include>
 
 Note that `useMutation` here is TanStack's. api-zero deliberately ships no hook
-of that name — see [the package overview](/docs/react) for why.
+of that name, and the `invalidateQueries` call above is exactly why: knowing
+which cached queries a write invalidates is cache knowledge, and a transport
+layer does not have it.
 
 ## See also
 

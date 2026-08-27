@@ -19,7 +19,9 @@
   },
   "devDependencies": {
     "@tanstack/react-query": "^5.102.6",
+    "@testing-library/react": "^16.0.0",
     "@types/react": "^19.2.5",
+    "happy-dom": "^15.0.0",
     "swr": "^2.5.1",
     "typescript": "^5.9.3",
     "vitest": "^1.0.0"

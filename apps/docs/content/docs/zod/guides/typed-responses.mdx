@@ -50,35 +50,18 @@ re-check.
 
 ## Transforming, not just checking
 
-Zod transforms make the boundary the place where wire formats become domain
-types:
+<include meta='title="lib/schemas.ts"'>../../../../../../examples/src/zod-transforms.ts</include>
 
-```typescript
-const orderSchema = z.object({
-  total: z.string().transform((v) => Number.parseFloat(v)),
-  placedAt: z.string().transform((v) => new Date(v)),
-  status: z.enum(["pending", "shipped", "delivered"]),
-});
-```
-
-The string-encoded decimal and the ISO date stop existing past this line. Doing
-it here rather than in each component is the difference between one conversion
-and twenty.
+The string-encoded decimal and the ISO date stop existing past this line. That
+is the point of a boundary: the wire format is the API's concern, not your
+components'.
 
 ## Arrays and pagination
 
-```typescript
-const page = await api.get(
-  "/users",
-  z.object({
-    items: z.array(userSchema),
-    total: z.number(),
-  }),
-);
-```
+<include meta='title="users.ts"'>../../../../../../examples/src/zod-paginated.ts</include>
 
-An array schema validates every element. For a large list that is real work —
-worth it at a boundary you do not control, and worth measuring if the list has
+An array schema validates every element, which is real work for a large list.
+Worth it at a boundary you do not control; worth measuring when the list has
 thousands of rows.
 
 ## See also

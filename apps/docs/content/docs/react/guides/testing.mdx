@@ -3,65 +3,110 @@ title: Testing components
 description: Real requests, fake network.
 ---
 
-import { FlaskConical, Network } from 'lucide-react';
+import { FlaskConical, Network, Server } from 'lucide-react';
 
 Components that call an API are usually tested by mocking the module that makes
-the request, which tests that your mock returns what you told it to.
+the request. That tests one thing: that your mock returns what you told it to.
 
-Replacing the transport instead leaves the whole client in place — base URL
-resolution, headers, interceptors, error normalization, retries — and swaps only
-the network.
+Replacing the **transport** instead leaves the whole client in place — base URL
+resolution, header merging, interceptors, error normalization, retries — and
+swaps only the network. What you assert on is the behaviour your users get.
 
-<include meta='title="test/test-provider.tsx"'>../../../../../../examples/src/react-testing.tsx</include>
+## Setting it up
 
-## In a test
+<Steps>
 
-```tsx
+<Step>
+
+### Build a client with a fake transport
+
+<include meta='title="test/test-client.tsx"'>../../../../../../examples/src/react-testing-assertions.tsx</include>
+
+The `sent` array is the part most module mocks cannot give you: the fully
+resolved request, after interceptors and transforms.
+
+</Step>
+
+<Step>
+
+### Render through it
+
+```tsx title="user-profile.test.tsx"
+const { client, sent } = createTestClient(() => ({ id: 1, name: "Alice" }));
+
 render(
-  <TestProvider data={{ id: 1, name: "Alice" }}>
+  <Wrapper client={client}>
     <UserProfile id={1} />
-  </TestProvider>,
+  </Wrapper>,
 );
 
 expect(await screen.findByText("Alice")).toBeInTheDocument();
 ```
 
-No `vi.mock`, no patched globals, nothing to clean up between tests. The provider
+No `vi.mock`, no patched globals, nothing to clean up between tests. The client
 goes out of scope with the component tree.
 
-## Testing the failure states
+</Step>
 
-Error states are where components break, and they are the hardest to reach with
-module mocks. With a transport they are one object:
+<Step>
 
-```tsx
-const notFound: Transport = {
-  async send() {
-    return { status: 404, statusText: "Not Found", headers: {}, data: null };
-  },
-};
+### Assert on what was sent
+
+```tsx title="user-profile.test.tsx"
+expect(sent).toHaveLength(1);
+expect(sent[0].url).toBe("https://api.test/users/1");
+expect(sent[0].headers.Authorization).toBe("Bearer test-token");
 ```
 
-That exercises the real error pipeline, so the component receives a genuine
-`ApiError` with `isNotFound()` working — not a hand-built stub that happens to
-have the right shape.
+This catches the bugs that matter and that a module mock hides entirely: a
+missing auth header, a query parameter serialized the wrong way, a request fired
+twice.
+
+</Step>
+
+</Steps>
+
+## Testing the states that break
+
+Error and loading states are where components fail, and they are the hardest to
+reach through module mocks. As transports they are one object each.
+
+<include meta='title="test/transports.ts"'>../../../../../../examples/src/react-testing-states.ts</include>
+
+<Accordions>
+  <Accordion title="notFound — the empty state">
+    The component receives a genuine `ApiError` with `isNotFound()` working,
+    through the real error pipeline. A hand-built stub only *looks* right.
+  </Accordion>
+  <Accordion title="pending — the loading state">
+    A promise that never settles holds the component in its loading state for as
+    long as the assertion needs, with no fake timers and no arbitrary waits.
+  </Accordion>
+  <Accordion title="offline — the network failure">
+    Status `0` and `isNetworkError`. Worth testing separately from a `500`:
+    they usually deserve different copy, and components routinely conflate them.
+  </Accordion>
+</Accordions>
+
+## With TanStack Query
+
+Wrap in both providers, and **turn retries off** — otherwise a failing test waits
+out the backoff before it reports.
+
+```tsx title="test/render.tsx"
+const client = new QueryClient({
+  defaultOptions: { queries: { retry: false } }, // [!code ++]
+});
+```
+
+Forgetting this is the usual reason a suite goes from fast to inexplicably slow
+the moment error tests are added.
 
 <Callout type="info">
   This is the same technique the core package uses on itself. Its suite has no
   network access and no patched globals, which is why it runs in milliseconds
   and does not flake.
 </Callout>
-
-## With TanStack Query
-
-Wrap in both providers and disable retries, or a failing test waits out the
-backoff before reporting.
-
-```tsx
-const client = new QueryClient({
-  defaultOptions: { queries: { retry: false } },
-});
-```
 
 ## See also
 
@@ -77,5 +122,11 @@ const client = new QueryClient({
     title="Transport"
     href="/docs/core/api-reference/transport"
     description="The interface you are implementing"
+  />
+  <Card
+    icon={<Server className="text-emerald-500" />}
+    title="Server rendering"
+    href="/docs/react/guides/server-rendering"
+    description="Per-request clients, which testing mirrors"
   />
 </Cards>

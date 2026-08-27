@@ -15,41 +15,23 @@ SWR passes the key to the fetcher, so when the key is the endpoint, api-zero
 
 ## Inside a component
 
-```tsx
-function UserProfile({ id }: { id: number }) {
-  const api = useApi();
-  const { data, error, isLoading } = useSWR(`/users/${id}`, (url: string) =>
-    api.get<User>(url),
-  );
-
-  if (isLoading) return <Spinner />;
-  if (error instanceof ApiError && error.isNotFound()) return <NotFound />;
-  return <h1>{data?.name}</h1>;
-}
-```
+<include meta='title="components/user-profile.tsx"'>../../../../../../examples/src/react-swr-component.tsx</include>
 
 ## Cancellation
 
 <Callout type="warn">
-  SWR does not hand an `AbortSignal` to the fetcher the way TanStack Query does.
-  A superseded request keeps running until it completes — SWR simply ignores the
-  result.
-
-  For a search box or anything that fires per keystroke, hold your own
-  controller and abort it when the key changes, or use TanStack Query, which
-  gives you the signal for free.
+  SWR does not hand an `AbortSignal` to the fetcher the way TanStack Query
+  does. A superseded request keeps running until it completes — SWR simply
+  ignores the result.
 </Callout>
 
-```tsx
-const controllerRef = useRef<AbortController>(null);
+For a search box, or anything that fires per keystroke, that means one live
+request per character. Hold the controller yourself:
 
-const { data } = useSWR(`/search?q=${query}`, (url: string) => {
-  controllerRef.current?.abort();
-  const controller = new AbortController();
-  controllerRef.current = controller;
-  return api.get<Result[]>(url, { signal: controller.signal });
-});
-```
+<include meta='title="hooks/use-search.ts"'>../../../../../../examples/src/react-swr-cancellation.ts</include>
+
+If cancellation matters to you, [TanStack Query](/docs/react/guides/tanstack-query)
+gives you the signal for free.
 
 ## A global fetcher
 

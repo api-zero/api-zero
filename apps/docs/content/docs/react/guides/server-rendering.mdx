@@ -49,22 +49,11 @@ Each request gets its own client, so nothing crosses between them.
 
 ### In the App Router
 
-Server components run per request, so create the client there and read the token
-from the request's own context:
+<include meta='title="app/page.tsx"'>../../../../../../examples/src/react-server-page.tsx</include>
 
-```tsx
-export default async function Page() {
-  const token = (await cookies()).get("session")?.value;
-  const api = createRequestClient(token);
-
-  const user = await api.get<User>("/me");
-  return <Profile user={user} />;
-}
-```
-
-`ApiProvider` is a client component and only covers the subtree it wraps. Server
-components do not read React context, so they need the client passed or created
-directly — they cannot call `useApi()`.
+`ApiProvider` is a client component and only covers the subtree it wraps.
+Server components do not read React context, so they cannot call `useApi()` —
+they build or receive the client directly.
 
 ## What is safe
 

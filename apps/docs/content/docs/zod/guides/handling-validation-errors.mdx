@@ -32,41 +32,22 @@ avoid crashing on this one.
 
 ## Form errors
 
-`flatten()` comes from Zod and produces exactly the shape a form wants:
+<include meta='title="components/create-user-form.ts"'>../../../../../../examples/src/zod-form-errors.ts</include>
 
-```typescript
-catch (error) {
-  if (error instanceof ZodValidationError && error.target === "body") {
-    const { fieldErrors } = error.flatten();
-    setErrors(fieldErrors); // { email: ["Invalid email"] }
-  }
-}
-```
-
+`flatten()` comes from Zod and produces exactly the shape a form wants.
 `format()` gives the nested variant, for forms with nested objects.
+
+Note the `target === "body"` guard: without it, a *response* that breaks its
+contract would paint field errors on a form the user never filled in wrong.
 
 ## Reporting the response case
 
-A response that fails its schema is a contract break, and it is worth a log entry
-with the issues attached — that is the record that tells you when the API changed
-and which field moved.
-
-```typescript
-api.client.interceptors.response.use(undefined, (error) => {
-  if (error instanceof ZodValidationError && error.target === "response") {
-    logger.error("contract broken", {
-      url: error.request?.url,
-      issues: error.issues,
-    });
-  }
-  throw error;
-});
-```
+<include meta='title="lib/api.ts"'>../../../../../../examples/src/zod-contract-interceptor.ts</include>
 
 <Callout type="warn">
-  Do not swallow these. A schema mismatch that is caught and ignored puts you
-  back where you started: the data is wrong, nothing says so, and the failure
-  surfaces somewhere unrelated.
+  Do not swallow these. A schema mismatch caught and ignored puts you back where
+  you started: the data is wrong, nothing says so, and the failure surfaces
+  somewhere unrelated.
 </Callout>
 
 ## See also
