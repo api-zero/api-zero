@@ -1,5 +1,14 @@
 # @api-zero/examples
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies [[`4bb9c13`](https://github.com/api-zero/api-zero/commit/4bb9c134a80456063616000efce42b5b9407c933)]:
+  - @api-zero/core@0.1.4
+  - @api-zero/react@0.1.4
+  - @api-zero/zod@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

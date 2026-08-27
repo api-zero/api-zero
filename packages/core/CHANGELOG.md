@@ -1,5 +1,13 @@
 # @api-zero/core
 
+## 0.1.4
+
+### Patch Changes
+
+- [`4bb9c13`](https://github.com/api-zero/api-zero/commit/4bb9c134a80456063616000efce42b5b9407c933) Thanks [@gorkadev](https://github.com/gorkadev)! - Document every field of `ApiClientConfig`, `RequestOptions` and
+  `TransportResponse` with JSDoc. Thirty fields had none, so editors showed a bare
+  type on hover and the generated API reference showed an empty description.
+
 ## 0.1.3
 
 ### Patch Changes
