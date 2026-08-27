@@ -11,8 +11,7 @@ import { CircleAlert, Filter, RefreshCw } from 'lucide-react';
 The split is not about size. It is about what each package forces you to
 install.
 
-<Mermaid
-  chart={`
+```mermaid
 graph TB
     A["@api-zero/core"] --> B[ApiClient]
     A --> C[ApiError]
@@ -32,8 +31,7 @@ graph TB
     style A fill:#3b82f6,stroke:#2563eb,color:#fff
     style H fill:#8b5cf6,stroke:#7c3aed,color:#fff
     style M fill:#10b981,stroke:#059669,color:#fff
-`}
-/>
+```
 
 `core` depends on nothing, so it runs anywhere with `fetch`. `react` and `zod`
 peer-depend on their host library rather than bundling it — that matters more
@@ -45,8 +43,7 @@ would make those checks silently return `false`.
 
 Every request follows the same path, and the order is part of the contract.
 
-<Mermaid
-  chart={`
+```mermaid
 sequenceDiagram
     participant Caller
     participant Transforms as Request transforms
@@ -63,8 +60,7 @@ sequenceDiagram
     ResTransforms->>Validation: transformed data
     Validation->>ResInt: validated data
     ResInt->>Caller: result, or a normalized ApiError
-`}
-/>
+```
 
 1. **Request transforms** — client-level first, then per-request.
 2. **Request interceptors** — receive the full `RequestContext`: method, resolved

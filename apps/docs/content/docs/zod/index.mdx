@@ -20,41 +20,9 @@ produces the type, so the two cannot disagree.
 Both `@api-zero/core` and `zod` are peer dependencies: you keep control of the
 versions, and there is only ever one copy of each in your tree.
 
-<Tabs items={['npm', 'pnpm', 'yarn', 'bun']} defaultIndex={1}>
-
-  <Tab value="npm">
-
-    ```bash
-    npm install @api-zero/core @api-zero/zod zod
-    ```
-
-  </Tab>
-
-  <Tab value="pnpm">
-
-    ```bash
-    pnpm add @api-zero/core @api-zero/zod zod
-    ```
-
-  </Tab>
-
-  <Tab value="yarn">
-
-    ```bash
-    yarn add @api-zero/core @api-zero/zod zod
-    ```
-
-  </Tab>
-
-  <Tab value="bun">
-
-    ```bash
-    bun add @api-zero/core @api-zero/zod zod
-    ```
-
-  </Tab>
-
-</Tabs>
+```npm
+npm install @api-zero/core @api-zero/zod zod
+```
 
 <Callout type="info">
   Zod 3 and 4 are both supported. Both `zod` and `@api-zero/core` are peer
@@ -66,9 +34,7 @@ versions, and there is only ever one copy of each in your tree.
 
 <Steps>
 
-<Step>
-
-### Describe the payload once
+### 1. Describe the payload once
 
 <include meta='title="lib/api.ts"'>../../../../../examples/src/zod-typed-response.ts</include>
 
@@ -76,28 +42,18 @@ Two things happen at once. `createdAt` arrives as a string and reaches you as a
 `Date`, because the schema said so. And `user` is typed from that same schema —
 no interface to keep in sync, no cast.
 
-</Step>
-
-<Step>
-
-### Validate what you send, too
+### 2. Validate what you send, too
 
 <include meta='title="users.ts"'>../../../../../examples/src/zod-validated-body.ts</include>
 
 An invalid body never reaches the network.
 
-</Step>
-
-<Step>
-
-### Handle the failure
+### 3. Handle the failure
 
 <include meta='title="users.ts"'>../../../../../examples/src/zod-error.ts</include>
 
 `ZodValidationError` extends `ApiError`, so it flows through the same catch
 blocks, interceptors and `instanceof ApiError` checks as every other failure.
-
-</Step>
 
 </Steps>
 

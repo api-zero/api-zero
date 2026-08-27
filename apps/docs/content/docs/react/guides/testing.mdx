@@ -16,20 +16,14 @@ swaps only the network. What you assert on is the behaviour your users get.
 
 <Steps>
 
-<Step>
-
-### Build a client with a fake transport
+### 1. Build a client with a fake transport
 
 <include meta='title="test/test-client.tsx"'>../../../../../../examples/src/react-testing-assertions.tsx</include>
 
 The `sent` array is the part most module mocks cannot give you: the fully
 resolved request, after interceptors and transforms.
 
-</Step>
-
-<Step>
-
-### Render through it
+### 2. Render through it
 
 ```tsx title="user-profile.test.tsx"
 const { client, sent } = createTestClient(() => ({ id: 1, name: "Alice" }));
@@ -46,11 +40,7 @@ expect(await screen.findByText("Alice")).toBeInTheDocument();
 No `vi.mock`, no patched globals, nothing to clean up between tests. The client
 goes out of scope with the component tree.
 
-</Step>
-
-<Step>
-
-### Assert on what was sent
+### 3. Assert on what was sent
 
 ```tsx title="user-profile.test.tsx"
 expect(sent).toHaveLength(1);
@@ -61,8 +51,6 @@ expect(sent[0].headers.Authorization).toBe("Bearer test-token");
 This catches the bugs that matter and that a module mock hides entirely: a
 missing auth header, a query parameter serialized the wrong way, a request fired
 twice.
-
-</Step>
 
 </Steps>
 

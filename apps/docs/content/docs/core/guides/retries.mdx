@@ -23,17 +23,11 @@ A failure clears three gates before a retry happens.
 
 <Steps>
 
-<Step>
-
-### Cancellation always wins
+### 1. Cancellation always wins
 
 An aborted request is never retried. You asked for it to stop.
 
-</Step>
-
-<Step>
-
-### The method must be idempotent
+### 2. The method must be idempotent
 
 `GET`, `PUT` and `DELETE` produce the same result done twice as done once, so
 they retry. `POST` and `PATCH` do not: a retried `POST` can create the same
@@ -43,11 +37,7 @@ the connection dropped.
 Opt in with `retryUnsafeMethods: true` only when you know the endpoint tolerates
 it — an idempotency key on the server is the usual reason.
 
-</Step>
-
-<Step>
-
-### The error must be worth repeating
+### 3. The error must be worth repeating
 
 By default that means what
 [`isRetryable()`](/docs/core/api-reference/api-error) reports: network failures,
@@ -55,8 +45,6 @@ timeouts, `408`, `429` and any `5xx`.
 
 Not a `400`, not a `404`, not a validation failure. Those describe your request,
 and repeating it produces the same answer more slowly.
-
-</Step>
 
 </Steps>
 
@@ -71,9 +59,7 @@ and repeating it produces the same answer more slowly.
 
 <Steps>
 
-<Step>
-
-### Retry-After wins outright
+### 1. Retry-After wins outright
 
 If the response carries one and `respectRetryAfter` is not `false`, that value
 is used and backoff is skipped entirely. Both forms are parsed: seconds
@@ -82,21 +68,13 @@ is used and backoff is skipped entirely. Both forms are parsed: seconds
 The server knows when it will be ready. Guessing over it is worse, and on a
 `429` it is how you get rate-limited harder.
 
-</Step>
-
-<Step>
-
-### Otherwise, backoff
+### 2. Otherwise, backoff
 
 `exponential` gives `delay × 2^(attempt-1)` — 1s, 2s, 4s, 8s. `linear` gives
 `delay × attempt` — 1s, 2s, 3s. A function receives `(attempt, error)` and
 returns milliseconds.
 
-</Step>
-
-<Step>
-
-### Capped, then jittered
+### 3. Capped, then jittered
 
 The delay is clamped to `maxDelay`, then multiplied by a random factor between
 0.5 and 1.
@@ -105,8 +83,6 @@ Jitter is not decoration. When an outage ends, every client that was retrying
 wakes on the same schedule and hits the recovering server simultaneously — a
 thundering herd that can knock it straight back down. Jitter spreads them out,
 and it only ever shortens a wait.
-
-</Step>
 
 </Steps>
 
