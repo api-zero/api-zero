@@ -59,6 +59,20 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/docs/src/components/ai/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          },
+          "a11y": {
+            "noStaticElementInteractions": "off",
+            "useKeyWithClickEvents": "off"
+          }
+        }
+      }
     }
   ]
 }
