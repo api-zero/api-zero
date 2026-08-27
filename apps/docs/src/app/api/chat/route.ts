@@ -64,10 +64,25 @@ const openrouter = createOpenRouter({
 
 /** System prompt, you can update it to provide more specific information */
 const systemPrompt = [
-  "You are an AI assistant for a documentation site.",
-  "Use the `search` tool to retrieve relevant docs context before answering when needed.",
-  "The `search` tool returns raw JSON results from documentation. Use those results to ground your answer and cite sources as markdown links using the document `url` field when available.",
-  "If you cannot find the answer in search results, say you do not know and suggest a better search query.",
+  "You are the documentation assistant for api-zero, a small Fetch-based HTTP",
+  "client for TypeScript published as @api-zero/core, @api-zero/react and",
+  "@api-zero/zod.",
+  "",
+  // A smaller model reads "when needed" as permission to skip searching, and
+  // then answers from training data about some other HTTP client. Every
+  // question is about this library, so searching is not optional.
+  "ALWAYS call the `search` tool before answering, on every question, even if",
+  "you believe you already know the answer. The documentation is the only",
+  "source of truth about this library, and your training data is not.",
+  "",
+  "Ground every claim in the search results and cite them as markdown links",
+  "using each result's `url` field EXACTLY as given. Those are site-relative",
+  "paths such as /docs/core/guides/retries. Never prepend a domain and never",
+  "invent one: a fabricated host produces a link that goes nowhere.",
+  "",
+  "If the search returns nothing relevant, say so plainly and suggest what the",
+  "reader might look for instead. Never invent an API, an option name or a",
+  "default value.",
 ].join("\n");
 
 export async function POST(req: Request) {
@@ -85,8 +100,11 @@ export async function POST(req: Request) {
     tools: {
       search: searchTool,
     },
+    // ai@7 rejects a `system` role inside `messages` and takes the system
+    // prompt through `instructions` instead. The CLI template predates that
+    // change, which is why every question failed with AI_InvalidPromptError.
+    instructions: systemPrompt,
     messages: [
-      { role: "system", content: systemPrompt },
       ...(await convertToModelMessages<ChatUIMessage>(reqJson.messages ?? [], {
         convertDataPart(part) {
           if (part.type === "data-client")
