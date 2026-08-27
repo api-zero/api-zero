@@ -1,0 +1,27 @@
+{
+  "name": "@api-zero/video",
+  "version": "1.0.0",
+  "description": "Motion graphics for the documentation site",
+  "repository": {},
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.518",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.518"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "@types/web": "0.0.166",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render src/index.ts Lifecycle ../docs/public/lifecycle.webm --codec=vp9 --crf=32 && remotion render src/index.ts Lifecycle ../docs/public/lifecycle.mp4 --codec=h264 --crf=23 && remotion still src/index.ts Lifecycle ../docs/public/lifecycle-poster.png --frame=240",
+    "lint": "tsc --noEmit"
+  },
+  "sideEffects": [
+    "*.css"
+  ]
+}
