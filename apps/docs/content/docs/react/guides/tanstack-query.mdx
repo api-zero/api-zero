@@ -18,10 +18,16 @@ Three things are happening.
 
 <Steps>
 
+<Step>
+
 ### `useApi()` gives you the configured client
 
 Base URL, auth, interceptors and retry policy are already applied. The query
 function does not build a request, it makes one.
+
+</Step>
+
+<Step>
 
 ### The `signal` is forwarded
 
@@ -33,10 +39,16 @@ Without that forward, a cancelled query stops updating React but the request
 runs to completion — you pay for the response and throw it away. On a search
 box, that is one wasted request per keystroke.
 
+</Step>
+
+<Step>
+
 ### Errors arrive as `ApiError`
 
 `error` in the query result is an `ApiError`, so `error.isNotFound()` and
 `error.status` work in the component without unwrapping anything.
+
+</Step>
 
 </Steps>
 
@@ -45,11 +57,23 @@ box, that is one wasted request per keystroke.
 Both libraries can retry, and running both means `3 × 3` attempts.
 
 <Callout type="warn">
-  Decide where retries live. If api-zero holds the policy — which is the point
-  of having a method-aware one — turn TanStack's off with `retry: false` on the
-  query. If TanStack holds it, leave api-zero's `retry` unset, which is already
-  the default.
+  Decide where retries live. Leaving both on means `3 × 3` attempts, and the
+  outer one does not know whether the inner one already waited.
 </Callout>
+
+If api-zero holds the policy — which is the point of having a method-aware
+one — turn TanStack's off:
+
+```tsx title="hooks/use-user.ts"
+useQuery({
+  queryKey: ["user", id],
+  retry: false, // [!code ++]
+  queryFn: ({ signal }) => api.get<User>(`/users/${id}`, { signal }),
+});
+```
+
+If TanStack holds it instead, leave api-zero's `retry` unset — which is already
+the default.
 
 api-zero's policy knows about idempotency, `Retry-After` and which errors are
 worth repeating. TanStack's does not, because it cannot see the HTTP layer.

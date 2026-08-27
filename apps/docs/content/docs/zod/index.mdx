@@ -62,6 +62,8 @@ Zod 3 and 4 are both supported.
 
 <Steps>
 
+<Step>
+
 ### Describe the payload once
 
 <include meta='title="lib/api.ts"'>../../../../../examples/src/zod-typed-response.ts</include>
@@ -70,11 +72,19 @@ Two things happen at once. `createdAt` arrives as a string and reaches you as a
 `Date`, because the schema said so. And `user` is typed from that same schema —
 no interface to keep in sync, no cast.
 
+</Step>
+
+<Step>
+
 ### Validate what you send, too
 
 <include meta='title="users.ts"'>../../../../../examples/src/zod-validated-body.ts</include>
 
 An invalid body never reaches the network.
+
+</Step>
+
+<Step>
 
 ### Handle the failure
 
@@ -82,6 +92,8 @@ An invalid body never reaches the network.
 
 `ZodValidationError` extends `ApiError`, so it flows through the same catch
 blocks, interceptors and `instanceof ApiError` checks as every other failure.
+
+</Step>
 
 </Steps>
 

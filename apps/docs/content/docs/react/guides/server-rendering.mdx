@@ -29,6 +29,20 @@ a client that the next user's request will also use.
 
 ### Build one per request
 
+The shape of the fix is moving the token off the shared instance:
+
+```typescript title="lib/api.server.ts"
+export const api = createClient({ baseURL: "https://api.example.com" }); // [!code --]
+api.setAuthToken(token); // [!code --]
+
+export function createRequestClient(token?: string) { // [!code ++]
+  const api = createClient({ baseURL: "https://api.example.com" }); // [!code ++]
+  if (token) api.setAuthToken(token); // [!code ++]
+  return api; // [!code ++]
+} // [!code ++]
+```
+
+
 <include meta='title="lib/api.server.ts"'>../../../../../../examples/src/react-per-request-client.ts</include>
 
 Each request gets its own client, so nothing crosses between them.

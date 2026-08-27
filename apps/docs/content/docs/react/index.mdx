@@ -77,11 +77,17 @@ React 18 and 19 are both supported.
 
 <Steps>
 
+<Step>
+
 ### Create the client
 
 Outside the component tree, so its identity never changes across renders.
 
 <include meta='title="app/providers.tsx"'>../../../../../examples/src/react-provider.tsx</include>
+
+</Step>
+
+<Step>
 
 ### Reach it from any component
 
@@ -90,12 +96,18 @@ Outside the component tree, so its identity never changes across renders.
 Every component now shares that client, its headers, its interceptors and its
 retry policy. Setting a token in one is visible to all of them.
 
+</Step>
+
+<Step>
+
 ### Add a cache
 
 api-zero deliberately stops here. Pair it with TanStack Query or SWR, and
 forward the `signal` so cancellation reaches the real request.
 
 <include meta='title="hooks/use-user.ts"'>../../../../../examples/src/react-tanstack.tsx</include>
+
+</Step>
 
 </Steps>
 

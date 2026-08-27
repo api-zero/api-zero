@@ -19,6 +19,23 @@ Two things happen at once. `createdAt` arrives as a string and reaches you as a
 `Date`, because the schema said so. And `user` is typed from that same schema —
 no interface to keep in sync, no cast.
 
+## Adding it to an existing call
+
+The change is one import and one argument:
+
+```typescript title="users.ts"
+import { createClient } from "@api-zero/core"; // [!code --]
+import { createZodClient } from "@api-zero/zod"; // [!code ++]
+
+const api = createClient({ baseURL: "https://api.example.com" }); // [!code --]
+const api = createZodClient({ baseURL: "https://api.example.com" }); // [!code ++]
+
+const user = await api.get<User>("/users/1"); // [!code --]
+const user = await api.get("/users/1", userSchema); // [!code ++]
+```
+
+The generic disappears because the schema supplies the type.
+
 ## Where validation runs
 
 The schema becomes a response transform, so it runs **after** the body is parsed

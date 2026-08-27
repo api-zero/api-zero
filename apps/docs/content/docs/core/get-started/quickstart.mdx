@@ -16,6 +16,8 @@ import { Component, RefreshCw, ShieldCheck, Workflow } from 'lucide-react';
 
 <Steps>
 
+<Step>
+
 ### Create a client
 
 <include meta='title="lib/api.ts"'>../../../../../../examples/src/create-client.ts</include>
@@ -23,11 +25,19 @@ import { Component, RefreshCw, ShieldCheck, Workflow } from 'lucide-react';
 Export this from a shared module. One instance carries your base URL, headers,
 auth and retry policy for the whole application.
 
+</Step>
+
+<Step>
+
 ### Make a request
 
 <include meta='title="users.ts"'>../../../../../../examples/src/http-verbs.ts</include>
 
 Each verb returns the parsed body. There is no `.data` to unwrap.
+
+</Step>
+
+<Step>
 
 ### Handle failure
 
@@ -35,6 +45,8 @@ Each verb returns the parsed body. There is no `.data` to unwrap.
 
 Everything that can go wrong arrives as an `ApiError`: HTTP status, network
 failure, timeout, caller cancellation and invalid JSON alike.
+
+</Step>
 
 </Steps>
 
