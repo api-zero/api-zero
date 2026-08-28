@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { useRef } from "react";
 import { Container, Eyebrow } from "./primitives";
+import { Spotlight } from "./spotlight";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -139,24 +140,44 @@ export function Features() {
           scroll sideways, then a single row wider than the viewport. Splitting
           it in two would mean two sources of truth for the same six cards.
         */}
-        <div
+        <Spotlight
           ref={track}
-          className="relative mt-14 grid gap-5 px-6 sm:grid-cols-2 md:px-12 lg:flex lg:w-max lg:pr-[20vw] lg:pl-[max(3rem,calc((100vw-1400px)/2+3rem))]"
+          className="relative mt-10 grid gap-5 px-6 sm:grid-cols-2 md:px-12 lg:flex lg:w-max lg:pr-[20vw] lg:pl-[max(3rem,calc((100vw-1400px)/2+3rem))]"
         >
           {FEATURES.map((feature) => (
             <Link
               key={feature.href}
               href={feature.href}
-              className="group relative flex flex-col overflow-hidden rounded-3xl border border-fd-border bg-fd-card/70 p-8 backdrop-blur-xl transition-[transform,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-fd-border/80 lg:w-[24rem] lg:shrink-0"
+              data-spotlight
+              className="group relative flex flex-col overflow-hidden rounded-3xl border border-fd-border bg-fd-card/70 p-8 backdrop-blur-xl lg:w-[24rem] lg:shrink-0"
             >
               {/*
-                A wash that fills the card on hover instead of a coloured
-                outline. An accent border on hover is the tell of a component
-                nobody designed, and it fights the card's own edge.
+                Two layers reading the same pointer position: one lights the
+                card's edge, the other its face. Only opacity animates, so the
+                position can update every frame for free.
               */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-0 bg-gradient-to-b from-fd-primary/[0.07] to-transparent opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100"
+                className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-300 ease-out group-hover/spotlight:opacity-100"
+                style={{
+                  background:
+                    "radial-gradient(240px circle at var(--spot-x) var(--spot-y), var(--color-fd-primary), transparent 60%)",
+                  // The `content-box` keyword belongs to the `mask` shorthand.
+                  // Setting it through `mask-image` is invalid, the mask never
+                  // applies, and the full-strength gradient paints the card's
+                  // whole face instead of a one-pixel rim.
+                  mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+                  maskComposite: "exclude",
+                  padding: 1,
+                }}
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 ease-out group-hover:opacity-100"
+                style={{
+                  background:
+                    "radial-gradient(300px circle at var(--spot-x) var(--spot-y), rgb(255 122 24 / 0.06), transparent 70%)",
+                }}
               />
               <span className="relative grid size-11 place-items-center rounded-xl border border-fd-border bg-fd-background">
                 <feature.icon className={`size-5 ${feature.color}`} />
@@ -175,7 +196,7 @@ export function Features() {
               </span>
             </Link>
           ))}
-        </div>
+        </Spotlight>
       </div>
     </section>
   );

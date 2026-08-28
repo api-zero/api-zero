@@ -1,32 +1,38 @@
 import { Code, Container, Eyebrow } from "./primitives";
 import { Reveal } from "./reveal";
 
-const BEFORE = `// Every project. Slightly different every time.
-let token: string | null = null;
-
-async function request(path: string, init?: RequestInit) {
-  const res = await fetch(API_URL + path, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: \`Bearer \${token}\` }),
-      ...init?.headers,
-    },
-  });
-
-  // loses the response body
-  if (!res.ok) throw new Error(res.statusText);
-  // remembered this time
-  if (res.status === 204) return undefined;
-  return res.json();
-}`;
-
-const AFTER = `import { createClient } from "@api-zero/core";
-
-export const api = createClient({
-  baseURL: process.env.API_URL,
-  timeout: 10_000,
-});`;
+/**
+ * The handwritten client and its replacement, as one diff.
+ *
+ * Side by side, the two were a twenty-line block next to a five-line block and
+ * the imbalance read as a layout bug. As a diff the same asymmetry is the
+ * argument: this much of your repository stops existing.
+ */
+const DIFF = `- // Every project. Slightly different every time.
+- let token: string | null = null;
+-
+- async function request(path: string, init?: RequestInit) {
+-   const res = await fetch(API_URL + path, {
+-     ...init,
+-     headers: {
+-       "Content-Type": "application/json",
+-       ...(token && { Authorization: \`Bearer \${token}\` }),
+-       ...init?.headers,
+-     },
+-   });
+-
+-   // loses the response body
+-   if (!res.ok) throw new Error(res.statusText);
+-   // remembered this time
+-   if (res.status === 204) return undefined;
+-   return res.json();
+- }
++ import { createClient } from "@api-zero/core";
++
++ export const api = createClient({
++   baseURL: process.env.API_URL,
++   timeout: 10_000,
++ });`;
 
 /** The cases the handwritten version tends to miss. */
 const MISSED = [
@@ -38,7 +44,7 @@ const MISSED = [
 
 export function Problem() {
   return (
-    <section className="border-fd-border border-t py-28">
+    <section className="border-fd-border border-t py-20">
       <Container>
         <Reveal>
           <Eyebrow>The problem</Eyebrow>
@@ -54,28 +60,16 @@ export function Problem() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-6 lg:grid-cols-2">
-          <Reveal delay={40}>
-            <p className="mb-3 font-medium text-fd-muted-foreground text-sm">
-              What you write today
-            </p>
-            <Code code={BEFORE} />
-          </Reveal>
-
-          <Reveal delay={80}>
-            <p className="mb-3 font-medium text-fd-primary text-sm">
-              What replaces it
-            </p>
-            <Code code={AFTER} />
-          </Reveal>
-        </div>
+        <Reveal delay={40} className="mt-10">
+          <Code lang="diff" code={DIFF} />
+        </Reveal>
 
         {/*
-          The cases the handwritten version tends to miss, as a list of named
-          cases rather than one paragraph. A reader scanning the page can find
-          the one that bit them last month.
+          The cases the handwritten version tends to miss, as named cases rather
+          than one paragraph. A reader scanning the page can find the one that
+          bit them last month.
         */}
-        <Reveal delay={120} className="mt-6">
+        <Reveal delay={80} className="mt-5">
           <div className="grid gap-px overflow-hidden rounded-2xl border border-fd-border bg-fd-border sm:grid-cols-2 lg:grid-cols-4">
             {MISSED.map(([title, body]) => (
               <div key={title} className="bg-fd-card p-6">

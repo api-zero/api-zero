@@ -187,7 +187,7 @@ export function Lifecycle() {
               {
                 opacity: 0.16,
                 background:
-                  "radial-gradient(circle, #ef4444 0%, transparent 65%)",
+                  "radial-gradient(60% 55% at 50% 50%, #ef4444 0%, transparent 70%)",
                 duration: 0.4,
               },
               "<",
@@ -226,7 +226,7 @@ export function Lifecycle() {
               {
                 opacity: 0.18,
                 background:
-                  "radial-gradient(circle, #10b981 0%, transparent 65%)",
+                  "radial-gradient(60% 55% at 50% 50%, #10b981 0%, transparent 70%)",
                 duration: 0.4,
               },
               "<",
@@ -262,7 +262,7 @@ export function Lifecycle() {
 
   return (
     <section ref={root} className="border-fd-border border-t">
-      <div className="relative flex min-h-[70vh] items-center overflow-hidden py-24 md:min-h-screen md:py-0">
+      <div className="relative flex min-h-[70vh] items-center overflow-hidden py-20 md:min-h-screen md:py-0">
         {/*
           A glow that swells as the request advances and turns with its outcome.
           CSS rather than a fourth WebGL context: it is one radial gradient, and
@@ -271,10 +271,10 @@ export function Lifecycle() {
         <div
           aria-hidden
           data-glow
-          className="pointer-events-none absolute top-1/2 left-1/2 size-[900px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 blur-3xl"
+          className="pointer-events-none absolute inset-0 opacity-0"
           style={{
             background:
-              "radial-gradient(circle, var(--color-fd-primary) 0%, transparent 65%)",
+              "radial-gradient(60% 55% at 50% 50%, var(--color-fd-primary) 0%, transparent 70%)",
           }}
         />
 

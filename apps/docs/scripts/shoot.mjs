@@ -25,7 +25,9 @@ const chrome = spawn(CHROME, [
   `--user-data-dir=${mkdtempSync(join(tmpdir(), "shoot-"))}`,
   `--window-size=${width},${height}`,
   "--hide-scrollbars",
-  "--force-dark-mode",
+  // The landing has to survive both palettes, so the driver has to reach
+  // both. Set LIGHT=1 to review the light one.
+  ...(process.env.LIGHT ? [] : ["--force-dark-mode"]),
   // Software WebGL: the shaders render nothing on a headless machine without
   // it, which reads as a broken page rather than a missing GPU.
   "--enable-unsafe-swiftshader",
@@ -71,6 +73,16 @@ const send = (method, params = {}) =>
 
 await send("Page.enable");
 await send("Page.navigate", { url });
+
+if (process.env.LIGHT) {
+  // next-themes reads its own stored preference, so the OS-level flag alone
+  // never reaches it. Seed the key it looks at, then reload.
+  await sleep(800);
+  await send("Runtime.evaluate", {
+    expression: `localStorage.setItem("theme", "light")`,
+  });
+  await send("Page.reload");
+}
 await sleep(3500); // shaders mount on a timer, past first paint
 
 if (scrollY !== "0") {
@@ -79,6 +91,19 @@ if (scrollY !== "0") {
   });
   // ScrollTrigger updates on the next frame; two frames is enough to settle.
   await sleep(900);
+}
+
+if (process.env.HOVER) {
+  // Hover states are unreviewable without a real pointer: CSS :hover and
+  // pointer-tracking both need input events, not a synthetic class.
+  const [hx, hy] = process.env.HOVER.split(",").map(Number);
+  await send("Input.dispatchMouseEvent", {
+    type: "mouseMoved",
+    x: hx,
+    y: hy,
+    buttons: 0,
+  });
+  await sleep(600);
 }
 
 const shot = await send("Page.captureScreenshot", { format: "png" });

@@ -22,15 +22,20 @@ try {
 
 export function Hero() {
   return (
-    <section className="px-6 pt-6 pb-16 md:px-12">
+    <section className="px-6 pt-6 pb-12 md:px-12">
       {/*
         Sized to the viewport rather than to its contents. A hero that needs a
         scroll to be seen whole has stopped being a hero, and the bounds keep it
         from collapsing on a laptop or stretching absurdly on a large display.
       */}
       <div className="relative mx-auto flex h-[calc(100vh-7rem)] max-h-[860px] min-h-[560px] w-full max-w-[1400px] overflow-hidden rounded-3xl border border-fd-border bg-fd-card">
+        {/*
+          Taller than the card it sits in. The layer travels with the scroll, so
+          one sized exactly to the card drags its own bottom edge into view and
+          the hero appears to peel away from its own background.
+        */}
         <Parallax
-          className="pointer-events-none absolute inset-0"
+          className="-inset-y-40 pointer-events-none absolute inset-x-0"
           distance={-90}
         >
           <HeroGrain />
@@ -42,7 +47,7 @@ export function Hero() {
           className="pointer-events-none absolute inset-0 bg-gradient-to-r from-fd-card via-fd-card/55 to-transparent"
         />
 
-        <div className="relative grid w-full grid-cols-1 items-center gap-10 p-8 sm:p-12 lg:grid-cols-[1.05fr_1fr] lg:gap-6 lg:pr-0">
+        <div className="relative grid w-full grid-cols-1 items-center gap-10 p-8 sm:p-12 lg:grid-cols-[1.05fr_1fr] lg:gap-8 lg:py-14 lg:pr-0">
           <div>
             <Link
               href="/docs/core/get-started/installation"
@@ -99,7 +104,7 @@ export function Hero() {
             shrunk to illegibility.
           */}
           <div
-            className="landing-enter -mr-px hidden max-h-full overflow-hidden rounded-l-2xl border border-fd-border border-r-0 bg-fd-background/60 backdrop-blur-sm lg:block [&_*]:!rounded-r-none [&_pre]:!border-r-0 [&_pre]:!max-h-[min(60vh,600px)]"
+            className="landing-enter -mr-px hidden overflow-hidden rounded-l-2xl border border-fd-border border-r-0 bg-fd-background/60 backdrop-blur-sm lg:block [&_*]:!rounded-r-none [&_pre]:!border-r-0 [&_pre]:!max-h-[min(46vh,440px)]"
             style={{ transitionDelay: "240ms" }}
           >
             <Code code={SAMPLE} />

@@ -34,7 +34,7 @@ const STATS = [
 
 export function Comparison() {
   return (
-    <section className="border-fd-border border-t py-28">
+    <section className="border-fd-border border-t py-20">
       <Container>
         <Reveal>
           <Eyebrow>Measured, not claimed</Eyebrow>
@@ -48,7 +48,7 @@ export function Comparison() {
           </p>
         </Reveal>
 
-        <dl className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-fd-border bg-fd-border sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-10 grid gap-px overflow-hidden rounded-3xl border border-fd-border bg-fd-border sm:grid-cols-2 lg:grid-cols-4">
           {STATS.map((stat, index) => (
             <Reveal
               key={stat.label}

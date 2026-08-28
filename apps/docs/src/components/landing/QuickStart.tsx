@@ -1,7 +1,7 @@
 import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { buttonStyles, Code, Container } from "./primitives";
+import { buttonStyles, Code, Container, Eyebrow } from "./primitives";
 import { Reveal } from "./reveal";
 import { CtaGrain } from "./shaders";
 
@@ -14,14 +14,14 @@ const MANAGERS = [
 
 export function QuickStart() {
   return (
-    <section className="border-fd-border border-t py-28">
+    <section className="border-fd-border border-t py-16">
       <Container>
         {/*
         A framed band rather than another flat row. The landing opens and closes
         on the same material, which is what stops the page reading as a stack of
         unrelated sections.
       */}
-        <div className="relative overflow-hidden rounded-3xl border border-fd-border bg-fd-card px-6 py-20 sm:px-14">
+        <div className="relative overflow-hidden rounded-3xl border border-fd-border bg-fd-card px-6 py-16 sm:px-14">
           <CtaGrain />
           <div
             aria-hidden
@@ -29,10 +29,8 @@ export function QuickStart() {
           />
           <div className="relative">
             <Reveal>
-              <p className="font-medium font-mono text-fd-primary text-sm">
-                Get started
-              </p>
-              <h2 className="mt-3 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
+              <Eyebrow>Get started</Eyebrow>
+              <h2 className="mt-4 text-balance font-semibold text-3xl tracking-tight sm:text-4xl">
                 One package to start
               </h2>
               <p className="mt-4 text-fd-muted-foreground">

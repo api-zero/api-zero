@@ -93,7 +93,7 @@ export function Failures() {
   const cycle = `${STEP * FAILURES.length}s`;
 
   return (
-    <section className="border-fd-border border-t py-28">
+    <section className="border-fd-border border-t py-20">
       <Container>
         <Reveal>
           <Eyebrow>Error handling</Eyebrow>
