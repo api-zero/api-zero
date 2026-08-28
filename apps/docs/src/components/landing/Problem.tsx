@@ -1,38 +1,44 @@
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { Code, Container, Eyebrow } from "./primitives";
 import { Reveal } from "./reveal";
 
 /**
- * The handwritten client and its replacement, as one diff.
+ * The handwritten client and its replacement, in one panel.
  *
- * Side by side, the two were a twenty-line block next to a five-line block and
- * the imbalance read as a layout bug. As a diff the same asymmetry is the
- * argument: this much of your repository stops existing.
+ * Side by side, a twenty-line block next to a five-line block read as a layout
+ * bug. As a unified diff it read as a wall of red. Two tabs over one panel keep
+ * a single footprint and let the reader flip between them, which is closer to
+ * how the comparison actually lands: the same job, twice.
  */
-const DIFF = `- // Every project. Slightly different every time.
-- let token: string | null = null;
--
-- async function request(path: string, init?: RequestInit) {
--   const res = await fetch(API_URL + path, {
--     ...init,
--     headers: {
--       "Content-Type": "application/json",
--       ...(token && { Authorization: \`Bearer \${token}\` }),
--       ...init?.headers,
--     },
--   });
--
--   // loses the response body
--   if (!res.ok) throw new Error(res.statusText);
--   // remembered this time
--   if (res.status === 204) return undefined;
--   return res.json();
-- }
-+ import { createClient } from "@api-zero/core";
-+
-+ export const api = createClient({
-+   baseURL: process.env.API_URL,
-+   timeout: 10_000,
-+ });`;
+const BEFORE = `// Every project. Slightly different every time.
+let token: string | null = null;
+
+async function request(path: string, init?: RequestInit) {
+  const res = await fetch(API_URL + path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: \`Bearer \${token}\` }),
+      ...init?.headers,
+    },
+  });
+
+  // loses the response body
+  if (!res.ok) throw new Error(res.statusText);
+  // remembered this time
+  if (res.status === 204) return undefined;
+  return res.json();
+}`;
+
+const AFTER = `import { createClient } from "@api-zero/core";
+
+export const api = createClient({
+  baseURL: process.env.API_URL,
+  timeout: 10_000,
+});
+
+// Everything above is now configuration, not code you maintain:
+// 204s, FormData, timeouts, cancellation and retries are handled.`;
 
 /** The cases the handwritten version tends to miss. */
 const MISSED = [
@@ -61,7 +67,14 @@ export function Problem() {
         </Reveal>
 
         <Reveal delay={40} className="mt-10">
-          <Code lang="diff" code={DIFF} />
+          <Tabs items={["By hand", "With api-zero"]}>
+            <Tab value="By hand">
+              <Code code={BEFORE} />
+            </Tab>
+            <Tab value="With api-zero">
+              <Code code={AFTER} />
+            </Tab>
+          </Tabs>
         </Reveal>
 
         {/*

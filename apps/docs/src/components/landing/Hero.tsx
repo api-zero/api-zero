@@ -30,13 +30,18 @@ export function Hero() {
       */}
       <div className="relative mx-auto flex h-[calc(100vh-7rem)] max-h-[860px] min-h-[560px] w-full max-w-[1400px] overflow-hidden rounded-3xl border border-fd-border bg-fd-card">
         {/*
-          Taller than the card it sits in. The layer travels with the scroll, so
-          one sized exactly to the card drags its own bottom edge into view and
-          the hero appears to peel away from its own background.
+          The layer travels with the scroll, so its own bottom edge comes into
+          view and the hero appears to peel away from its background.
+
+          Two fixes were wrong before this one. Growing the layer moves the
+          grain's colour — it lives at the canvas corners — out of the card,
+          leaving the dim middle. A `mask-image` on this element stops the WebGL
+          canvases inside from compositing at all. The travelling edge is hidden
+          from above instead, by the overlay below.
         */}
         <Parallax
-          className="-inset-y-40 pointer-events-none absolute inset-x-0"
-          distance={-90}
+          className="pointer-events-none absolute inset-0"
+          distance={-60}
         >
           <HeroGrain />
           <HeroSphere />
@@ -46,8 +51,16 @@ export function Hero() {
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-gradient-to-r from-fd-card via-fd-card/55 to-transparent"
         />
+        {/*
+          Ends the decoration before the card does, in the card's own colour, so
+          the edge the parallax drags upwards has nothing to reveal.
+        */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-fd-card to-transparent"
+        />
 
-        <div className="relative grid w-full grid-cols-1 items-center gap-10 p-8 sm:p-12 lg:grid-cols-[1.05fr_1fr] lg:gap-8 lg:py-14 lg:pr-0">
+        <div className="relative grid w-full grid-cols-1 items-center gap-10 p-8 sm:p-12 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:py-14">
           <div>
             <Link
               href="/docs/core/get-started/installation"
@@ -98,13 +111,16 @@ export function Hero() {
           </div>
 
           {/*
-            The product itself, running off the right edge. A library's product
-            is its code, and a hero with nothing to look at gives the eye
-            nowhere to rest. Hidden where there is no room for it rather than
-            shrunk to illegibility.
+            The product itself. A library's product is its code, and a hero with
+            nothing to look at gives the eye nowhere to rest.
+
+            A panel that runs off the card's edge reads as clipped rather than
+            as bleeding, so this one sits fully inside with its own margin.
+            Hidden where there is no room for it rather than shrunk to
+            illegibility.
           */}
           <div
-            className="landing-enter -mr-px hidden overflow-hidden rounded-l-2xl border border-fd-border border-r-0 bg-fd-background/60 backdrop-blur-sm lg:block [&_*]:!rounded-r-none [&_pre]:!border-r-0 [&_pre]:!max-h-[min(46vh,440px)]"
+            className="landing-enter hidden overflow-hidden rounded-2xl border border-fd-border bg-fd-background/60 backdrop-blur-sm lg:block [&_pre]:!max-h-[min(46vh,440px)]"
             style={{ transitionDelay: "240ms" }}
           >
             <Code code={SAMPLE} />

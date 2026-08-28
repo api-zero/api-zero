@@ -134,7 +134,7 @@ export function Lifecycle() {
           });
 
           tl.to("[data-call]", { opacity: 1, y: 0, duration: 0.6 })
-            .to("[data-glow]", { opacity: 0.1, duration: 0.6 }, "<")
+            .to("[data-glow='idle']", { opacity: 0.1, duration: 0.6 }, "<")
             .to("[data-node='0']", { opacity: 1, duration: 0.4 })
             .to("[data-beam='0']", { scaleX: 1, duration: 0.5 })
             .fromTo(
@@ -182,16 +182,13 @@ export function Lifecycle() {
             .to("[data-pulse='2']", { opacity: 0, duration: 0.15 })
             .to("[data-node-fail='3']", { opacity: 1, duration: 0.4 })
             .to("[data-status='fail']", { opacity: 1, duration: 0.3 }, "<")
-            .to(
-              "[data-glow]",
-              {
-                opacity: 0.16,
-                background:
-                  "radial-gradient(60% 55% at 50% 50%, #ef4444 0%, transparent 70%)",
-                duration: 0.4,
-              },
-              "<",
-            )
+            // Three stacked layers, cross-faded. GSAP interpolates the numbers
+            // inside a gradient string, so tweening `background` from one
+            // gradient to another walks the shape and the centre through
+            // nonsense on the way — an ellipse creeping in from the left.
+            // Opacity is the only thing here that is safe to animate.
+            .to("[data-glow='fail']", { opacity: 0.16, duration: 0.4 }, "<")
+            .to("[data-glow='idle']", { opacity: 0, duration: 0.4 }, "<")
 
             // The wait. Everything upstream dims, the failure stays lit: a
             // pipeline that goes dark here reads as "nothing is happening",
@@ -221,16 +218,8 @@ export function Lifecycle() {
             )
             .to("[data-node-ok='3']", { opacity: 1, duration: 0.4 })
             .to("[data-status='ok']", { opacity: 1, duration: 0.3 }, "<")
-            .to(
-              "[data-glow]",
-              {
-                opacity: 0.18,
-                background:
-                  "radial-gradient(60% 55% at 50% 50%, #10b981 0%, transparent 70%)",
-                duration: 0.4,
-              },
-              "<",
-            )
+            .to("[data-glow='ok']", { opacity: 0.18, duration: 0.4 }, "<")
+            .to("[data-glow='fail']", { opacity: 0, duration: 0.4 }, "<")
             .to("[data-beam='3']", { scaleX: 1, duration: 0.5 })
             .fromTo(
               "[data-pulse='3']",
@@ -270,11 +259,29 @@ export function Lifecycle() {
         */}
         <div
           aria-hidden
-          data-glow
+          data-glow="idle"
           className="pointer-events-none absolute inset-0 opacity-0"
           style={{
             background:
-              "radial-gradient(60% 55% at 50% 50%, var(--color-fd-primary) 0%, transparent 70%)",
+              "radial-gradient(circle at 50% 46%, var(--color-fd-primary) 0%, transparent 55%)",
+          }}
+        />
+        <div
+          aria-hidden
+          data-glow="fail"
+          className="pointer-events-none absolute inset-0 opacity-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 46%, #ef4444 0%, transparent 55%)",
+          }}
+        />
+        <div
+          aria-hidden
+          data-glow="ok"
+          className="pointer-events-none absolute inset-0 opacity-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 46%, #10b981 0%, transparent 55%)",
           }}
         />
 
