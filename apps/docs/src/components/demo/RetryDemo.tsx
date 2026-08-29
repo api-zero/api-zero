@@ -1,7 +1,7 @@
 "use client";
 
 import { ApiError, createClient } from "@api-zero/core";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useId, useRef, useState } from "react";
 import { type Attempt, createFakeTransport } from "./fake-transport";
 
 /** What the reader can change. Everything else is the library's own default. */
@@ -107,29 +107,24 @@ export function RetryDemo() {
   return (
     <div className="not-prose my-6 overflow-hidden rounded-xl border border-fd-border bg-fd-card">
       <div className="flex flex-wrap items-end gap-4 border-fd-border border-b p-4">
-        <Field label="Failures first">
-          <Select
-            value={String(settings.failures)}
-            onChange={(value) => update("failures", Number(value))}
-            options={["0", "1", "2", "3"]}
-          />
-        </Field>
-        <Field label="Status">
-          <Select
-            value={String(settings.status)}
-            onChange={(value) => update("status", Number(value) as 500 | 429)}
-            options={["500", "429"]}
-          />
-        </Field>
-        <Field label="Backoff">
-          <Select
-            value={settings.backoff}
-            onChange={(value) =>
-              update("backoff", value as Settings["backoff"])
-            }
-            options={["exponential", "linear"]}
-          />
-        </Field>
+        <Field
+          label="Failures first"
+          value={String(settings.failures)}
+          onChange={(value) => update("failures", Number(value))}
+          options={["0", "1", "2", "3"]}
+        />
+        <Field
+          label="Status"
+          value={String(settings.status)}
+          onChange={(value) => update("status", Number(value) as 500 | 429)}
+          options={["500", "429"]}
+        />
+        <Field
+          label="Backoff"
+          value={settings.backoff}
+          onChange={(value) => update("backoff", value as Settings["backoff"])}
+          options={["exponential", "linear"]}
+        />
         <label className="flex items-center gap-2 pb-2 text-sm">
           <input
             type="checkbox"
@@ -221,43 +216,47 @@ export function RetryDemo() {
   );
 }
 
+/**
+ * A labelled select.
+ *
+ * The label and the control live in one component rather than a wrapper taking
+ * the control through `children`: an association made across a component
+ * boundary is invisible to static analysis, and a label a checker cannot follow
+ * is one a reviewer cannot either.
+ */
 function Field({
   label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="font-medium text-fd-muted-foreground text-xs">
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-function Select({
   value,
   onChange,
   options,
 }: {
+  label: string;
   value: string;
   onChange: (value: string) => void;
   options: string[];
 }) {
+  const id = useId();
+
   return (
-    <select
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      className="h-9 rounded-lg border border-fd-border bg-fd-background px-2.5 text-sm"
-    >
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+    <div className="flex flex-col gap-1.5">
+      <label
+        htmlFor={id}
+        className="font-medium text-fd-muted-foreground text-xs"
+      >
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-9 rounded-lg border border-fd-border bg-fd-background px-2.5 text-sm"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
