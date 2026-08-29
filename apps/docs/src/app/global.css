@@ -260,36 +260,3 @@ body {
     animation: none;
   }
 }
-
-/*
- * Scroll snapping, on the landing only.
- *
- * `proximity`, never `mandatory`: mandatory snapping takes the scroll away from
- * the reader entirely, and on a short viewport or at high zoom it can leave
- * content that cannot be reached at all. Proximity nudges toward a section
- * boundary when the reader stops near one and otherwise stays out of the way.
- *
- * Only sections that do not already pin opt in. The lifecycle and the feature
- * row hold the scroll for three viewports and one respectively; a snap point
- * competing with those would fight the reader for the same gesture.
- */
-.landing-snapping {
-  scroll-snap-type: y proximity;
-}
-
-.landing-snap > * {
-  scroll-snap-align: start;
-  /* Clears the sticky header, so a snapped heading is not hidden under it. */
-  scroll-margin-top: 3.5rem;
-}
-
-.landing-snap > [data-no-snap],
-.landing-snap > .pin-spacer {
-  scroll-snap-align: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-snapping {
-    scroll-snap-type: none;
-  }
-}

@@ -6,13 +6,11 @@ import { Hero } from "@/components/landing/Hero";
 import { Lifecycle } from "@/components/landing/Lifecycle";
 import { Problem } from "@/components/landing/Problem";
 import { QuickStart } from "@/components/landing/QuickStart";
-import { SnapScroll } from "@/components/landing/snap";
 
 export default function HomePage() {
   return (
     <>
-      <SnapScroll />
-      <main className="landing-snap flex-1">
+      <main className="flex-1">
         <Hero />
         <Problem />
         <QuickStart />
