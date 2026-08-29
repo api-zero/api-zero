@@ -4,6 +4,14 @@ import { Reveal } from "./reveal";
 /**
  * The eight ways a request dies, and what `ApiError` reports for each.
  *
+ * Every field below is read off the class in packages/core/src/error.ts. An
+ * earlier version invented `isServerError()`, `isRateLimited()` and
+ * `isParseError()`, and called three real fields as though they were methods:
+ * `isNotFound`, `isValidation`, `isRetryable`, `is4xx` and `is5xx` are the
+ * predicates, while `isTimeout`, `isAborted`, `isNetworkError` and
+ * `isValidationError` are plain properties. This file is hand-written TSX, so
+ * the compiled-examples guarantee never covered it.
+ *
  * This was a rendered video first, which was the wrong medium twice over: text
  * in a video is soft on a retina display, it cost 600 kB, and when the codec or
  * the autoplay policy disagreed the reader got a black rectangle. The same
@@ -14,58 +22,58 @@ const FAILURES = [
   {
     label: "DNS lookup failed",
     message: "getaddrinfo ENOTFOUND api.example.com",
-    status: "null",
+    status: "0",
     attempt: "1",
-    matcher: "isNetworkError()",
+    matcher: "error.isNetworkError",
   },
   {
     label: "Connection refused",
     message: "connect ECONNREFUSED 127.0.0.1:443",
-    status: "null",
+    status: "0",
     attempt: "1",
-    matcher: "isNetworkError()",
+    matcher: "error.isNetworkError",
   },
   {
     label: "Timed out",
-    message: "Request exceeded 10000ms",
-    status: "null",
+    message: "Request timeout",
+    status: "408",
     attempt: "3",
-    matcher: "isTimeout()",
+    matcher: "error.isTimeout",
   },
   {
     label: "Caller aborted",
-    message: "The operation was aborted",
-    status: "null",
+    message: "Request aborted",
+    status: "0",
     attempt: "1",
-    matcher: "isAborted()",
+    matcher: "error.isAborted",
   },
   {
     label: "404 Not Found",
     message: "Request failed with status 404",
     status: "404",
     attempt: "1",
-    matcher: "isNotFound()",
+    matcher: "error.isNotFound()",
   },
   {
     label: "500 Server Error",
     message: "Request failed with status 500",
     status: "500",
     attempt: "3",
-    matcher: "isServerError()",
+    matcher: "error.is5xx()",
   },
   {
     label: "429 Rate limited",
     message: "Request failed with status 429",
     status: "429",
     attempt: "3",
-    matcher: "isRateLimited()",
+    matcher: "error.isRetryable()",
   },
   {
-    label: "Malformed JSON body",
-    message: "Unexpected token < in JSON at position 0",
+    label: "Schema rejected the body",
+    message: "Response validation failed",
     status: "200",
     attempt: "1",
-    matcher: "isParseError()",
+    matcher: "error.isValidation()",
   },
 ];
 
