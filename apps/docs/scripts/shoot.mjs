@@ -93,6 +93,16 @@ if (scrollY !== "0") {
   await sleep(900);
 }
 
+if (process.env.CLICK) {
+  // Interactive components are unreviewable without a real click: a screenshot
+  // of the idle state proves the markup renders, not that anything works.
+  const label = process.env.CLICK;
+  await send("Runtime.evaluate", {
+    expression: `[...document.querySelectorAll("button")].find(b => b.textContent.trim().startsWith(${JSON.stringify(label)}))?.click()`,
+  });
+  await sleep(Number(process.env.CLICK_WAIT ?? 2500));
+}
+
 if (process.env.HOVER) {
   // Hover states are unreviewable without a real pointer: CSS :hover and
   // pointer-tracking both need input events, not a synthetic class.

@@ -64,7 +64,7 @@ guarantee consumers receive matching versions anyway; it should be tightened to
 
 ### 5. Private apps are ignored
 
-`ignore: ["playground", "docs"]`. Neither is published, and versioning them adds
+`ignore: ["docs"]`. It is not published, and versioning it adds
 noise to every release.
 
 ### 6. Release flow

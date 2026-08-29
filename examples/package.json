@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.5",
   "type": "module",
-  "description": "Compiled examples rendered by the docs and executed by the playground. Not published.",
+  "description": "Compiled examples rendered by the docs. Not published.",
   "scripts": {
     "build": "tsc --noEmit",
     "test": "tsc --noEmit && vitest run",

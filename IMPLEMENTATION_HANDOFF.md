@@ -1,6 +1,10 @@
 # api-zero — Implementation Handoff
 
-This document is the working brief for the next agent. It is intentionally self-contained: read it before changing the code, then work through the checkpoints in order. Do **not** attempt a broad rewrite or feature-parity race with Axios/Ky.
+> **Historical.** Every checkpoint below is complete and shipped as 0.1.5. Kept
+> for the reasoning, not as instructions; the current state is in `docs/adr/`
+> and `docs/plans/`.
+
+This document was the working brief for the next agent. It is intentionally self-contained: read it before changing the code, then work through the checkpoints in order. Do **not** attempt a broad rewrite or feature-parity race with Axios/Ky.
 
 ## Product direction
 
@@ -22,7 +26,6 @@ TanStack Query/SWR remain responsible for cache, deduplication and server-state 
 | --- | --- |
 | `packages/core` | Client, transport behavior, errors, interceptors, retries, params and public types. |
 | `packages/react` | `ApiProvider` and `useApi`; currently a thin React Context wrapper. |
-| `apps/playground` | Vite/React manual smoke test against httpbin. |
 | `apps/docs` | Next.js + Fumadocs documentation site, MDX content, search, OG images and LLM text route. |
 | `.changeset` | Versioning/release changesets. |
 
@@ -30,7 +33,7 @@ The monorepo uses pnpm, Turborepo, TypeScript, tsup, Vitest, Vite, Next.js and F
 
 ## Verified baseline
 
-- `pnpm test` completed successfully on 2026-08-13: core and React build, 2 core tests pass, playground builds and docs build.
+- `pnpm test` completed successfully on 2026-08-13: core and React build, 2 core tests pass, and docs build.
 - The docs build has non-blocking warnings about Shiki externalization and missing Next `metadataBase`.
 - The working tree was already substantially dirty before this document was added. Preserve unrelated user changes.
 
@@ -181,7 +184,7 @@ input → build RequestContext → request transforms → request interceptors
 
 ## Testing strategy
 
-Prefer deterministic unit tests with injected/mock transports over httpbin. Keep the playground as a manual visual smoke test, not the test suite.
+Prefer deterministic unit tests with injected/mock transports over httpbin. The documentation demonstrates behaviour the same way, with a fake transport running the real policy on the page.
 
 Minimum new suites:
 

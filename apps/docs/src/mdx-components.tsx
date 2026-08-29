@@ -6,6 +6,7 @@ import { Tab, Tabs } from "fumadocs-ui/components/tabs";
 import { TypeTable } from "fumadocs-ui/components/type-table";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import type { MDXComponents } from "mdx/types";
+import { RetryDemo } from "@/components/demo/RetryDemo";
 import { Mermaid } from "@/components/mdx/mermaid";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
@@ -23,6 +24,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     FileTree: Files, // Alias for Files component
     TypeTable,
     Mermaid,
+    RetryDemo,
     ...components,
     pre: ({ ref: _ref, ...props }) => (
       <CodeBlock {...props}>

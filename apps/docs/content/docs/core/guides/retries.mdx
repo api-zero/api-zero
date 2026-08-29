@@ -92,6 +92,18 @@ and it only ever shortens a wait.
 
 ## Watch them happen
 
+The policy below is the shipped one. Only the transport is replaced — with one
+that fails on demand, so the timings are real and nothing leaves your browser.
+
+<RetryDemo />
+
+<Callout type="info">
+  The base delay here is 400ms rather than the default 1000ms, so a run finishes
+  while you are still looking at it. Turn jitter off and run it twice: the waits
+  become identical, which is exactly the behaviour jitter exists to prevent
+  across many clients at once.
+</Callout>
+
 `onRetry` fires before each wait with the attempt, the error and the delay about
 to be taken.
 
@@ -101,7 +113,9 @@ Log this.
 
 ## Cancelling mid-retry
 
-Aborting while the client waits between attempts stops it immediately. The sleep
+Aborting while the client waits between attempts stops it immediately. Press
+**Cancel** in the demo above while it is counting down: the run ends on the
+spot rather than finishing the wait it had already started. The sleep
 is signal-aware rather than a plain `setTimeout`, which matters once backoff has
 grown to eight seconds.
 
