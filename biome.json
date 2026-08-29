@@ -15,7 +15,9 @@
       "!**/build",
       "!**/.source",
       "!**/.turbo",
-      "!**/.changeset"
+      "!**/.changeset",
+      "!**/.agents",
+      "!**/.claude"
     ]
   },
   "formatter": {
